@@ -1,0 +1,20 @@
+digraph G {
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="0.65", fontname="Microsoft JhengHei", fontsize=22, labelloc=t, label="Job｜單一步驟執行狀態"];
+node [shape=box, style="rounded,filled", fillcolor="#eef4fa", color="#42617d", fontname="Microsoft JhengHei", fontsize=15, margin="0.2,0.12"];
+edge [fontname="Microsoft JhengHei", fontsize=12, color="#526779", arrowsize=0.8];
+initial [shape=circle, label="", width=0.16, height=0.16, fillcolor="#182c3b", color="#182c3b"];
+queued [label="排隊中 / queued"];
+running [label="執行中 / running"];
+blocked [label="待補資料 / blocked"];
+failed [label="執行失敗 / failed"];
+succeeded [label="執行成功 / succeeded"];
+final [shape=doublecircle, label="", width=0.18, height=0.18, fillcolor="#182c3b", color="#182c3b"];
+initial -> queued [label="建立工作"];
+queued -> running [label="取得執行鎖 / 記錄 attempt"];
+running -> blocked [label="必要輸入不足 / 列出缺口"];
+blocked -> queued [label="人補齊資料並要求重跑"];
+running -> failed [label="工具錯誤／程序中斷 / 保存錯誤"];
+failed -> queued [label="要求重試 [問題已處理]"];
+running -> succeeded [label="執行完成 / 保存輸出路徑"];
+succeeded -> final [label=""];
+}

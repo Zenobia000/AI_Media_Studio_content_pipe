@@ -1,0 +1,14 @@
+@startuml
+title Publication｜單一平台發布狀態
+skinparam defaultFontName Microsoft JhengHei
+hide empty description
+state "待人工發布 / pending" as pending
+state "平台已排程 / scheduled" as scheduled
+state "已實際發布 / published" as published
+[*] --> pending : 建立發布紀錄 [成品版本已確認]
+pending --> scheduled : 人完成平台原生排程 / 記錄預定時間
+scheduled --> pending : 取消排程／尚未發布 / 更新紀錄
+pending --> published : 人工發布並填回網址、時間
+scheduled --> published : 確認已實際發布 / 填回網址、時間
+published --> published : 回填成效 / 新增 MetricSnapshot
+@enduml

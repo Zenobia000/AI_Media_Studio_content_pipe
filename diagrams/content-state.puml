@@ -1,0 +1,21 @@
+@startuml
+title Content｜單則內容狀態
+skinparam defaultFontName Microsoft JhengHei
+hide empty description
+state "草稿中 / drafting" as drafting
+state "待改稿 / review" as review
+state "製作中 / producing" as producing
+state "待成品確認 / ready" as ready
+state "已確認 / approved" as approved
+state "已發布 / published" as published
+[*] --> drafting : 選題並執行 produce / 建立內容
+drafting --> review : 草稿生成成功 / 提供來源與預覽
+review --> drafting : 要求重生草稿 / 保留人工稿
+review --> producing : 啟動製作 [稿件與必要素材已備妥]
+producing --> ready : 輸出成功 / 保存成品版本
+ready --> review : 要求修改 / 標記成品需重製
+ready --> approved : 人確認 [待確認項已處理] / 綁定版本
+approved --> review : 修改內容 / 撤銷本版本確認
+approved --> published : 記錄實際發布 [版本已確認]
+published --> published : 另一平台發布／回填成效 / 更新對應紀錄
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+title Job｜單一步驟執行狀態
+skinparam defaultFontName Microsoft JhengHei
+hide empty description
+state "排隊中 / queued" as queued
+state "執行中 / running" as running
+state "待補資料 / blocked" as blocked
+state "執行失敗 / failed" as failed
+state "執行成功 / succeeded" as succeeded
+[*] --> queued : 建立工作
+queued --> running : 取得執行鎖 / 記錄 attempt
+running --> blocked : 必要輸入不足 / 列出缺口
+blocked --> queued : 人補齊資料並要求重跑
+running --> failed : 工具錯誤／程序中斷 / 保存錯誤
+failed --> queued : 要求重試 [問題已處理]
+running --> succeeded : 執行完成 / 保存輸出路徑
+succeeded --> [*]
+@enduml

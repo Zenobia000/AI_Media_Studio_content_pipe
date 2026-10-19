@@ -1,0 +1,15 @@
+digraph G {
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="0.65", fontname="Microsoft JhengHei", fontsize=22, labelloc=t, label="Publication｜單一平台發布狀態"];
+node [shape=box, style="rounded,filled", fillcolor="#eef4fa", color="#42617d", fontname="Microsoft JhengHei", fontsize=15, margin="0.2,0.12"];
+edge [fontname="Microsoft JhengHei", fontsize=12, color="#526779", arrowsize=0.8];
+initial [shape=circle, label="", width=0.16, height=0.16, fillcolor="#182c3b", color="#182c3b"];
+pending [label="待人工發布 / pending"];
+scheduled [label="平台已排程 / scheduled"];
+published [label="已實際發布 / published"];
+initial -> pending [label="建立發布紀錄 [成品版本已確認]"];
+pending -> scheduled [label="人完成平台原生排程 / 記錄預定時間"];
+scheduled -> pending [label="取消排程／尚未發布 / 更新紀錄"];
+pending -> published [label="人工發布並填回網址、時間"];
+scheduled -> published [label="確認已實際發布 / 填回網址、時間"];
+published -> published [label="回填成效 / 新增 MetricSnapshot"];
+}

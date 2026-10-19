@@ -1,0 +1,22 @@
+digraph G {
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="0.65", fontname="Microsoft JhengHei", fontsize=22, labelloc=t, label="Content｜單則內容狀態"];
+node [shape=box, style="rounded,filled", fillcolor="#eef4fa", color="#42617d", fontname="Microsoft JhengHei", fontsize=15, margin="0.2,0.12"];
+edge [fontname="Microsoft JhengHei", fontsize=12, color="#526779", arrowsize=0.8];
+initial [shape=circle, label="", width=0.16, height=0.16, fillcolor="#182c3b", color="#182c3b"];
+drafting [label="草稿中 / drafting"];
+review [label="待改稿 / review"];
+producing [label="製作中 / producing"];
+ready [label="待成品確認 / ready"];
+approved [label="已確認 / approved"];
+published [label="已發布 / published"];
+initial -> drafting [label="選題並執行 produce / 建立內容"];
+drafting -> review [label="草稿生成成功 / 提供來源與預覽"];
+review -> drafting [label="要求重生草稿 / 保留人工稿"];
+review -> producing [label="啟動製作 [稿件與必要素材已備妥]"];
+producing -> ready [label="輸出成功 / 保存成品版本"];
+ready -> review [label="要求修改 / 標記成品需重製"];
+ready -> approved [label="人確認 [待確認項已處理] / 綁定版本"];
+approved -> review [label="修改內容 / 撤銷本版本確認"];
+approved -> published [label="記錄實際發布 [版本已確認]"];
+published -> published [label="另一平台發布／回填成效 / 更新對應紀錄"];
+}
