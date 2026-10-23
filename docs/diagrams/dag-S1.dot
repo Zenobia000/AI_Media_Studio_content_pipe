@@ -1,0 +1,75 @@
+digraph S {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, nodesep=0.3, ranksep=0.7, label="S1｜接力圖
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+subgraph "cluster_Albert Chiang" { label="Albert Chiang（7 點）"; style="rounded,filled"; fillcolor="#e3f0e140"; color="#c7d0d9"; fontsize=15;
+"T-001" [label="T-001
+專案骨架與 CI
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-006" [label="T-006
+workspace 模組：路徑、受管區…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-010" [label="T-010
+網址正規化與去重
+2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-011" [label="T-011
+add-source：手動新增候選
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-012" [label="T-012
+SPK-FET-1 全文擷取方案驗證
+1 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+}
+subgraph "cluster_周長曉" { label="周長曉（6 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+"T-013" [label="T-013
+render/ Node 專案骨架與 …
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-014" [label="T-014
+SPK-PRD-1 合成層驗證：Rem…
+2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-015" [label="T-015
+LLM adapter 與成本紀錄
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-016" [label="T-016
+事實抽取（facts.json）
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+}
+subgraph "cluster_楊舒媁" { label="楊舒媁（7 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-004" [label="T-004
+SPK-OPS-1 環境確認：GPU、…
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-005" [label="T-005
+config 載入與日誌（含金鑰遮罩）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-007" [label="T-007
+SQLite schema 與 mig…
+2 點", fillcolor="#e8e4f6", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-009" [label="T-009
+Step 介面與 Job 協調器（指紋…
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
+}
+subgraph "cluster_全體" { label="全體（3 點）"; style="rounded,filled"; fillcolor="#ffffff40"; color="#c7d0d9"; fontsize=15;
+"T-002" [label="T-002
+介面契約 JSON Schema（IF…
+2 點", fillcolor="#ffffff", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-003" [label="T-003
+Fixture 假工作區（IF-018）
+1 點", fillcolor="#ffffff", style="rounded,filled"];
+}
+"T-001" -> "T-002" [color="#c0392b", penwidth=2.5];
+"T-002" -> "T-003";
+"T-001" -> "T-005" [color="#e67e22", penwidth=1.6];
+"T-001" -> "T-006";
+"T-002" -> "T-007" [color="#c0392b", penwidth=2.5];
+"T-007" -> "T-009";
+"T-007" -> "T-010" [color="#c0392b", penwidth=2.5];
+"T-010" -> "T-011" [color="#c0392b", penwidth=2.5];
+"T-006" -> "T-011";
+"T-001" -> "T-012";
+"T-002" -> "T-013";
+"T-004" -> "T-014" [color="#e67e22", penwidth=1.6];
+"T-013" -> "T-014";
+"T-005" -> "T-015" [color="#e67e22", penwidth=1.6];
+"T-015" -> "T-016";
+"T-003" -> "T-016";
+}

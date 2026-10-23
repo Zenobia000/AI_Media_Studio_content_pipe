@@ -1,0 +1,99 @@
+digraph S {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, nodesep=0.3, ranksep=0.7, label="S7｜接力圖
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+subgraph "cluster_Albert Chiang" { label="Albert Chiang（5 點）"; style="rounded,filled"; fillcolor="#e3f0e140"; color="#c7d0d9"; fontsize=15;
+"T-104" [label="T-104
+在地熱度檢查（Threads 搜尋、I…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-106" [label="T-106
+補料 L4：通用瀏覽器錄影（含 SPK…
+3 點", fillcolor="#e3f0e1", style="rounded,filled"];
+}
+subgraph "cluster_周長曉" { label="周長曉（8 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+"T-096" [label="T-096
+外部片段接入（透明片段）
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-098" [label="T-098
+3D 段落
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-099" [label="T-099
+AI 影片段落
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-100" [label="T-100
+TTS 旁白（含 SPK-TTS-1）
+3 點", fillcolor="#fdf0dc", style="rounded,filled"];
+}
+subgraph "cluster_楊舒媁" { label="楊舒媁（7 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-089" [label="T-089
+自動發布排程與安全閘
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-090" [label="T-090
+聚合服務 publisher（YouT…
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-091" [label="T-091
+一題三波提醒
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-092" [label="T-092
+熱度門檻與名詞表調整建議
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+}
+subgraph "cluster_全體" { label="全體（1 點）"; style="rounded,filled"; fillcolor="#ffffff40"; color="#c7d0d9"; fontsize=15;
+"T-109" [label="T-109
+S7 整合驗收（R6）與交接
+1 點", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2.5, color="#c0392b"];
+}
+"T-039" [label="T-039
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-041" [label="T-041
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-051" [label="T-051
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-057" [label="T-057
+Albert Chiang｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-064" [label="T-064
+周長曉｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-068" [label="T-068
+周長曉｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-075" [label="T-075
+Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-076" [label="T-076
+楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-078" [label="T-078
+楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-087" [label="T-087
+楊舒媁｜S6", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-088" [label="T-088
+楊舒媁｜S6", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-093" [label="T-093
+周長曉｜S6", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-097" [label="T-097
+周長曉｜S6", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-088" -> "T-089";
+"T-076" -> "T-089";
+"T-088" -> "T-090";
+"T-087" -> "T-091";
+"T-051" -> "T-092";
+"T-075" -> "T-092" [color="#e67e22", penwidth=1.6];
+"T-068" -> "T-096";
+"T-057" -> "T-096" [color="#e67e22", penwidth=1.6];
+"T-097" -> "T-098";
+"T-093" -> "T-098" [color="#c0392b", penwidth=2.5];
+"T-097" -> "T-099";
+"T-096" -> "T-099";
+"T-078" -> "T-099" [color="#e67e22", penwidth=1.6];
+"T-064" -> "T-100";
+"T-041" -> "T-104" [color="#e67e22", penwidth=1.6];
+"T-075" -> "T-104";
+"T-039" -> "T-106";
+"T-089" -> "T-109";
+"T-090" -> "T-109";
+"T-091" -> "T-109";
+"T-092" -> "T-109";
+"T-098" -> "T-109" [color="#c0392b", penwidth=2.5];
+"T-099" -> "T-109";
+"T-100" -> "T-109";
+"T-104" -> "T-109";
+"T-106" -> "T-109";
+}

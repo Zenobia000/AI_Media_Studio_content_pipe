@@ -1,0 +1,121 @@
+digraph S {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, nodesep=0.3, ranksep=0.7, label="S3｜接力圖
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+subgraph "cluster_Albert Chiang" { label="Albert Chiang（9 點）"; style="rounded,filled"; fillcolor="#e3f0e140"; color="#c7d0d9"; fontsize=15;
+"T-035" [label="T-035
+RSS／Atom 收集器
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-036" [label="T-036
+GitHub、Hacker News、…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-037" [label="T-037
+彙整電子報收集（拆出每則連結）
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-038" [label="T-038
+補料 L2：網頁上的直接檔案
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-039" [label="T-039
+補料 L3：yt-dlp 與 gall…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+}
+subgraph "cluster_周長曉" { label="周長曉（9 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+"T-028" [label="T-028
+SPK-DRF-1／2／3：引用準確度…
+1 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-042" [label="T-042
+輪播模板與 design tokens
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-043" [label="T-043
+輪播渲染與溢版檢查（含 SPK-CAR…
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-046" [label="T-046
+SPK-SUB-1～4：ASR、對齊、…
+3 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-047" [label="T-047
+Build 建立與 manifest（…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+}
+subgraph "cluster_楊舒媁" { label="楊舒媁（9 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-018" [label="T-018
+中斷復原與單步重跑
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-041" [label="T-041
+SPK-COL-2（一）Meta Ap…
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-048" [label="T-048
+排程器：安裝與收集排程
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-049" [label="T-049
+心跳與健康檢查
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-050" [label="T-050
+手填成效
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-051" [label="T-051
+週報 retro
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-053" [label="T-053
+發布包
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+}
+subgraph "cluster_全體" { label="全體（1 點）"; style="rounded,filled"; fillcolor="#ffffff40"; color="#c7d0d9"; fontsize=15;
+"T-055" [label="T-055
+S3 整合驗收（R2）
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+}
+"T-002" [label="T-002
+全體｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-004" [label="T-004
+楊舒媁｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-009" [label="T-009
+楊舒媁｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-010" [label="T-010
+Albert Chiang｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-013" [label="T-013
+周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-014" [label="T-014
+周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-015" [label="T-015
+周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-024" [label="T-024
+Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-025" [label="T-025
+周長曉｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-026" [label="T-026
+周長曉｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-031" [label="T-031
+楊舒媁｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-032" [label="T-032
+楊舒媁｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-009" -> "T-018";
+"T-025" -> "T-028";
+"T-010" -> "T-035";
+"T-035" -> "T-036";
+"T-035" -> "T-037";
+"T-024" -> "T-038";
+"T-024" -> "T-039";
+"T-013" -> "T-042";
+"T-014" -> "T-042";
+"T-042" -> "T-043";
+"T-026" -> "T-043";
+"T-047" -> "T-043";
+"T-004" -> "T-046" [color="#e67e22", penwidth=1.6];
+"T-002" -> "T-047";
+"T-013" -> "T-047";
+"T-009" -> "T-048";
+"T-048" -> "T-049";
+"T-032" -> "T-050";
+"T-050" -> "T-051";
+"T-015" -> "T-051" [color="#e67e22", penwidth=1.6];
+"T-031" -> "T-053";
+"T-036" -> "T-055";
+"T-037" -> "T-055";
+"T-038" -> "T-055";
+"T-039" -> "T-055";
+"T-043" -> "T-055";
+"T-048" -> "T-055";
+"T-051" -> "T-055";
+"T-053" -> "T-055";
+}

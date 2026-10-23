@@ -1,0 +1,107 @@
+digraph S {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, nodesep=0.3, ranksep=0.7, label="S6｜接力圖
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+subgraph "cluster_Albert Chiang" { label="Albert Chiang（7 點）"; style="rounded,filled"; fillcolor="#e3f0e140"; color="#c7d0d9"; fontsize=15;
+"T-073" [label="T-073
+補料 L1：官方 API 媒體
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-101" [label="T-101
+候選標題翻譯
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-102" [label="T-102
+發表會行事曆
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-103" [label="T-103
+S 級通知
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-105" [label="T-105
+網頁變動監測（含 SPK-COL-4）
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+}
+subgraph "cluster_周長曉" { label="周長曉（9 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+"T-093" [label="T-093
+2D 動態元件庫
+3 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-094" [label="T-094
+Demo 包裝：外框、游標、點擊放大
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-095" [label="T-095
+程式碼與架構圖動畫
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-097" [label="T-097
+SPK-REEL-2／3：3D 效能與…
+2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+}
+subgraph "cluster_楊舒媁" { label="楊舒媁（6 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-084" [label="T-084
+收集頻率切換（發表會）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-087" [label="T-087
+連發模式
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-088" [label="T-088
+Publisher adapter：I…
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
+}
+subgraph "cluster_全體" { label="全體（1 點）"; style="rounded,filled"; fillcolor="#ffffff40"; color="#c7d0d9"; fontsize=15;
+"T-108" [label="T-108
+S6 整合驗收（R5）
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+}
+"T-004" [label="T-004
+楊舒媁｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-015" [label="T-015
+周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-021" [label="T-021
+Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-022" [label="T-022
+Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-035" [label="T-035
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-038" [label="T-038
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-048" [label="T-048
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-067" [label="T-067
+周長曉｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-072" [label="T-072
+Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-075" [label="T-075
+Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-078" [label="T-078
+楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-079" [label="T-079
+楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-085" [label="T-085
+楊舒媁｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-086" [label="T-086
+楊舒媁｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-072" -> "T-073";
+"T-038" -> "T-073";
+"T-048" -> "T-084";
+"T-102" -> "T-084" [color="#e67e22", penwidth=1.6];
+"T-075" -> "T-087" [color="#e67e22", penwidth=1.6];
+"T-022" -> "T-087" [color="#e67e22", penwidth=1.6];
+"T-085" -> "T-088";
+"T-086" -> "T-088";
+"T-067" -> "T-093" [color="#c0392b", penwidth=2.5];
+"T-067" -> "T-094";
+"T-067" -> "T-095";
+"T-004" -> "T-097" [color="#e67e22", penwidth=1.6];
+"T-021" -> "T-101";
+"T-015" -> "T-101" [color="#e67e22", penwidth=1.6];
+"T-078" -> "T-101" [color="#e67e22", penwidth=1.6];
+"T-075" -> "T-102";
+"T-075" -> "T-103";
+"T-079" -> "T-103" [color="#e67e22", penwidth=1.6];
+"T-035" -> "T-105";
+"T-093" -> "T-108";
+"T-094" -> "T-108";
+"T-095" -> "T-108";
+"T-105" -> "T-108";
+"T-087" -> "T-108";
+"T-088" -> "T-108";
+"T-102" -> "T-108";
+}
