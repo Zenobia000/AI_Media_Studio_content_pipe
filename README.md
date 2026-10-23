@@ -2,7 +2,7 @@
 
 把 AI 與科技新聞做成 Threads 貼文、IG 輪播和 Reel 的半自動產線。目前是內部 POC。
 
-**主要流程**：收集素材 → 選題 → 寫稿 → 做輪播／字幕／Reel → 人工確認 → 發布 → 回收成效。
+**主要流程**：收集素材 → 選題 → 寫稿 → 做輪播／字幕／Reel → 人工確認 → 發布 → 回收成效。完整操作流程見 [User Flow 圖](docs/diagrams/user-flow.png)。
 
 ---
 
@@ -48,6 +48,7 @@
 | 我想知道… | 看這份 |
 |---|---|
 | 要做什麼、為什麼做、怎樣算成功 | [產品需求（PRD）](docs/product/PRD.md) |
+| 創作者實際怎麼操作，從選題到回收成效 | [User Flow 圖](docs/diagrams/user-flow.png) |
 | 每個功能的詳細規格 | [功能規格（SRS）總覽](docs/spec/00_overview.md)，各模組見下表 |
 | 模組之間交接的資料格式 | [介面契約](docs/spec/07_interfaces.md) |
 | 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md) |

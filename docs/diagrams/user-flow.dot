@@ -1,0 +1,72 @@
+digraph G {
+graph [rankdir=TB, label="User Flow｜創作者從選題到回收成效", labelloc=t, fontsize=20, fontname="Microsoft JhengHei", bgcolor="white", pad="0.4", nodesep="0.4", ranksep="0.5", compound=true];
+node [fontname="Microsoft JhengHei", fontsize=13, margin="0.16,0.08"];
+edge [fontname="Microsoft JhengHei", fontsize=11, color="#526779", arrowsize=0.75];
+subgraph cluster_collect { label="① 收集與選題（每天）"; style="rounded"; color="#9aa7b3"; fontsize=15;
+timer [label="定時收集\nRSS／GitHub／HN／電子報／X\n去重、聚類、熱度分級", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+notify [label="S 級事件推播／早報\n（ntfy）", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+inbox_md [label="inbox.md", shape=note, style="filled", fillcolor="#ffffff", color="#9aa7b3", fontsize=11];
+read_inbox [label="在 Obsidian 看 inbox\n勾選要做的題目", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+add_src [label="看到好題目\nnewsroom add-source <url>", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+}
+subgraph cluster_produce { label="② 產出草稿"; style="rounded"; color="#9aa7b3"; fontsize=15;
+produce [label="執行 /produce\n（newsroom produce）", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+pipeline [label="建題 → 原文擷取 → 分層補料\n→ 素材盤點 → 事實抽取\n→ 寫稿 → 引用檢查", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+draft_md [label="script.md／carousel.md\ncaption.md／media.md", shape=note, style="filled", fillcolor="#ffffff", color="#9aa7b3", fontsize=11];
+edit [label="審稿與修改\n處理「待確認」的引用", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+ok_draft [label="稿件\n可以用？", shape=diamond, style="filled", fillcolor="#fff6d6", color="#b08a1e", margin="0.04,0.04"];
+redraft [label="newsroom redraft／select\n重生或換版本", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+gap [label="素材缺口（L5）\n人工截圖、錄影補進 media/raw", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+}
+subgraph cluster_make { label="③ 製作成品（依格式）"; style="rounded"; color="#9aa7b3"; fontsize=15;
+fmt [label="格式？", shape=diamond, style="filled", fillcolor="#fff6d6", color="#b08a1e", margin="0.04,0.04"];
+carousel [label="產生輪播圖卡\nnewsroom carousel", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+record [label="錄旁白\n放進 media/raw/", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+subtitle [label="字幕：講稿對齊錄音\n斷詞、分行\nnewsroom subtitle", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+reel [label="渲染 Reel 9:16\nnewsroom reel", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+spec [label="規格檢查\n尺寸、長度、字數", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+}
+subgraph cluster_publish { label="④ 確認與發布"; style="rounded"; color="#9aa7b3"; fontsize=15;
+review [label="預覽成品與待確認項\nnewsroom review", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+ok_final [label="確認\n發布？", shape=diamond, style="filled", fillcolor="#fff6d6", color="#b08a1e", margin="0.04,0.04"];
+approve [label="newsroom approve", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+route [label="發布方式？", shape=diamond, style="filled", fillcolor="#fff6d6", color="#b08a1e", margin="0.04,0.04"];
+native [label="到 IG／Threads 設原生排程\nnewsroom schedule（紀錄）", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+auto [label="自動發布\n（R6，官方 API 或聚合服務）", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+platform [label="Instagram／Threads", shape=box, style="rounded,filled,dashed", fillcolor="#f4f4f4", color="#7a7a7a"];
+mark [label="填回貼文網址\nnewsroom mark-published", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+}
+subgraph cluster_feedback { label="⑤ 回收成效（每週）"; style="rounded"; color="#9aa7b3"; fontsize=15;
+metrics [label="回收成效\nInsights 自動（R5）\n或 newsroom metrics add 手填", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+retro [label="產生週報與建議\nnewsroom retro", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+read_retro [label="讀週報\n調整選題與節目比例", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+}
+subgraph cluster_fail { label="任何一步失敗"; style="rounded,dashed"; color="#c25450"; fontsize=13;
+fail [label="Job 失敗或被擋\n推播通知", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+fix [label="newsroom status 看原因\n修正後 newsroom retry", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+}
+timer -> inbox_md; timer -> notify [style=dashed]; notify -> read_inbox [style=dashed];
+inbox_md -> read_inbox; add_src -> inbox_md [style=dashed];
+read_inbox -> produce; produce -> pipeline -> draft_md -> edit -> ok_draft;
+ok_draft -> redraft [label="否"]; redraft -> pipeline [style=dashed];
+pipeline -> gap [label="缺素材", style=dashed, color="#c0702a"]; gap -> pipeline [style=dashed];
+ok_draft -> fmt [label="是"];
+fmt -> review [label="Threads 文字"];
+fmt -> carousel [label="輪播"]; carousel -> spec;
+fmt -> record [label="Reel"]; record -> subtitle -> reel -> spec;
+spec -> review;
+review -> ok_final; ok_final -> edit [label="否：改稿\n成品自動失效", style=dashed, color="#c0702a", constraint=false];
+ok_final -> approve [label="是"]; approve -> route;
+route -> native [label="R1–R5"]; route -> auto [label="R6"];
+native -> platform; auto -> platform; platform -> mark [label="原生排程時"];
+mark -> metrics; auto -> metrics; metrics -> retro -> read_retro;
+read_retro -> read_inbox [label="下一輪", style=dashed, constraint=false];
+fail -> fix;
+subgraph cluster_legend { label="圖例"; style="rounded,dashed"; color="#9aa7b3"; fontsize=12;
+lg_h [label="人工操作", shape=box, style="rounded,filled,bold", fillcolor="#fde3c8", color="#c0702a"];
+lg_s [label="系統自動", shape=box, style="rounded,filled", fillcolor="#e4eef8", color="#42617d"];
+lg_d [label="判斷", shape=diamond, style="filled", fillcolor="#fff6d6", color="#b08a1e", margin="0.04,0.04"];
+lg_f [label="產出檔案", shape=note, style="filled", fillcolor="#ffffff", color="#9aa7b3", fontsize=11];
+lg_e [label="外部平台", shape=box, style="rounded,filled,dashed", fillcolor="#f4f4f4", color="#7a7a7a"];
+lg_h -> lg_s -> lg_d -> lg_f -> lg_e [style=invis]; }
+}
