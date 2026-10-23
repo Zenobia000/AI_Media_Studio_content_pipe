@@ -344,11 +344,12 @@ node render/dist/cli.js <command> --manifest <path/to/manifest.json> [--preview]
 
 - 結束碼與 SRS 00 §5.4 相同。進度以 `PROGRESS <0-100>` 一行一筆輸出到 stderr。
 
-## IF-014｜Job 紀錄（所有模組透過協調器建立）
+## IF-014｜Job 紀錄（每次工具呼叫一筆，由 ledger 建立）
 
 ```json
 {
   "job_id": "01JBX…",
+  "run_id": "01JBW…（agent 呼叫時才有）",
   "kind": "fetch | draft | subtitle | render | collect | publish | metrics",
   "target": "2026-10-17-roadster/reel-01",
   "status": "queued | running | succeeded | blocked | failed",
@@ -364,7 +365,7 @@ node render/dist/cli.js <command> --manifest <path/to/manifest.json> [--preview]
 
 `input_fingerprint` 相同、而且上次執行已成功的 Job，不會重跑。這就是冪等的依據（NFR-003）。
 
-## IF-015｜Step 介面（Python 模組實作，由協調器呼叫）
+## IF-015｜Step 介面（工具的內部實作，由 ledger 呼叫）
 
 ```python
 class Step(Protocol):
@@ -381,7 +382,7 @@ class StepResult:
     cost_usd: float | None = None
 ```
 
-每個模組只要實作 Step，就能接上協調器、重跑、鎖與預算控管，不需要自己處理狀態。
+每個工具的內部都實作 Step，就能接上 ledger 的冪等、重跑、鎖與預算控管，不需要自己處理狀態。agent 看不到 Step，只看到 IF-020 的工具介面。
 
 ## IF-016｜Publication 與 publication.md
 
@@ -395,7 +396,7 @@ SQLite 是主資料。publication.md 是匯出給人看的摘要，並保留一�
 <!-- newsroom:end publications -->
 ```
 
-人填回時使用 CLI：`newsroom mark-published <content_ref> --platform instagram --url <url> [--at <time>]`。程式不解析人在 Markdown 表格裡手改的內容。
+人填回時對 agent 說（`publish` skill 會呼叫工具），或直接執行：`newsroom mark-published <content_ref> --platform instagram --url <url> [--at <time>]`。程式不解析人在 Markdown 表格裡手改的內容。
 
 ## IF-017｜MetricSnapshot
 
@@ -422,3 +423,44 @@ SQLite 是主資料。publication.md 是匯出給人看的摘要，並保留一�
 | `data/fixture.sql` | 對應的 SQLite 資料 | 楊舒媁 |
 
 Sprint 1 第一週結束前，fixtures 要能通過所有 schema 驗證。之後每次修改 schema，都要同步更新 fixtures。
+
+## IF-019｜SKILL.md front-matter（skill 擁有者寫，agent 讀）
+
+```markdown
+---
+name: draft-content
+description: 依 facts 與節目模板寫 Threads、輪播、Reel 草稿。使用者說「寫稿」「出一版」「改短一點」時使用。
+owner: 周長曉
+inputs: [IF-004, IF-005, IF-006]
+outputs: [IF-006, IF-007, IF-008, IF-009]
+tools: [facts-verify, draft-save, select, status]
+gates: [select]          # 需要人明確指定才能呼叫的工具
+---
+
+# draft-content
+
+## 什麼時候用
+## 步驟
+## 判斷標準
+## 失敗時
+## 不要做
+```
+
+- `description` 是 Claude Code 決定是否載入的依據，要寫出使用者會說的話。
+- `tools` 以外的工具不能呼叫；`gates` 裡的工具只能在人明確要求後呼叫。
+- 每個 skill 目錄有 `evals/*.yaml`（AGT-FR-007）。
+
+## IF-020｜工具輸出（`newsroom <tool> --json`）
+
+```json
+{"ok": true, "tool": "fetch", "run_id": "01JBW…", "job_id": "01JBX…",
+ "data": {"topic_id": "2026-10-17-roadster", "assets_added": 3},
+ "warnings": [], "next": ["assets 2026-10-17-roadster"]}
+{"ok": false, "tool": "approve", "error_code": "E_NOT_APPROVED",
+ "message": "沒有人工確認紀錄；請先讓使用者看過 review 並明確確認",
+ "blocked": true, "next": ["review 2026-10-17-roadster/reel-01"]}
+```
+
+- `data` 的內容依各工具定義，有 schema 的引用 IF 編號。
+- `next` 是建議的下一步，給 agent 與 `recover` skill 參考，不強制。
+- 結束碼依 SRS 00 §5.4。

@@ -149,7 +149,7 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 |---|---|
 | `docs/engineering-plan` | 這套工程文件。PR 合進 `dev`，S1 結束時隨 `dev` 一起進 `main` |
 
-### S1（15 條）
+### S1（16 條）
 
 | 負責人 | 分支 | 票 |
 |---|---|---|
@@ -160,12 +160,13 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | Albert Chiang | `spike/t-012-…` | [T-012](../tickets/T-012.md) SPK-FET-1 全文擷取方案驗證 |
 | 周長曉 | `chore/t-013-…` | [T-013](../tickets/T-013.md) render/ Node 專案骨架與 IF-013 CLI 殼 |
 | 周長曉 | `spike/t-014-…` | [T-014](../tickets/T-014.md) SPK-PRD-1 合成層驗證：Remotion（HyperFrames 對照） |
-| 周長曉 | `feat/t-015-…` | [T-015](../tickets/T-015.md) LLM adapter 與成本紀錄 |
-| 周長曉 | `feat/t-016-…` | [T-016](../tickets/T-016.md) 事實抽取（facts.json） |
+| 周長曉 | `feat/t-015-…` | [T-015](../tickets/T-015.md) Skill 框架：SKILL.md 格式、RESOLVER、工具介面契約 |
+| 周長曉 | `feat/t-016-…` | [T-016](../tickets/T-016.md) facts-verify 工具與抽事實步驟 |
+| 周長曉 | `feat/t-110-…` | [T-110](../tickets/T-110.md) Skill eval 工具（newsroom eval） |
 | 楊舒媁 | `spike/t-004-…` | [T-004](../tickets/T-004.md) SPK-OPS-1 環境確認：GPU、WSL systemd、Docker、ffmpeg |
 | 楊舒媁 | `feat/t-005-…` | [T-005](../tickets/T-005.md) config 載入與日誌（含金鑰遮罩） |
 | 楊舒媁 | `feat/t-007-…` | [T-007](../tickets/T-007.md) SQLite schema 與 migration |
-| 楊舒媁 | `feat/t-009-…` | [T-009](../tickets/T-009.md) Step 介面與 Job 協調器（指紋、鎖） |
+| 楊舒媁 | `feat/t-009-…` | [T-009](../tickets/T-009.md) 執行紀錄 ledger：run_id、Job、指紋、鎖 |
 | 全體 | `feat/t-002-…` | [T-002](../tickets/T-002.md) 介面契約 JSON Schema（IF-001～017）（改 schema，三人 review） |
 | 全體 | `feat/t-003-…` | [T-003](../tickets/T-003.md) Fixture 假工作區（IF-018）（改 schema，三人 review） |
 
@@ -173,25 +174,25 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 
 | 負責人 | 分支 | 票 |
 |---|---|---|
-| Albert Chiang | `feat/t-008-…` | [T-008](../tickets/T-008.md) newsroom init 與 doctor |
+| Albert Chiang | `feat/t-008-…` | [T-008](../tickets/T-008.md) init 與 doctor（含工作區 CLAUDE.md 與 skills 連結） |
 | Albert Chiang | `feat/t-021-…` | [T-021](../tickets/T-021.md) inbox 產生與跨日規則 |
-| Albert Chiang | `feat/t-022-…` | [T-022](../tickets/T-022.md) 建題：依勾選建立 topic 與 content |
+| Albert Chiang | `feat/t-022-…` | [T-022](../tickets/T-022.md) open-topic 工具與 skill：依選題建立 topic 與 content |
 | Albert Chiang | `feat/t-023-…` | [T-023](../tickets/T-023.md) 原文擷取與官方原文補充 |
 | Albert Chiang | `feat/t-024-…` | [T-024](../tickets/T-024.md) 素材盤點與 media.md（含 L5 缺口） |
-| 周長曉 | `feat/t-017-…` | [T-017](../tickets/T-017.md) 節目模板與依素材生成草稿 |
+| 周長曉 | `feat/t-017-…` | [T-017](../tickets/T-017.md) draft-content skill：節目模板、寫稿、draft-save 驗證 |
 | 周長曉 | `feat/t-025-…` | [T-025](../tickets/T-025.md) 引用檢查（程式比對數字與專有名詞） |
 | 周長曉 | `feat/t-026-…` | [T-026](../tickets/T-026.md) 草稿版本、select、redraft |
 | 周長曉 | `feat/t-027-…` | [T-027](../tickets/T-027.md) Threads 文字輸出（串文拆段） |
-| 周長曉 | `chore/t-033-…` | [T-033](../tickets/T-033.md) Claude Code slash commands（R1） |
+| 周長曉 | `chore/t-033-…` | [T-033](../tickets/T-033.md) RESOLVER 口語案例與 R1 skill 路由驗收 |
 | 楊舒媁 | `feat/t-019-…` | [T-019](../tickets/T-019.md) Content 狀態機 |
-| 楊舒媁 | `feat/t-020-…` | [T-020](../tickets/T-020.md) status 指令與狀態摘要 |
-| 楊舒媁 | `feat/t-029-…` | [T-029](../tickets/T-029.md) produce 管線串接 |
+| 楊舒媁 | `feat/t-020-…` | [T-020](../tickets/T-020.md) status 工具與 recover skill |
+| 楊舒媁 | `docs/t-029-…` | [T-029](../tickets/T-029.md) produce-topic skill：建題 → 補料 → 草稿 |
 | 楊舒媁 | `feat/t-030-…` | [T-030](../tickets/T-030.md) review 預覽與待確認項處理 |
 | 楊舒媁 | `feat/t-031-…` | [T-031](../tickets/T-031.md) approve 與 unapprove |
 | 楊舒媁 | `feat/t-032-…` | [T-032](../tickets/T-032.md) mark-published 與排程紀錄 |
 | 全體 | `docs/t-034-…` | [T-034](../tickets/T-034.md) S2 整合驗收：一則真實 Threads 走完（R1） |
 
-### S3（18 條）
+### S3（17 條）
 
 | 負責人 | 分支 | 票 |
 |---|---|---|
@@ -207,14 +208,13 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | 周長曉 | `feat/t-047-…` | [T-047](../tickets/T-047.md) Build 建立與 manifest（含冪等） |
 | 楊舒媁 | `feat/t-018-…` | [T-018](../tickets/T-018.md) 中斷復原與單步重跑 |
 | 楊舒媁 | `spike/t-041-…` | [T-041](../tickets/T-041.md) SPK-COL-2（一）Meta App 設定與 Threads 搜尋權限送審 |
-| 楊舒媁 | `feat/t-048-…` | [T-048](../tickets/T-048.md) 排程器：安裝與收集排程 |
-| 楊舒媁 | `feat/t-049-…` | [T-049](../tickets/T-049.md) 心跳與健康檢查 |
+| 楊舒媁 | `feat/t-048-…` | [T-048](../tickets/T-048.md) 排程器：收集排程與 headless skill 執行（newsroom run） |
 | 楊舒媁 | `feat/t-050-…` | [T-050](../tickets/T-050.md) 手填成效 |
-| 楊舒媁 | `feat/t-051-…` | [T-051](../tickets/T-051.md) 週報 retro |
+| 楊舒媁 | `feat/t-051-…` | [T-051](../tickets/T-051.md) weekly-retro skill 與 retro-data 工具 |
 | 楊舒媁 | `feat/t-053-…` | [T-053](../tickets/T-053.md) 發布包 |
 | 全體 | `docs/t-055-…` | [T-055](../tickets/T-055.md) S3 整合驗收（R2） |
 
-### S4（20 條）
+### S4（21 條）
 
 | 負責人 | 分支 | 票 |
 |---|---|---|
@@ -231,12 +231,13 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | 周長曉 | `feat/t-064-…` | [T-064](../tickets/T-064.md) 字幕：斷詞、術語合併、分行、輸出 |
 | 周長曉 | `feat/t-065-…` | [T-065](../tickets/T-065.md) 節奏表解析器 |
 | 周長曉 | `feat/t-066-…` | [T-066](../tickets/T-066.md) Reel：節奏表轉成 shots.json |
+| 楊舒媁 | `feat/t-049-…` | [T-049](../tickets/T-049.md) 心跳與健康檢查 |
 | 楊舒媁 | `feat/t-052-…` | [T-052](../tickets/T-052.md) 每步耗時統計 |
 | 楊舒媁 | `feat/t-076-…` | [T-076](../tickets/T-076.md) 過期判定與確認自動失效 |
 | 楊舒媁 | `feat/t-077-…` | [T-077](../tickets/T-077.md) 成品規格檢查（ffprobe） |
 | 楊舒媁 | `feat/t-078-…` | [T-078](../tickets/T-078.md) 預算控管 |
 | 楊舒媁 | `feat/t-079-…` | [T-079](../tickets/T-079.md) 通知 adapter（ntfy） |
-| 楊舒媁 | `feat/t-080-…` | [T-080](../tickets/T-080.md) 早報 |
+| 楊舒媁 | `feat/t-080-…` | [T-080](../tickets/T-080.md) morning-brief skill（每天早上 headless 執行） |
 | 楊舒媁 | `spike/t-081-…` | [T-081](../tickets/T-081.md) SPK-FB-1 成效回收實測 |
 
 ### S5（13 條）
@@ -262,7 +263,7 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | 負責人 | 分支 | 票 |
 |---|---|---|
 | Albert Chiang | `feat/t-073-…` | [T-073](../tickets/T-073.md) 補料 L1：官方 API 媒體 |
-| Albert Chiang | `feat/t-101-…` | [T-101](../tickets/T-101.md) 候選標題翻譯 |
+| Albert Chiang | `feat/t-101-…` | [T-101](../tickets/T-101.md) triage-inbox skill：中文標題、建議節目與格式 |
 | Albert Chiang | `feat/t-102-…` | [T-102](../tickets/T-102.md) 發表會行事曆 |
 | Albert Chiang | `feat/t-103-…` | [T-103](../tickets/T-103.md) S 級通知 |
 | Albert Chiang | `feat/t-105-…` | [T-105](../tickets/T-105.md) 網頁變動監測（含 SPK-COL-4） |
@@ -291,6 +292,3 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | 楊舒媁 | `feat/t-092-…` | [T-092](../tickets/T-092.md) 熱度門檻與名詞表調整建議 |
 | 全體 | `docs/t-109-…` | [T-109](../tickets/T-109.md) S7 整合驗收（R6）與交接 |
 
----
-
-分支清單是從票的 front-matter 產生的。票的 Sprint 或負責人改了，以 [tickets/README.md](../tickets/README.md) 為準。

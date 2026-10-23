@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "資料流｜交棒物、skill 與人工決策點",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "output": "docs/diagrams/data-flow.html",
+    "legend": {
+      "entries": {
+        "emphasis": {
+          "label": "主要交棒物"
+        },
+        "default": {
+          "label": "外部抓取"
+        },
+        "security": {
+          "label": "人工確認關卡"
+        },
+        "dashed": {
+          "label": "回饋"
+        },
+        "database": {
+          "label": "工作區檔案與 SQLite"
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "label": "收集"
+    },
+    {
+      "label": "選題與建題"
+    },
+    {
+      "label": "補料與草稿"
+    },
+    {
+      "label": "製作與確認"
+    },
+    {
+      "label": "發布與回饋"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "src",
+      "type": "cloud",
+      "label": "資訊來源",
+      "sublabel": "RSS、GitHub、HN、X",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "col",
+      "type": "backend",
+      "label": "collect 工具",
+      "sublabel": "去重、聚類、熱度",
+      "stage": 0,
+      "row": 1,
+      "tag": "Albert"
+    },
+    {
+      "id": "inbox",
+      "type": "database",
+      "label": "inbox.md",
+      "sublabel": "IF-001",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "topic",
+      "type": "database",
+      "label": "topic／content",
+      "sublabel": "IF-002、IF-003",
+      "stage": 1,
+      "row": 0
+    },
+    {
+      "id": "opentopic",
+      "type": "security",
+      "label": "open-topic",
+      "sublabel": "skill＋工具",
+      "stage": 1,
+      "row": 1,
+      "tag": "Albert"
+    },
+    {
+      "id": "pick",
+      "type": "frontend",
+      "label": "人：選題",
+      "sublabel": "勾選或口頭指定",
+      "stage": 1,
+      "row": 2,
+      "icon": "person"
+    },
+    {
+      "id": "gather",
+      "type": "security",
+      "label": "gather-assets",
+      "sublabel": "skill＋fetch、assets",
+      "stage": 2,
+      "row": 0,
+      "tag": "Albert"
+    },
+    {
+      "id": "assets",
+      "type": "database",
+      "label": "sources、assets",
+      "sublabel": "IF-004、IF-005",
+      "stage": 2,
+      "row": 1
+    },
+    {
+      "id": "draftc",
+      "type": "security",
+      "label": "draft-content",
+      "sublabel": "facts-verify、draft-save",
+      "stage": 2,
+      "row": 2,
+      "tag": "周長曉"
+    },
+    {
+      "id": "drafts",
+      "type": "database",
+      "label": "drafts/rNNN",
+      "sublabel": "IF-006～009",
+      "stage": 2,
+      "row": 3
+    },
+    {
+      "id": "select",
+      "type": "frontend",
+      "label": "人：改稿、選版",
+      "sublabel": "select",
+      "stage": 2,
+      "row": 4,
+      "icon": "person"
+    },
+    {
+      "id": "approve",
+      "type": "frontend",
+      "label": "人：確認",
+      "sublabel": "approve 附原話",
+      "stage": 3,
+      "row": 1,
+      "icon": "person"
+    },
+    {
+      "id": "review",
+      "type": "security",
+      "label": "review-and-approve",
+      "sublabel": "預覽、待確認項",
+      "stage": 3,
+      "row": 2,
+      "tag": "楊舒媁"
+    },
+    {
+      "id": "builds",
+      "type": "database",
+      "label": "builds/<id>",
+      "sublabel": "IF-010～012",
+      "stage": 3,
+      "row": 3
+    },
+    {
+      "id": "make",
+      "type": "security",
+      "label": "make-*",
+      "sublabel": "輪播、字幕、Reel",
+      "stage": 3,
+      "row": 4,
+      "tag": "周長曉"
+    },
+    {
+      "id": "publish",
+      "type": "security",
+      "label": "publish",
+      "sublabel": "發布包、排程、回填",
+      "stage": 4,
+      "row": 1,
+      "tag": "楊舒媁"
+    },
+    {
+      "id": "pubs",
+      "type": "database",
+      "label": "publications",
+      "sublabel": "IF-016",
+      "stage": 4,
+      "row": 2
+    },
+    {
+      "id": "metrics",
+      "type": "backend",
+      "label": "metrics 工具",
+      "sublabel": "手填或自動回收",
+      "stage": 4,
+      "row": 3,
+      "tag": "楊舒媁"
+    },
+    {
+      "id": "retro",
+      "type": "security",
+      "label": "weekly-retro",
+      "sublabel": "週報與建議",
+      "stage": 4,
+      "row": 4,
+      "tag": "楊舒媁"
+    }
+  ],
+  "flows": [
+    {
+      "id": "src_col",
+      "from": "src",
+      "to": "col",
+      "label": "抓取",
+      "variant": "default"
+    },
+    {
+      "id": "col_inbox",
+      "from": "col",
+      "to": "inbox",
+      "label": "候選",
+      "variant": "emphasis"
+    },
+    {
+      "id": "inbox_pick",
+      "from": "inbox",
+      "to": "pick",
+      "label": "每天看",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pick_opentopic",
+      "from": "pick",
+      "to": "opentopic",
+      "label": "選定題目",
+      "variant": "emphasis"
+    },
+    {
+      "id": "opentopic_topic",
+      "from": "opentopic",
+      "to": "topic",
+      "label": "建題",
+      "variant": "emphasis"
+    },
+    {
+      "id": "topic_gather",
+      "from": "topic",
+      "to": "gather",
+      "label": "來源清單",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gather_assets",
+      "from": "gather",
+      "to": "assets",
+      "label": "原文、素材",
+      "variant": "emphasis"
+    },
+    {
+      "id": "assets_draftc",
+      "from": "assets",
+      "to": "draftc",
+      "label": "事實與素材",
+      "variant": "emphasis"
+    },
+    {
+      "id": "draftc_drafts",
+      "from": "draftc",
+      "to": "drafts",
+      "label": "新版本",
+      "variant": "emphasis"
+    },
+    {
+      "id": "drafts_select",
+      "from": "drafts",
+      "to": "select",
+      "label": "草稿",
+      "variant": "emphasis"
+    },
+    {
+      "id": "select_make",
+      "from": "select",
+      "to": "make",
+      "label": "定稿",
+      "variant": "emphasis"
+    },
+    {
+      "id": "make_builds",
+      "from": "make",
+      "to": "builds",
+      "label": "成品＋manifest",
+      "variant": "emphasis"
+    },
+    {
+      "id": "builds_review",
+      "from": "builds",
+      "to": "review",
+      "label": "預覽",
+      "variant": "emphasis"
+    },
+    {
+      "id": "review_approve",
+      "from": "review",
+      "to": "approve",
+      "label": "待確認項",
+      "variant": "emphasis"
+    },
+    {
+      "id": "approve_publish",
+      "from": "approve",
+      "to": "publish",
+      "label": "approval",
+      "variant": "security"
+    },
+    {
+      "id": "publish_pubs",
+      "from": "publish",
+      "to": "pubs",
+      "label": "發布紀錄",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pubs_metrics",
+      "from": "pubs",
+      "to": "metrics",
+      "label": "成效回收",
+      "variant": "emphasis"
+    },
+    {
+      "id": "metrics_retro",
+      "from": "metrics",
+      "to": "retro",
+      "label": "數據",
+      "variant": "emphasis"
+    },
+    {
+      "id": "retro_pick",
+      "from": "retro",
+      "to": "pick",
+      "label": "下週選題參考",
+      "variant": "dashed",
+      "route": "bottom-channel"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "誰編排",
+      "items": [
+        "紅色是 skill：由 agent 依 Markdown 決定步驟，可以跳過或補做",
+        "綠色是確定性工具：收集與成效回收由排程直接執行",
+        "藍色是人：選題、選稿、確認，三個決策點不交給 AI"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "交棒契約",
+      "items": [
+        "每個交棒物都有 IF 編號，見 SRS 07 介面契約",
+        "skill 的產出要先通過工具驗證才算交棒（facts-verify、draft-save）",
+        "tag 是負責人；跨人交棒點就是三人的接力點"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "produce-topic",
+      "items": [
+        "選題到草稿由 produce-topic（楊舒媁）串起：open-topic → gather-assets → draft-content",
+        "一題失敗不影響其他題；重跑時已完成的工具呼叫不會再執行"
+      ]
+    }
+  ]
+}

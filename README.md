@@ -2,14 +2,14 @@
 
 把 AI 與科技新聞做成 Threads 貼文、IG 輪播和 Reel 的半自動產線。目前是內部 POC。
 
-**主要流程**：收集素材 → 選題 → 寫稿 → 做輪播／字幕／Reel → 人工確認 → 發布 → 回收成效。完整操作流程見 [User Flow 圖](docs/diagrams/user-flow.png)。
+**主要流程**：收集素材 → 選題 → 寫稿 → 做輪播／字幕／Reel → 人工確認 → 發布 → 回收成效。創作者在 Claude Code 裡用口語下需求，agent 依 Markdown skill 編排確定性工具（參考 [gbrain](https://github.com/garrytan/gbrain) 的 thin harness, fat skills）。完整操作流程見 [User Flow 圖](docs/diagrams/user-flow.png)。
 
 ---
 
 ## 誰負責什麼
 
 **Albert Chiang｜素材收集**
-- 專案骨架、CLI、工作區
+- 專案骨架、工具介面、工作區
 - 收集器：手動網址、RSS、GitHub、Hacker News、電子報、X、網頁變動監測
 - 去重、聚類、熱度分級、每日 inbox、建題
 - 原文擷取、圖片與影片補料、素材盤點
@@ -21,7 +21,7 @@
 - Reel 模板與渲染（Remotion）、動畫層
 
 **楊舒媁｜自動排程與發布**
-- 資料庫、Job 協調器、排程器、通知、預算控管
+- 資料庫、執行紀錄（run_id、冪等、鎖）、工具層關卡、排程器與 headless 執行、通知、預算控管
 - 確認流程、發布包、發布紀錄、自動發布
 - 成效回收、週報
 - Meta App 與平台權限
@@ -51,7 +51,8 @@
 | 創作者實際怎麼操作，從選題到回收成效 | [User Flow 圖](docs/diagrams/user-flow.png)；互動版是 [user-flow.html](docs/diagrams/user-flow.html)，下載後用瀏覽器開 |
 | 每個功能的詳細規格 | [功能規格（SRS）總覽](docs/spec/00_overview.md)，各模組見下表 |
 | 模組之間交接的資料格式 | [介面契約](docs/spec/07_interfaces.md) |
-| 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md)；[系統架構圖](docs/diagrams/system-architecture.png)，互動版是 [system-architecture.html](docs/diagrams/system-architecture.html) |
+| 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md)：[系統架構](docs/diagrams/system-architecture.png)、[軟體架構](docs/diagrams/software-architecture.png)、[資料流](docs/diagrams/data-flow.png)；互動版是同名的 `.html` |
+| 為什麼改成 skills＋agent 編排 | [架構 ADR-09](docs/architecture/architecture.md#adr-09編排skillsai-agent取代固定流程協調器) |
 | 每個環節用什麼工具、為什麼 | [技術選型](docs/architecture/tech-selection.md) |
 | 誰做什麼、交棒順序、每個 Sprint 的目標 | [分工、DAG 與 Sprint 計畫](docs/process/team-dag-sprint.md) |
 | 分支怎麼開、怎麼合併 | [分支策略](docs/process/branching-strategy.md) |
@@ -62,7 +63,7 @@
 
 | 模組 | 規格 | 負責人 |
 |---|---|---|
-| 核心（CLI、資料庫、Job、排程） | [01_core](docs/spec/01_core.md) | Albert Chiang、楊舒媁 |
+| 核心（skills 編排、工具介面、資料庫、執行紀錄、排程） | [01_core](docs/spec/01_core.md) | Albert Chiang、周長曉、楊舒媁 |
 | 收集 | [02_collect](docs/spec/02_collect.md) | Albert Chiang |
 | 補料 | [03_fetch_assets](docs/spec/03_fetch_assets.md) | Albert Chiang |
 | 寫稿 | [04_draft](docs/spec/04_draft.md) | 周長曉 |
@@ -84,7 +85,7 @@ docs/
   process/        分工與 Sprint 計畫、分支策略
   runbooks/       操作手冊
   tickets/        所有的票（一張票一個檔案）
-  diagrams/       架構圖、DAG、狀態圖（由 docs/tools/ 產生）
+  diagrams/       架構圖、資料流、User Flow（archify JSON）；DAG、ERD、狀態圖（由 docs/tools/ 產生）
   tools/          產生 DAG 與圖表的腳本
   archive/        已被取代的舊文件，只供參考
 ```

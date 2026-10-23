@@ -8,7 +8,7 @@ subgraph "cluster_Albert Chiang" { label="Albert Chiang（7 點）"; style="roun
 補料 L1：官方 API 媒體
 1 點", fillcolor="#e3f0e1", style="rounded,filled"];
 "T-101" [label="T-101
-候選標題翻譯
+triage-inbox skill：…
 1 點", fillcolor="#e3f0e1", style="rounded,filled"];
 "T-102" [label="T-102
 發表會行事曆
@@ -70,8 +70,6 @@ Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", 
 Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-075" [label="T-075
 Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
-"T-078" [label="T-078
-楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-079" [label="T-079
 楊舒媁｜S4", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-085" [label="T-085
@@ -92,7 +90,6 @@ Albert Chiang｜S5", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", 
 "T-004" -> "T-097" [color="#e67e22", penwidth=1.6];
 "T-021" -> "T-101";
 "T-015" -> "T-101" [color="#e67e22", penwidth=1.6];
-"T-078" -> "T-101" [color="#e67e22", penwidth=1.6];
 "T-075" -> "T-102";
 "T-075" -> "T-103";
 "T-079" -> "T-103" [color="#e67e22", penwidth=1.6];
