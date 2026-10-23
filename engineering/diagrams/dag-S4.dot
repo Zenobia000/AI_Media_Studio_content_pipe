@@ -1,0 +1,133 @@
+digraph S {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, nodesep=0.3, ranksep=0.7, label="S4｜接力圖
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+subgraph "cluster_Albert Chiang" { label="Albert Chiang（10 點）"; style="rounded,filled"; fillcolor="#e3f0e140"; color="#c7d0d9"; fontsize=15;
+"T-040" [label="T-040
+SPK-COL-3 feed 可靠度與…
+1 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-056" [label="T-056
+補料自我測試與統計
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-057" [label="T-057
+素材前處理（ffmpeg 正規化）
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-058" [label="T-058
+可用片段偵測
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-059" [label="T-059
+SPK-COL-1 X API 成本與…
+2 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-060" [label="T-060
+SPK-COL-5 聚類門檻與推播送達
+2 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-061" [label="T-061
+Reddit 來源處理（依 PRD Q…
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+}
+subgraph "cluster_周長曉" { label="周長曉（10 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+"T-044" [label="T-044
+輪播字型子集化與主視覺
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-062" [label="T-062
+字幕：強制對齊（含旁白取得）
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-063" [label="T-063
+字幕：念稿差異偵測
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-064" [label="T-064
+字幕：斷詞、術語合併、分行、輸出
+3 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-065" [label="T-065
+節奏表解析器
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-066" [label="T-066
+Reel：節奏表轉成 shots.js…
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+}
+subgraph "cluster_楊舒媁" { label="楊舒媁（10 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-052" [label="T-052
+每步耗時統計
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-076" [label="T-076
+過期判定與確認自動失效
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-077" [label="T-077
+成品規格檢查（ffprobe）
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-078" [label="T-078
+預算控管
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-079" [label="T-079
+通知 adapter（ntfy）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-080" [label="T-080
+早報
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-081" [label="T-081
+SPK-FB-1 成效回收實測
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+}
+"T-009" [label="T-009
+楊舒媁｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-010" [label="T-010
+Albert Chiang｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-015" [label="T-015
+周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-019" [label="T-019
+楊舒媁｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-021" [label="T-021
+Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-024" [label="T-024
+Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-026" [label="T-026
+周長曉｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-031" [label="T-031
+楊舒媁｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-037" [label="T-037
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-038" [label="T-038
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-039" [label="T-039
+Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-041" [label="T-041
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-043" [label="T-043
+周長曉｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-046" [label="T-046
+周長曉｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-047" [label="T-047
+周長曉｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-048" [label="T-048
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-051" [label="T-051
+楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
+"T-037" -> "T-040";
+"T-043" -> "T-044";
+"T-051" -> "T-052";
+"T-019" -> "T-052";
+"T-038" -> "T-056";
+"T-039" -> "T-056";
+"T-024" -> "T-057" [color="#c0392b", penwidth=2.5];
+"T-024" -> "T-058";
+"T-010" -> "T-060";
+"T-046" -> "T-062";
+"T-057" -> "T-062" [color="#c0392b", penwidth=2.5];
+"T-062" -> "T-063";
+"T-062" -> "T-064" [color="#c0392b", penwidth=2.5];
+"T-026" -> "T-065";
+"T-064" -> "T-066" [color="#c0392b", penwidth=2.5];
+"T-065" -> "T-066";
+"T-047" -> "T-066";
+"T-057" -> "T-066" [color="#e67e22", penwidth=1.6];
+"T-047" -> "T-076" [color="#e67e22", penwidth=1.6];
+"T-031" -> "T-076";
+"T-047" -> "T-077" [color="#e67e22", penwidth=1.6];
+"T-009" -> "T-078";
+"T-015" -> "T-078" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-079";
+"T-079" -> "T-080";
+"T-021" -> "T-080" [color="#e67e22", penwidth=1.6];
+"T-041" -> "T-081";
+}

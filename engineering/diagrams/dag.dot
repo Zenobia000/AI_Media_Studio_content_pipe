@@ -1,0 +1,508 @@
+digraph DAG {
+graph [rankdir=LR, bgcolor="white", fontname="Microsoft JhengHei", fontsize=22, labelloc=t, nodesep=0.2, ranksep=0.6, label="全專案 Ticket DAG（請開 SVG 放大）
+顏色＝負責人；虛線框＝Spike；粗框＝整合驗收；紅＝關鍵路徑；橘線＝跨人交棒；灰節點＝前面 Sprint 交過來的票"];
+node [shape=box, style="rounded,filled", fontname="Microsoft JhengHei", fontsize=12, color="#42617d", margin="0.14,0.07"];
+edge [color="#9aa7b3", arrowsize=0.7];
+"T-001" [label="T-001
+專案骨架與 CI
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-002" [label="T-002
+介面契約 JSON Schema（IF…
+2 點", fillcolor="#ffffff", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-003" [label="T-003
+Fixture 假工作區（IF-018）
+1 點", fillcolor="#ffffff", style="rounded,filled"];
+"T-004" [label="T-004
+SPK-OPS-1 環境確認：GPU、…
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-005" [label="T-005
+config 載入與日誌（含金鑰遮罩）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-006" [label="T-006
+workspace 模組：路徑、受管區…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-007" [label="T-007
+SQLite schema 與 mig…
+2 點", fillcolor="#e8e4f6", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-008" [label="T-008
+newsroom init 與 doc…
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-009" [label="T-009
+Step 介面與 Job 協調器（指紋…
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-010" [label="T-010
+網址正規化與去重
+2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-011" [label="T-011
+add-source：手動新增候選
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-012" [label="T-012
+SPK-FET-1 全文擷取方案驗證
+1 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-013" [label="T-013
+render/ Node 專案骨架與 …
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-014" [label="T-014
+SPK-PRD-1 合成層比較：Rem…
+2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-015" [label="T-015
+LLM adapter 與成本紀錄
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-016" [label="T-016
+事實抽取（facts.json）
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-017" [label="T-017
+節目模板與依素材生成草稿
+3 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-018" [label="T-018
+中斷復原與單步重跑
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-019" [label="T-019
+Content 狀態機
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-020" [label="T-020
+status 指令與狀態摘要
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-021" [label="T-021
+inbox 產生與跨日規則
+2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-022" [label="T-022
+建題：依勾選建立 topic 與 co…
+2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-023" [label="T-023
+原文擷取與官方原文補充
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-024" [label="T-024
+素材盤點與 media.md（含 L5…
+2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-025" [label="T-025
+引用檢查（程式比對數字與專有名詞）
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-026" [label="T-026
+草稿版本、select、redraft
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-027" [label="T-027
+Threads 文字輸出（串文拆段）
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-028" [label="T-028
+SPK-DRF-1／2／3：引用準確度…
+1 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-029" [label="T-029
+produce 管線串接
+2 點", fillcolor="#e8e4f6", style="rounded,filled,bold"];
+"T-030" [label="T-030
+review 預覽與待確認項處理
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-031" [label="T-031
+approve 與 unapprove
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-032" [label="T-032
+mark-published 與排程紀錄
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-033" [label="T-033
+Claude Code slash c…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-034" [label="T-034
+S2 整合驗收：一則真實 Thread…
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+"T-035" [label="T-035
+RSS／Atom 收集器
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-036" [label="T-036
+GitHub、Hacker News、…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-037" [label="T-037
+彙整電子報收集（拆出每則連結）
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-038" [label="T-038
+補料 L2：網頁上的直接檔案
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-039" [label="T-039
+補料 L3：yt-dlp 與 gall…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-040" [label="T-040
+SPK-COL-3 feed 可靠度與…
+1 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-041" [label="T-041
+SPK-COL-2（一）Meta Ap…
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-042" [label="T-042
+輪播模板與 design tokens
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-043" [label="T-043
+輪播渲染與溢版檢查（含 SPK-CAR…
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-044" [label="T-044
+輪播字型子集化與主視覺
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-046" [label="T-046
+SPK-SUB-1～4：ASR、對齊、…
+3 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-047" [label="T-047
+Build 建立與 manifest（…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-048" [label="T-048
+排程器：安裝與收集排程
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-049" [label="T-049
+心跳與健康檢查
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-050" [label="T-050
+手填成效
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-051" [label="T-051
+週報 retro
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-052" [label="T-052
+每步耗時統計
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-053" [label="T-053
+發布包
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-055" [label="T-055
+S3 整合驗收（R2）
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+"T-056" [label="T-056
+補料自我測試與統計
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-057" [label="T-057
+素材前處理（ffmpeg 正規化）
+1 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-058" [label="T-058
+可用片段偵測
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-059" [label="T-059
+SPK-COL-1 X API 成本與…
+2 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-060" [label="T-060
+SPK-COL-5 聚類門檻與推播送達
+2 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
+"T-061" [label="T-061
+Reddit 來源處理（依 PRD Q…
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-062" [label="T-062
+字幕：強制對齊（含旁白取得）
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-063" [label="T-063
+字幕：念稿差異偵測
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-064" [label="T-064
+字幕：斷詞、術語合併、分行、輸出
+3 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-065" [label="T-065
+節奏表解析器
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-066" [label="T-066
+Reel：節奏表轉成 shots.js…
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-067" [label="T-067
+Reel 模板 split-top-d…
+3 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-068" [label="T-068
+Reel 渲染與輸出
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-069" [label="T-069
+Reel 低解析度預覽
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-070" [label="T-070
+人工修改字幕
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-071" [label="T-071
+SPK-REEL-1 平台壓縮後的字幕…
+1 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-072" [label="T-072
+X 收集器：List 與書籤
+3 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-073" [label="T-073
+補料 L1：官方 API 媒體
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-074" [label="T-074
+聚類：規則、實體、語意
+3 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-075" [label="T-075
+熱度分級與建議組合
+3 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-076" [label="T-076
+過期判定與確認自動失效
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-077" [label="T-077
+成品規格檢查（ffprobe）
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-078" [label="T-078
+預算控管
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-079" [label="T-079
+通知 adapter（ntfy）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-080" [label="T-080
+早報
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-081" [label="T-081
+SPK-FB-1 成效回收實測
+1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-082" [label="T-082
+補料自我測試排程
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-083" [label="T-083
+自動成效回收（IG、Threads）
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-084" [label="T-084
+收集頻率切換（發表會）
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-085" [label="T-085
+SPK-PUB-1／2／3 發布方案實測
+3 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
+"T-086" [label="T-086
+媒體暫存公開網址
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-087" [label="T-087
+連發模式
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-088" [label="T-088
+Publisher adapter：I…
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-089" [label="T-089
+自動發布排程與安全閘
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-090" [label="T-090
+聚合服務 publisher（YouT…
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-091" [label="T-091
+一題三波提醒
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-092" [label="T-092
+熱度門檻與名詞表調整建議
+2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+"T-093" [label="T-093
+2D 動態元件庫
+3 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-094" [label="T-094
+Demo 包裝：外框、游標、點擊放大
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-095" [label="T-095
+程式碼與架構圖動畫
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-096" [label="T-096
+外部片段接入（透明片段）
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-097" [label="T-097
+SPK-REEL-2／3：3D 效能與…
+2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
+"T-098" [label="T-098
+3D 段落
+2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
+"T-099" [label="T-099
+AI 影片段落
+2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-100" [label="T-100
+TTS 旁白（含 SPK-TTS-1）
+3 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-101" [label="T-101
+候選標題翻譯
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-102" [label="T-102
+發表會行事曆
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-103" [label="T-103
+S 級通知
+1 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-104" [label="T-104
+在地熱度檢查（Threads 搜尋、I…
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-105" [label="T-105
+網頁變動監測（含 SPK-COL-4）
+2 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-106" [label="T-106
+補料 L4：通用瀏覽器錄影（含 SPK…
+3 點", fillcolor="#e3f0e1", style="rounded,filled"];
+"T-107" [label="T-107
+S5 整合驗收（R3＋R4）
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+"T-108" [label="T-108
+S6 整合驗收（R5）
+1 點", fillcolor="#ffffff", style="rounded,filled,bold"];
+"T-109" [label="T-109
+S7 整合驗收（R6）與交接
+1 點", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2.5, color="#c0392b"];
+"T-001" -> "T-002" [color="#c0392b", penwidth=2.5];
+"T-002" -> "T-003";
+"T-001" -> "T-005" [color="#e67e22", penwidth=1.6];
+"T-001" -> "T-006";
+"T-002" -> "T-007" [color="#c0392b", penwidth=2.5];
+"T-005" -> "T-008" [color="#e67e22", penwidth=1.6];
+"T-006" -> "T-008";
+"T-007" -> "T-008" [color="#e67e22", penwidth=1.6];
+"T-007" -> "T-009";
+"T-007" -> "T-010" [color="#c0392b", penwidth=2.5];
+"T-010" -> "T-011" [color="#c0392b", penwidth=2.5];
+"T-006" -> "T-011";
+"T-001" -> "T-012";
+"T-002" -> "T-013";
+"T-004" -> "T-014" [color="#e67e22", penwidth=1.6];
+"T-013" -> "T-014";
+"T-005" -> "T-015" [color="#e67e22", penwidth=1.6];
+"T-015" -> "T-016";
+"T-003" -> "T-016";
+"T-016" -> "T-017";
+"T-009" -> "T-018";
+"T-007" -> "T-019";
+"T-009" -> "T-020";
+"T-019" -> "T-020";
+"T-011" -> "T-021" [color="#c0392b", penwidth=2.5];
+"T-006" -> "T-021";
+"T-021" -> "T-022" [color="#c0392b", penwidth=2.5];
+"T-019" -> "T-022" [color="#e67e22", penwidth=1.6];
+"T-012" -> "T-023";
+"T-022" -> "T-023";
+"T-022" -> "T-024" [color="#c0392b", penwidth=2.5];
+"T-017" -> "T-025";
+"T-017" -> "T-026";
+"T-006" -> "T-026" [color="#e67e22", penwidth=1.6];
+"T-017" -> "T-027";
+"T-025" -> "T-028";
+"T-009" -> "T-029";
+"T-022" -> "T-029" [color="#e67e22", penwidth=1.6];
+"T-023" -> "T-029" [color="#e67e22", penwidth=1.6];
+"T-024" -> "T-029" [color="#e67e22", penwidth=1.6];
+"T-017" -> "T-029" [color="#e67e22", penwidth=1.6];
+"T-019" -> "T-030";
+"T-025" -> "T-030" [color="#e67e22", penwidth=1.6];
+"T-030" -> "T-031";
+"T-031" -> "T-032";
+"T-026" -> "T-033";
+"T-029" -> "T-034";
+"T-027" -> "T-034";
+"T-032" -> "T-034";
+"T-033" -> "T-034";
+"T-010" -> "T-035";
+"T-035" -> "T-036";
+"T-035" -> "T-037";
+"T-024" -> "T-038";
+"T-024" -> "T-039";
+"T-037" -> "T-040";
+"T-013" -> "T-042";
+"T-014" -> "T-042";
+"T-042" -> "T-043";
+"T-026" -> "T-043";
+"T-047" -> "T-043";
+"T-043" -> "T-044";
+"T-004" -> "T-046" [color="#e67e22", penwidth=1.6];
+"T-002" -> "T-047";
+"T-013" -> "T-047";
+"T-009" -> "T-048";
+"T-048" -> "T-049";
+"T-032" -> "T-050";
+"T-050" -> "T-051";
+"T-015" -> "T-051" [color="#e67e22", penwidth=1.6];
+"T-051" -> "T-052";
+"T-019" -> "T-052";
+"T-031" -> "T-053";
+"T-036" -> "T-055";
+"T-037" -> "T-055";
+"T-038" -> "T-055";
+"T-039" -> "T-055";
+"T-043" -> "T-055";
+"T-048" -> "T-055";
+"T-051" -> "T-055";
+"T-053" -> "T-055";
+"T-038" -> "T-056";
+"T-039" -> "T-056";
+"T-024" -> "T-057" [color="#c0392b", penwidth=2.5];
+"T-024" -> "T-058";
+"T-010" -> "T-060";
+"T-046" -> "T-062";
+"T-057" -> "T-062" [color="#c0392b", penwidth=2.5];
+"T-062" -> "T-063";
+"T-062" -> "T-064" [color="#c0392b", penwidth=2.5];
+"T-026" -> "T-065";
+"T-064" -> "T-066" [color="#c0392b", penwidth=2.5];
+"T-065" -> "T-066";
+"T-047" -> "T-066";
+"T-057" -> "T-066" [color="#e67e22", penwidth=1.6];
+"T-014" -> "T-067";
+"T-066" -> "T-067" [color="#c0392b", penwidth=2.5];
+"T-067" -> "T-068";
+"T-068" -> "T-069";
+"T-064" -> "T-070";
+"T-068" -> "T-071";
+"T-077" -> "T-071" [color="#e67e22", penwidth=1.6];
+"T-059" -> "T-072";
+"T-078" -> "T-072" [color="#e67e22", penwidth=1.6];
+"T-072" -> "T-073";
+"T-038" -> "T-073";
+"T-060" -> "T-074";
+"T-074" -> "T-075";
+"T-036" -> "T-075";
+"T-047" -> "T-076" [color="#e67e22", penwidth=1.6];
+"T-031" -> "T-076";
+"T-047" -> "T-077" [color="#e67e22", penwidth=1.6];
+"T-009" -> "T-078";
+"T-015" -> "T-078" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-079";
+"T-079" -> "T-080";
+"T-021" -> "T-080" [color="#e67e22", penwidth=1.6];
+"T-041" -> "T-081";
+"T-056" -> "T-082" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-082";
+"T-079" -> "T-082";
+"T-081" -> "T-083";
+"T-050" -> "T-083";
+"T-048" -> "T-084";
+"T-102" -> "T-084" [color="#e67e22", penwidth=1.6];
+"T-041" -> "T-085";
+"T-085" -> "T-086";
+"T-075" -> "T-087" [color="#e67e22", penwidth=1.6];
+"T-022" -> "T-087" [color="#e67e22", penwidth=1.6];
+"T-085" -> "T-088";
+"T-086" -> "T-088";
+"T-088" -> "T-089";
+"T-076" -> "T-089";
+"T-088" -> "T-090";
+"T-087" -> "T-091";
+"T-051" -> "T-092";
+"T-075" -> "T-092" [color="#e67e22", penwidth=1.6];
+"T-067" -> "T-093" [color="#c0392b", penwidth=2.5];
+"T-067" -> "T-094";
+"T-067" -> "T-095";
+"T-068" -> "T-096";
+"T-057" -> "T-096" [color="#e67e22", penwidth=1.6];
+"T-004" -> "T-097" [color="#e67e22", penwidth=1.6];
+"T-097" -> "T-098";
+"T-093" -> "T-098" [color="#c0392b", penwidth=2.5];
+"T-097" -> "T-099";
+"T-096" -> "T-099";
+"T-078" -> "T-099" [color="#e67e22", penwidth=1.6];
+"T-064" -> "T-100";
+"T-021" -> "T-101";
+"T-015" -> "T-101" [color="#e67e22", penwidth=1.6];
+"T-078" -> "T-101" [color="#e67e22", penwidth=1.6];
+"T-075" -> "T-102";
+"T-075" -> "T-103";
+"T-079" -> "T-103" [color="#e67e22", penwidth=1.6];
+"T-041" -> "T-104" [color="#e67e22", penwidth=1.6];
+"T-075" -> "T-104";
+"T-035" -> "T-105";
+"T-039" -> "T-106";
+"T-068" -> "T-107";
+"T-070" -> "T-107";
+"T-075" -> "T-107";
+"T-072" -> "T-107";
+"T-083" -> "T-107";
+"T-080" -> "T-107";
+"T-093" -> "T-108";
+"T-094" -> "T-108";
+"T-095" -> "T-108";
+"T-105" -> "T-108";
+"T-087" -> "T-108";
+"T-088" -> "T-108";
+"T-102" -> "T-108";
+"T-089" -> "T-109";
+"T-090" -> "T-109";
+"T-091" -> "T-109";
+"T-092" -> "T-109";
+"T-098" -> "T-109" [color="#c0392b", penwidth=2.5];
+"T-099" -> "T-109";
+"T-100" -> "T-109";
+"T-104" -> "T-109";
+"T-106" -> "T-109";
+}

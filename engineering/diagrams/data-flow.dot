@@ -1,0 +1,21 @@
+digraph G {
+graph [rankdir=LR, label="資料流｜交棒物與人工決策點"];
+graph [bgcolor="white", pad="0.4", nodesep="0.45", ranksep="0.6", fontname="Microsoft JhengHei", fontsize=20, labelloc=t, compound=true];
+node [shape=box, style="rounded,filled", fillcolor="#eef4fa", color="#42617d", fontname="Microsoft JhengHei", fontsize=13, margin="0.18,0.1"];
+edge [fontname="Microsoft JhengHei", fontsize=11, color="#526779", arrowsize=0.75];
+src [label="來源\nX／RSS／HN／手動網址", fillcolor="#f4f4f4"];
+col [label="collect", fillcolor="#e3f0e1"]; inbox [label="inbox/YYYY-MM-DD.md\n（IF-001）", shape=note];
+human1 [label="人：勾選、節目、格式、備註", shape=oval, fillcolor="#fff7d6"];
+topic [label="建題\ntopic.md／content.md\n（IF-002／003）", fillcolor="#e3f0e1"];
+fetch [label="fetch", fillcolor="#e3f0e1"]; srcmd [label="sources/*.md（IF-004）\nassets.json（IF-005）", shape=note];
+draft [label="draft", fillcolor="#fdf0dc"]; drafts [label="drafts/rNNN（IF-006）\nscript／carousel／caption", shape=note];
+human2 [label="人：改稿、select、錄旁白", shape=oval, fillcolor="#fff7d6"];
+prod [label="production", fillcolor="#fdf0dc"]; build [label="builds/<id>\nshots／captions／manifest\n（IF-010～012）＋out/", shape=note];
+review [label="review／approve", fillcolor="#e8e4f6"]; human3 [label="人：處理待確認項、確認", shape=oval, fillcolor="#fff7d6"];
+pub [label="發布包／發布", fillcolor="#e8e4f6"]; publ [label="publications（IF-016）", shape=cylinder];
+fb [label="成效／週報", fillcolor="#e8e4f6"]; metrics [label="metric_snapshots（IF-017）\nreports/weekly.md", shape=cylinder];
+src -> col -> inbox -> human1 -> topic -> fetch -> srcmd -> draft -> drafts -> human2 -> prod -> build -> review;
+human3 -> review [dir=back]; review -> pub -> publ -> fb -> metrics;
+metrics -> human1 [style=dashed, label="下週選題參考"];
+human2 -> fetch [style=dashed, label="補素材"]; review -> human2 [style=dashed, label="要修改"];
+}
