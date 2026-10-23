@@ -2,3 +2,9 @@
 __pycache__/
 .venv/
 .env
+
+# archify receipts
+*.finalize.json
+*.finalize-summary.json
+*.browser-check.json
+*.delivery.json
