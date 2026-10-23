@@ -11,7 +11,8 @@
 | 3 | [03_Architecture.md](03_Architecture.md) | 架構：技術堆疊、系統架構圖、軟體架構圖、資料流、ERD、ADR | 全體 |
 | 4 | [04_Tech_Selection.md](04_Tech_Selection.md) | 每個環節的工具組合、GitHub 連結、實務案例、Spike | 全體；各自細讀自己的環節 |
 | 5 | [05_Team_DAG_Sprint.md](05_Team_DAG_Sprint.md) | 分工、RACI、交棒點、關鍵路徑、DAG、Sprint 計畫、協作規則 | 全體 |
-| 6 | [tickets/README.md](tickets/README.md) | 107 張票的總表與負載 | 每天 |
+| 6 | [06_Branching_Strategy.md](06_Branching_Strategy.md) | main／dev／功能分支、Sprint 合併與 tag、每個 Sprint 要開的分支 | 全體 |
+| 7 | [tickets/README.md](tickets/README.md) | 107 張票的總表與負載 | 每天 |
 
 ## SRS 章節
 
@@ -48,5 +49,5 @@ PRD  US-xxx（使用者故事）
 
 ## 需要主管先處理的事
 
-1. **2026-10-30 前**：決定要不要登記 Reddit API app（[PRD Q5](01_PRD.md#13-待決事項)；Reddit 2026-10-31 起不再受理新的公開 API 申請）。
+1. **2026-10-30 前**：送 Reddit Data API 申請，步驟見 [runbooks/reddit-api-access.md](runbooks/reddit-api-access.md)（PRD Q5；Reddit 2026-10-31 起不再受理新的公開 API 申請）。
 2. 其他決策點見 [分工與 DAG §6](05_Team_DAG_Sprint.md#6-主管要盯的決策點)。

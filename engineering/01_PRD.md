@@ -246,4 +246,4 @@
 | Q2 | X API 的實際方案與預算上限 | 主管（依 Albert 的 Spike 結果） | S3 結束前 |
 | Q3 | 自動發布要走官方 API 還是聚合服務 | 主管（依舒媁的 Spike 結果） | S5 結束前 |
 | Q4 | ~~Remotion 授權~~ 已結案：POC 階段不處理，見 D14 | 主管 | 轉商用前 |
-| Q5 | 是否在 2026-10-31 前登記 Reddit API app，換取過渡期 | 主管 | **2026-10-30** |
+| Q5 | 是否在 2026-10-31 前登記 Reddit API app，換取過渡期（步驟見 [runbooks/reddit-api-access.md](runbooks/reddit-api-access.md)） | 主管 | **2026-10-30** |

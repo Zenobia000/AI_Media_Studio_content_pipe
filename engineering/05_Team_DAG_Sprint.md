@@ -138,7 +138,7 @@
 
 | 時間 | 決策 | 依據的票 | PRD |
 |---|---|---|---|
-| **2026-10-30 前** | 要不要趕在 Reddit 停止受理前登記 API app | — | Q5 |
+| **2026-10-30 前** | 要不要趕在 Reddit 停止受理前登記 API app（[申請步驟](runbooks/reddit-api-access.md)） | — | Q5 |
 | S1 第一週 | GPU 是否可用 | T-004 | Q1 |
 | S1 結束 | Remotion 技術驗證通過與否（授權 POC 不處理，PRD D14） | T-014 | — |
 | S3 起 | Meta App 權限送審（審核要時間，越早越好） | T-041 | — |
@@ -157,7 +157,7 @@
 
 ### 7.2 Git
 
-- 分支：`<type>/<ticket-id>-<short-description>`，例如 `feat/t-021-inbox`。
+- 分支：`<type>/<ticket-id>-<short-description>`，例如 `feat/t-021-inbox`。完整規則（main／dev／功能分支、Sprint 合併、tag、保護規則）見 [06 分支策略](06_Branching_Strategy.md)。
 - Commit：Conventional Commits，例如 `feat(collect): generate daily inbox`。
 - PR 標題帶票號；PR 描述列出驗收標準的勾選結果。
 - 修改 `schemas/` 的 PR 必須三人都 approve（SRS 07 修改規則）。
