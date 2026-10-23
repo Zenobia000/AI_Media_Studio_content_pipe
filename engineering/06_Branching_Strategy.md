@@ -123,6 +123,8 @@ Squash 時，commit 訊息用 PR 標題（Conventional Commits 格式）。GitHu
 | 必須通過 CI | T-001 的 CI 上線後加 | T-001 的 CI 上線後加 |
 | 管理員可以略過 | 可以（主管緊急用，不是日常流程） | 可以 |
 
+**預設分支是 `dev`**（2026-10-23 設定）：clone 下來就在 `dev`，開 PR 時預設合進 `dev`。
+
 **還沒做到，靠約定的部分**：
 - **`main` 只收 `dev` 和 `fix/`**：GitHub 免費方案的分支保護擋不住 PR 從哪條分支來，要靠 reviewer 把關。
 - **改 `schemas/` 要三人核准**：GitHub 只能要求「CODEOWNERS 之一」核准，沒辦法要求「全部人」，所以靠 PR 描述勾選三人核准。T-001 會加上 `.github/CODEOWNERS`，讓改到 `schemas/` 的 PR 自動指派三人當 reviewer。
