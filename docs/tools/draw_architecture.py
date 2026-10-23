@@ -1,4 +1,7 @@
-"""Render architecture diagrams (system, software, data flow, ERD) with local Graphviz."""
+"""Render architecture diagrams (software, data flow, ERD) with local Graphviz.
+
+The system architecture diagram is authored with archify: diagrams/system-architecture.architecture.json.
+"""
 from pathlib import Path
 import subprocess
 
@@ -32,28 +35,6 @@ def legend() -> list[str]:
         f'lg_s [label="楊舒媁｜排程與發布", fillcolor="{SHUWEI}"];',
         'lg_a -> lg_c -> lg_s [style=invis]; }',
     ]
-
-
-def system() -> None:
-    body = [
-        'subgraph cluster_ext { label="外部服務"; style="rounded"; color="#9aa7b3";',
-        f'node [fillcolor="{EXT}"];',
-        'x [label="X API"]; meta [label="Meta API\\nIG／Threads 發布與 Insights"]; feeds [label="RSS／GitHub／HN／HF\\n電子報"];',
-        'llm [label="Claude API"]; web [label="網站／YouTube\\n（補料）"]; agg [label="聚合發布服務\\nYouTube／TikTok（R6）"]; r2 [label="物件儲存\\n暫存公開網址（R6）"]; phone [label="手機\\nntfy 推播"]; }',
-        'subgraph cluster_host { label="創作者的電腦（Windows 11）"; style="rounded"; color="#42617d";',
-        'obs [label="Obsidian\\n開同一個 newsroom/ 資料夾"]; cc [label="Claude Code\\nslash command"];',
-        'subgraph cluster_wsl { label="WSL2（Ubuntu，systemd）"; style="rounded"; color="#7a8fa3";',
-        'timer [label="systemd timer\\n收集／早報／成效回收"]; cli [label="newsroom CLI\\n（Python 3.11＋poetry）"];',
-        'node_r [label="render/\\n（Node＋Remotion 或 HyperFrames）"]; tools [label="ffmpeg／ffprobe\\nyt-dlp／Playwright"];',
-        'ml [label="本機模型\\nASR／對齊／斷詞／嵌入"];',
-        'ws [label="newsroom/ 工作區\\nMarkdown＋media＋SQLite", shape=cylinder];',
-        'subgraph cluster_docker { label="Docker"; style="rounded,dashed"; cd [label="changedetection.io"]; ntfy [label="ntfy（選用自架）"]; } } }',
-        'obs -> ws [dir=both, label="人讀寫 Markdown"]; cc -> cli; timer -> cli; cli -> ws [dir=both];',
-        'cli -> node_r [label="subprocess＋JSON"]; cli -> tools; cli -> ml; node_r -> ws;',
-        'cd -> cli [label="webhook"]; cli -> ntfy -> phone;',
-        'cli -> x; cli -> feeds; cli -> web; cli -> llm; cli -> meta; cli -> agg; cli -> r2;',
-    ]
-    render('system-architecture', body, '系統架構圖｜部署與外部依賴', rankdir='LR')
 
 
 def software() -> None:
@@ -139,7 +120,6 @@ def erd() -> None:
 
 
 if __name__ == '__main__':
-    system()
     software()
     dataflow()
     erd()

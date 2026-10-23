@@ -1,0 +1,467 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "系統架構｜單機模組化單體與外部服務",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "output": "docs/diagrams/system-architecture.html",
+    "legend": {
+      "entries": {
+        "external": {
+          "label": "創作者"
+        },
+        "frontend": {
+          "label": "操作介面"
+        },
+        "messagebus": {
+          "label": "自動觸發"
+        },
+        "backend": {
+          "label": "本機程式"
+        },
+        "database": {
+          "label": "工作區資料"
+        },
+        "cloud": {
+          "label": "網路服務"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "creator",
+      "type": "external",
+      "icon": "person",
+      "label": "創作者",
+      "sublabel": "唯一使用者",
+      "pos": [
+        40,
+        325
+      ],
+      "size": [
+        120,
+        60
+      ]
+    },
+    {
+      "id": "claude_code",
+      "type": "frontend",
+      "label": "Claude Code",
+      "sublabel": "slash command",
+      "pos": [
+        230,
+        325
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "obsidian",
+      "type": "frontend",
+      "label": "Obsidian",
+      "sublabel": "經 \\\\wsl$\\ 開工作區",
+      "pos": [
+        230,
+        660
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "timer",
+      "type": "messagebus",
+      "icon": "clock",
+      "label": "systemd timer",
+      "sublabel": "收集、早報、成效回收",
+      "pos": [
+        430,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "changedetect",
+      "type": "messagebus",
+      "label": "changedetection.io",
+      "sublabel": "Docker，R5 起",
+      "pos": [
+        430,
+        480
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "backend",
+      "label": "newsroom CLI",
+      "sublabel": "Python 3.11＋poetry",
+      "pos": [
+        650,
+        300
+      ],
+      "size": [
+        150,
+        110
+      ],
+      "tag": "協調器與領域模組"
+    },
+    {
+      "id": "workspace",
+      "type": "database",
+      "label": "newsroom/ 工作區",
+      "sublabel": "Markdown、media、SQLite",
+      "pos": [
+        650,
+        660
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "render",
+      "type": "backend",
+      "label": "render/",
+      "sublabel": "Node＋Remotion",
+      "pos": [
+        880,
+        30
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "Reel、輪播"
+    },
+    {
+      "id": "adapters",
+      "type": "backend",
+      "label": "adapter 層",
+      "sublabel": "外部工具一律經過這裡",
+      "pos": [
+        880,
+        130
+      ],
+      "size": [
+        150,
+        480
+      ]
+    },
+    {
+      "id": "local_tools",
+      "type": "backend",
+      "label": "本機工具與模型",
+      "sublabel": "ffmpeg、yt-dlp、Playwright、ASR",
+      "pos": [
+        880,
+        660
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "feeds",
+      "type": "cloud",
+      "label": "資訊來源",
+      "sublabel": "RSS、GitHub、HN、電子報",
+      "pos": [
+        1180,
+        134
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "x_api",
+      "type": "cloud",
+      "label": "X API",
+      "sublabel": "List、書籤，R4 起",
+      "pos": [
+        1180,
+        204
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "web",
+      "type": "cloud",
+      "label": "網站與影片平台",
+      "sublabel": "原文與素材",
+      "pos": [
+        1180,
+        274
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "cloud",
+      "label": "Claude API",
+      "sublabel": "抽事實、寫稿、週報",
+      "pos": [
+        1180,
+        344
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "meta",
+      "type": "cloud",
+      "label": "Meta Graph API",
+      "sublabel": "IG、Threads",
+      "pos": [
+        1180,
+        414
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "aggregator",
+      "type": "cloud",
+      "label": "聚合發布服務",
+      "sublabel": "R6 自動發布",
+      "pos": [
+        1180,
+        484
+      ],
+      "size": [
+        170,
+        52
+      ]
+    },
+    {
+      "id": "ntfy",
+      "type": "cloud",
+      "label": "ntfy",
+      "sublabel": "S 級事件推播，R4 起",
+      "pos": [
+        1180,
+        554
+      ],
+      "size": [
+        170,
+        52
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "創作者的電腦（Windows 11）",
+      "wraps": [
+        "claude_code",
+        "obsidian",
+        "timer",
+        "changedetect",
+        "cli",
+        "workspace",
+        "render",
+        "adapters",
+        "local_tools"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "WSL2（Ubuntu，開啟 systemd）",
+      "wraps": [
+        "timer",
+        "changedetect",
+        "cli",
+        "workspace",
+        "render",
+        "adapters",
+        "local_tools"
+      ],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    {
+      "id": "c_command",
+      "from": "creator",
+      "to": "claude_code",
+      "label": "下指令",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c_edit",
+      "from": "creator",
+      "to": "obsidian",
+      "label": "看 inbox、改稿",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "c_invoke",
+      "from": "claude_code",
+      "to": "cli",
+      "label": "呼叫 CLI",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c_timer",
+      "from": "timer",
+      "to": "cli",
+      "label": "定時執行",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "c_webhook",
+      "from": "changedetect",
+      "to": "cli",
+      "label": "webhook",
+      "variant": "dashed"
+    },
+    {
+      "id": "c_rw",
+      "from": "cli",
+      "to": "workspace",
+      "label": "讀寫",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c_md",
+      "from": "obsidian",
+      "to": "workspace",
+      "label": "讀寫 Markdown"
+    },
+    {
+      "id": "c_render",
+      "from": "cli",
+      "to": "render",
+      "label": "subprocess＋JSON"
+    },
+    {
+      "id": "c_adapter",
+      "from": "cli",
+      "to": "adapters",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c_local",
+      "from": "adapters",
+      "to": "local_tools",
+      "label": "本機執行"
+    },
+    {
+      "id": "c_feeds",
+      "from": "adapters",
+      "to": "feeds",
+      "label": "抓取",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    },
+    {
+      "id": "c_x",
+      "from": "adapters",
+      "to": "x_api",
+      "label": "抓取",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    },
+    {
+      "id": "c_web",
+      "from": "adapters",
+      "to": "web",
+      "label": "補料",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    },
+    {
+      "id": "c_llm",
+      "from": "adapters",
+      "to": "llm",
+      "label": "API",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "id": "c_meta",
+      "from": "adapters",
+      "to": "meta",
+      "label": "發布、成效",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    },
+    {
+      "id": "c_agg",
+      "from": "adapters",
+      "to": "aggregator",
+      "label": "上傳",
+      "variant": "dashed",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    },
+    {
+      "id": "c_ntfy",
+      "from": "adapters",
+      "to": "ntfy",
+      "label": "推播",
+      "variant": "dashed",
+      "route": "orthogonal-h",
+      "labelSegment": 2
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "依賴規則",
+      "items": [
+        "模組化單體：不拆服務、不用訊息佇列",
+        "領域模組之間只透過檔案與 SQLite 交接",
+        "外部工具一律經過 adapter，每個都能單獨停用"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "部署注意",
+      "items": [
+        "WSL 開啟 systemd，並關閉 Windows 自動睡眠",
+        "Obsidian 從 Windows 端開 WSL 內的工作區",
+        "金鑰放環境變數或 keyring，不進工作區"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "分期上線",
+      "items": [
+        "R4 起接 X API、ntfy 推播、成效自動回收",
+        "R5 起加 changedetection.io（Docker）",
+        "R6 起經聚合服務自動發布，另需物件儲存提供暫存公開網址"
+      ]
+    }
+  ]
+}
