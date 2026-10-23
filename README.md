@@ -48,7 +48,7 @@
 | 我想知道… | 看這份 |
 |---|---|
 | 要做什麼、為什麼做、怎樣算成功 | [產品需求（PRD）](docs/product/PRD.md) |
-| 創作者實際怎麼操作，從選題到回收成效 | [User Flow 圖](docs/diagrams/user-flow.png) |
+| 創作者實際怎麼操作，從選題到回收成效 | [User Flow 圖](docs/diagrams/user-flow.png)；互動版是 [user-flow.html](docs/diagrams/user-flow.html)，下載後用瀏覽器開 |
 | 每個功能的詳細規格 | [功能規格（SRS）總覽](docs/spec/00_overview.md)，各模組見下表 |
 | 模組之間交接的資料格式 | [介面契約](docs/spec/07_interfaces.md) |
 | 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md) |

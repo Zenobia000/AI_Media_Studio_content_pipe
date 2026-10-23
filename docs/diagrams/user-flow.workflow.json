@@ -1,0 +1,434 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "User Flow｜創作者從選題到回收成效",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "output": "docs/diagrams/user-flow.html",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "人工操作"
+        },
+        "backend": {
+          "label": "系統處理"
+        },
+        "messagebus": {
+          "label": "每日產出與推播"
+        },
+        "database": {
+          "label": "成效紀錄"
+        },
+        "security": {
+          "label": "人工把關與例外"
+        },
+        "cloud": {
+          "label": "外部服務"
+        },
+        "external": {
+          "label": "發布平台"
+        }
+      }
+    }
+  },
+  "lanes": [
+    {
+      "id": "creator",
+      "label": "創作者（人工）"
+    },
+    {
+      "id": "system",
+      "label": "newsroom 系統（自動）"
+    },
+    {
+      "id": "outside",
+      "label": "外部服務與平台"
+    },
+    {
+      "id": "recover",
+      "label": "例外與補救",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p_collect",
+      "label": "① 收集",
+      "fromCol": 0,
+      "toCol": 0
+    },
+    {
+      "id": "p_pick",
+      "label": "② 選題",
+      "fromCol": 1,
+      "toCol": 1
+    },
+    {
+      "id": "p_draft",
+      "label": "③ 草稿",
+      "fromCol": 2,
+      "toCol": 2,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p_make",
+      "label": "④ 製作",
+      "fromCol": 3,
+      "toCol": 3
+    },
+    {
+      "id": "p_publish",
+      "label": "⑤ 確認與發布",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "security"
+    },
+    {
+      "id": "p_feedback",
+      "label": "⑥ 回收成效",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "sources",
+    "collect",
+    "inbox",
+    "pick",
+    "pipeline",
+    "review_draft",
+    "make",
+    "approve",
+    "publish",
+    "platform",
+    "metrics",
+    "read_retro"
+  ],
+  "nodes": [
+    {
+      "id": "add_source",
+      "lane": "creator",
+      "col": 0,
+      "type": "frontend",
+      "icon": "person",
+      "label": "手動加網址",
+      "sublabel": "newsroom add-source"
+    },
+    {
+      "id": "pick",
+      "lane": "creator",
+      "col": 1,
+      "type": "frontend",
+      "icon": "person",
+      "label": "勾選題目",
+      "sublabel": "Obsidian → /produce"
+    },
+    {
+      "id": "review_draft",
+      "lane": "creator",
+      "col": 2,
+      "type": "frontend",
+      "icon": "decision",
+      "label": "審稿與修改",
+      "sublabel": "不滿意就 redraft",
+      "tag": "人工把關"
+    },
+    {
+      "id": "record",
+      "lane": "creator",
+      "col": 3,
+      "type": "frontend",
+      "icon": "person",
+      "label": "錄旁白",
+      "sublabel": "只有 Reel 需要"
+    },
+    {
+      "id": "approve",
+      "lane": "creator",
+      "col": 4,
+      "type": "security",
+      "icon": "decision",
+      "label": "預覽並確認",
+      "sublabel": "review → approve",
+      "tag": "人工把關"
+    },
+    {
+      "id": "read_retro",
+      "lane": "creator",
+      "col": 5,
+      "type": "frontend",
+      "icon": "person",
+      "label": "讀週報",
+      "sublabel": "調整選題與比例"
+    },
+    {
+      "id": "collect",
+      "lane": "system",
+      "col": 0,
+      "type": "backend",
+      "icon": "clock",
+      "label": "定時收集",
+      "sublabel": "去重、聚類、熱度"
+    },
+    {
+      "id": "inbox",
+      "lane": "system",
+      "col": 1,
+      "type": "messagebus",
+      "label": "每日 inbox.md",
+      "sublabel": "S 級事件推播"
+    },
+    {
+      "id": "pipeline",
+      "lane": "system",
+      "col": 2,
+      "type": "backend",
+      "label": "產出草稿",
+      "sublabel": "補料、抽事實、寫稿",
+      "tag": "引用檢查"
+    },
+    {
+      "id": "make",
+      "lane": "system",
+      "col": 3,
+      "type": "backend",
+      "label": "製作成品",
+      "sublabel": "輪播、字幕、Reel",
+      "tag": "規格檢查"
+    },
+    {
+      "id": "publish",
+      "lane": "system",
+      "col": 4,
+      "type": "backend",
+      "label": "發布",
+      "sublabel": "R1–R5 原生排程紀錄",
+      "tag": "R6 自動發布"
+    },
+    {
+      "id": "metrics",
+      "lane": "system",
+      "col": 5,
+      "type": "database",
+      "label": "成效與週報",
+      "sublabel": "Insights 或手填"
+    },
+    {
+      "id": "sources",
+      "lane": "outside",
+      "col": 0,
+      "type": "cloud",
+      "label": "資訊來源",
+      "sublabel": "RSS、GitHub、HN、X"
+    },
+    {
+      "id": "llm",
+      "lane": "outside",
+      "col": 2,
+      "type": "cloud",
+      "label": "Claude API",
+      "sublabel": "抽事實與寫稿"
+    },
+    {
+      "id": "platform",
+      "lane": "outside",
+      "col": 4,
+      "type": "external",
+      "label": "Instagram／Threads",
+      "sublabel": "貼文與成效數據"
+    },
+    {
+      "id": "gap",
+      "lane": "recover",
+      "col": 2,
+      "type": "security",
+      "icon": "waiting",
+      "label": "素材缺口",
+      "sublabel": "人工截圖或錄影"
+    },
+    {
+      "id": "job_fail",
+      "lane": "recover",
+      "col": 3,
+      "type": "security",
+      "icon": "failure",
+      "label": "Job 失敗",
+      "sublabel": "status 後 retry"
+    },
+    {
+      "id": "stale",
+      "lane": "recover",
+      "col": 4,
+      "type": "security",
+      "icon": "stop",
+      "label": "成品失效",
+      "sublabel": "改稿後要重做"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_fetch",
+      "from": "sources",
+      "to": "collect",
+      "label": "抓取",
+      "variant": "default",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "e_candidates",
+      "from": "collect",
+      "to": "inbox",
+      "label": "候選",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_manual",
+      "from": "add_source",
+      "to": "inbox",
+      "label": "手動候選",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "e_read",
+      "from": "inbox",
+      "to": "pick",
+      "label": "每天看",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_produce",
+      "from": "pick",
+      "to": "pipeline",
+      "label": "/produce",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_llm",
+      "from": "pipeline",
+      "to": "llm",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "e_gap",
+      "from": "pipeline",
+      "to": "gap",
+      "label": "缺素材",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e_draft",
+      "from": "pipeline",
+      "to": "review_draft",
+      "label": "草稿",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_selected",
+      "from": "review_draft",
+      "to": "make",
+      "label": "定稿",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_reel",
+      "from": "review_draft",
+      "to": "record",
+      "label": "Reel",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "e_voice",
+      "from": "record",
+      "to": "make",
+      "label": "音檔",
+      "variant": "default"
+    },
+    {
+      "id": "e_fail",
+      "from": "make",
+      "to": "job_fail",
+      "label": "失敗",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e_output",
+      "from": "make",
+      "to": "approve",
+      "label": "成品",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_approved",
+      "from": "approve",
+      "to": "publish",
+      "label": "確認",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_edit_after",
+      "from": "approve",
+      "to": "stale",
+      "label": "改稿",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e_post",
+      "from": "publish",
+      "to": "platform",
+      "label": "發布",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_insights",
+      "from": "platform",
+      "to": "metrics",
+      "label": "數據",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_report",
+      "from": "metrics",
+      "to": "read_retro",
+      "label": "週報",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "三種格式",
+      "items": [
+        "Threads 純文字：定稿後直接預覽確認",
+        "輪播：系統產生圖卡",
+        "Reel：先錄旁白，字幕用講稿對齊錄音"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "補救方式",
+      "items": [
+        "素材缺口：補進 media/raw 後重跑 /produce",
+        "Job 失敗：newsroom status 看原因，再 retry",
+        "成品失效：回到審稿，改完重新製作"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "分期",
+      "items": [
+        "R1–R5：人在平台設原生排程，再 mark-published",
+        "R5 起成效自動回收；R6 起自動發布",
+        "讀完週報回到選題，開始下一輪"
+      ]
+    }
+  ]
+}
