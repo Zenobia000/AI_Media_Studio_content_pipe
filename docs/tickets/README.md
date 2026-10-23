@@ -1,6 +1,6 @@
 # Tickets 總表
 
-> 這份檔案由 `python engineering/tools/build_dag.py` 產生，請勿手動修改。要改票，請改 `T-*.md` 的 front-matter 後重新執行。
+> 這份檔案由 `python docs/tools/build_dag.py` 產生，請勿手動修改。要改票，請改 `T-*.md` 的 front-matter 後重新執行。
 
 共 107 張票、179 點（1 點＝1 人天；`全體` 的票每人各計一次）。
 

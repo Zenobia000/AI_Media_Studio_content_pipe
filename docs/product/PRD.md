@@ -4,8 +4,8 @@
 |---|---|
 | 文件類型 | 產品需求文件（PM 視角） |
 | 版本 | v1.0｜2026-10-23 |
-| 依據 | [05 產線設計](../05_Content_Pipeline_Design.md)、[06 MVP 交接](../06_Content_Pipeline_MVP_Handoff.md)、[07 狀態圖](../07_Pipeline_State_Diagrams.md) |
-| 下游文件 | [SRS](02_SRS/00_overview.md)、[架構](03_Architecture.md)、[技術選型](04_Tech_Selection.md)、[分工與 DAG](05_Team_DAG_Sprint.md)、[Tickets](tickets/README.md) |
+| 依據 | [05 產線設計](../archive/05_Content_Pipeline_Design.md)、[06 MVP 交接](../archive/06_Content_Pipeline_MVP_Handoff.md)、[07 狀態圖](../spec/08_state_machines.md) |
+| 下游文件 | [SRS](../spec/00_overview.md)、[架構](../architecture/architecture.md)、[技術選型](../architecture/tech-selection.md)、[分工與 DAG](../process/team-dag-sprint.md)、[Tickets](../tickets/README.md) |
 | 範圍 | 05 全部功能；06 的批次 1–3 先做 |
 
 這份文件回答「做什麼、為誰做、做到什麼程度算成功」。怎麼做寫在 SRS 與架構文件。
@@ -65,7 +65,7 @@
 
 ## 6. 範圍與發布分期
 
-一個 Sprint 為兩週，共 7 個 Sprint（14 週；排程依據見 [分工與 DAG §1](05_Team_DAG_Sprint.md#1-為什麼是-7-個-sprint)）。每個 Release 結束時，至少要有一則真實題目跑完該期範圍。
+一個 Sprint 為兩週，共 7 個 Sprint（14 週；排程依據見 [分工與 DAG §1](../process/team-dag-sprint.md#1-為什麼是-7-個-sprint)）。每個 Release 結束時，至少要有一則真實題目跑完該期範圍。
 
 | Release | Sprint | 使用者可以做到 | 對應 |
 |---|---|---|---|
@@ -182,7 +182,7 @@
 
 ## 8. 使用者流程
 
-完整流程見 [06 §4](../06_Content_Pipeline_MVP_Handoff.md)。PRD 只強調三個原則：
+完整流程見 [06 §4](../archive/06_Content_Pipeline_MVP_Handoff.md)。PRD 只強調三個原則：
 
 1. **日常主線**：開 inbox → 選題、寫角度 → 補資料 → 改稿 → 製作 → 看預覽 → 確認 → 發布 → 記錄效果。
 2. **修改回路**：缺資料就回去補料；觀點不對就回去改稿；字幕或畫面有問題就回去製作。每次改動後都要重新看成品、重新確認。
@@ -190,7 +190,7 @@
 
 ## 9. 非功能需求摘要
 
-細節見 [SRS 00 §6](02_SRS/00_overview.md#6-非功能需求)。
+細節見 [SRS 00 §6](../spec/00_overview.md#6-非功能需求)。
 
 | 類別 | 要求 |
 |---|---|
@@ -246,4 +246,4 @@
 | Q2 | X API 的實際方案與預算上限 | 主管（依 Albert 的 Spike 結果） | S3 結束前 |
 | Q3 | 自動發布要走官方 API 還是聚合服務 | 主管（依舒媁的 Spike 結果） | S5 結束前 |
 | Q4 | ~~Remotion 授權~~ 已結案：POC 階段不處理，見 D14 | 主管 | 轉商用前 |
-| Q5 | 是否在 2026-10-31 前登記 Reddit API app，換取過渡期（步驟見 [runbooks/reddit-api-access.md](runbooks/reddit-api-access.md)） | 主管 | **2026-10-30** |
+| Q5 | 是否在 2026-10-31 前登記 Reddit API app，換取過渡期（步驟見 [runbooks/reddit-api-access.md](../runbooks/reddit-api-access.md)） | 主管 | **2026-10-30** |

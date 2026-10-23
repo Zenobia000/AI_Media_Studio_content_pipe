@@ -45,4 +45,4 @@ status: todo                # todo | doing | review | done
 
 ---
 
-修改 front-matter 後，執行 `python engineering/tools/build_dag.py` 更新總表與 DAG；驗證失敗（依賴不存在、循環、前置票排在後面的 Sprint、需求沒有票實作）時會以結束碼 1 結束。
+修改 front-matter 後，執行 `python docs/tools/build_dag.py` 更新總表與 DAG；驗證失敗（依賴不存在、循環、前置票排在後面的 Sprint、需求沒有票實作）時會以結束碼 1 結束。

@@ -1,6 +1,6 @@
 """Build the ticket DAG from ticket front-matter, validate it, and render outputs.
 
-Single source of truth: engineering/tickets/T-*.md front-matter.
+Single source of truth: docs/tickets/T-*.md front-matter.
 Outputs: diagrams/dag.{dot,png,svg}, tickets/README.md.
 Exit code 1 when validation fails (unknown deps, cycles, sprint order, uncovered FRs).
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TICKETS = ROOT / 'tickets'
-SRS = ROOT / '02_SRS'
+SRS = ROOT / 'spec'
 DIAGRAMS = ROOT / 'diagrams'
 FONT = 'Microsoft JhengHei'
 NL = chr(10)
@@ -200,7 +200,7 @@ def render_readme(t: dict[str, dict], load: dict, crit_len: int, crit: list[str]
     down = downstream(t)
     sprints = sorted({x['sprint'] for x in t.values()}, key=sprint_no)
     out = ['# Tickets 總表', '',
-           '> 這份檔案由 `python engineering/tools/build_dag.py` 產生，請勿手動修改。要改票，請改 `T-*.md` 的 front-matter 後重新執行。', '',
+           '> 這份檔案由 `python docs/tools/build_dag.py` 產生，請勿手動修改。要改票，請改 `T-*.md` 的 front-matter 後重新執行。', '',
            f'共 {len(t)} 張票、{sum(x["points"] for x in t.values())} 點（1 點＝1 人天；`全體` 的票每人各計一次）。', '',
            '## 每人每 Sprint 負載', '',
            '| 負責人 | ' + ' | '.join(sprints) + ' | 合計 |', '|---|' + '---|' * (len(sprints) + 1)]

@@ -5,7 +5,7 @@
 | 版本 | v1.0｜2026-10-23 |
 | 節奏 | 兩週一個 Sprint，三人全職；共 **7 個 Sprint（14 週）** |
 | 單一資料來源 | `tickets/T-*.md` 的 front-matter（負責人、Sprint、估點、前置票） |
-| 產生方式 | `python engineering/tools/build_dag.py` → 檢查依賴、循環、需求覆蓋與負載，並產生 `tickets/README.md` 與 `diagrams/dag*.png／svg` |
+| 產生方式 | `python docs/tools/build_dag.py` → 檢查依賴、循環、需求覆蓋與負載，並產生 `tickets/README.md` 與 `diagrams/dag*.png／svg` |
 
 ---
 
@@ -108,15 +108,15 @@
 
 | Sprint | 圖 |
 |---|---|
-| S1 | ![S1](diagrams/dag-S1.png) |
-| S2 | ![S2](diagrams/dag-S2.png) |
-| S3 | ![S3](diagrams/dag-S3.png) |
-| S4 | ![S4](diagrams/dag-S4.png) |
-| S5 | ![S5](diagrams/dag-S5.png) |
-| S6 | ![S6](diagrams/dag-S6.png) |
-| S7 | ![S7](diagrams/dag-S7.png) |
+| S1 | ![S1](../diagrams/dag-S1.png) |
+| S2 | ![S2](../diagrams/dag-S2.png) |
+| S3 | ![S3](../diagrams/dag-S3.png) |
+| S4 | ![S4](../diagrams/dag-S4.png) |
+| S5 | ![S5](../diagrams/dag-S5.png) |
+| S6 | ![S6](../diagrams/dag-S6.png) |
+| S7 | ![S7](../diagrams/dag-S7.png) |
 
-全專案的總圖在 [diagrams/dag.svg](diagrams/dag.svg)，請用瀏覽器開啟並放大查看。
+全專案的總圖在 [diagrams/dag.svg](../diagrams/dag.svg)，請用瀏覽器開啟並放大查看。
 
 ## 5. Sprint 計畫
 
@@ -130,7 +130,7 @@
 | S6 | 11–12 | 動畫層（2D、Demo 包裝、程式碼）；變動監測；行事曆、S 級通知；連發；IG／Threads 發布 adapter | **R5** | 8 | 10 | 7 |
 | S7 | 13–14 | 自動發布；聚合服務；3D／AI 段落；TTS；在地熱度；L4 錄影；一題三波；交接 | **R6** | 6 | 9 | 8 |
 
-負載數字由 `build_dag.py` 計算（含「全體」的票），每次改票後重跑即可更新 [tickets/README.md](tickets/README.md)。
+負載數字由 `build_dag.py` 計算（含「全體」的票），每次改票後重跑即可更新 [tickets/README.md](../tickets/README.md)。
 
 **PRD 的 Release 對應調整**：PRD §6 原本是 R1–R6 各對應一個 Sprint；實際排程後是 R1＝S2、R2＝S3、R3 與 R4＝S5、R5＝S6、R6＝S7。
 
@@ -138,7 +138,7 @@
 
 | 時間 | 決策 | 依據的票 | PRD |
 |---|---|---|---|
-| **2026-10-30 前** | 要不要趕在 Reddit 停止受理前登記 API app（[申請步驟](runbooks/reddit-api-access.md)） | — | Q5 |
+| **2026-10-30 前** | 要不要趕在 Reddit 停止受理前登記 API app（[申請步驟](../runbooks/reddit-api-access.md)） | — | Q5 |
 | S1 第一週 | GPU 是否可用 | T-004 | Q1 |
 | S1 結束 | Remotion 技術驗證通過與否（授權 POC 不處理，PRD D14） | T-014 | — |
 | S3 起 | Meta App 權限送審（審核要時間，越早越好） | T-041 | — |
@@ -157,7 +157,7 @@
 
 ### 7.2 Git
 
-- 分支：`<type>/<ticket-id>-<short-description>`，例如 `feat/t-021-inbox`。完整規則（main／dev／功能分支、Sprint 合併、tag、保護規則）見 [06 分支策略](06_Branching_Strategy.md)。
+- 分支：`<type>/<ticket-id>-<short-description>`，例如 `feat/t-021-inbox`。完整規則（main／dev／功能分支、Sprint 合併、tag、保護規則）見 [06 分支策略](branching-strategy.md)。
 - Commit：Conventional Commits，例如 `feat(collect): generate daily inbox`。
 - PR 標題帶票號；PR 描述列出驗收標準的勾選結果。
 - 修改 `schemas/` 的 PR 必須三人都 approve（SRS 07 修改規則）。

@@ -261,9 +261,9 @@ newsroom/
 
 ## 8. 狀態、人工回路與例外
 
-完整 UML 狀態圖與可編輯原始碼見 [Pipeline 狀態圖](07_Pipeline_State_Diagrams.md)，分別說明 Content、Job 與 Publication。
+完整 UML 狀態圖與可編輯原始碼見 [Pipeline 狀態圖](../spec/08_state_machines.md)，分別說明 Content、Job 與 Publication。
 
-![單則內容 UML 狀態圖](diagrams/content-state.png)
+![單則內容 UML 狀態圖](../diagrams/content-state.png)
 
 內容進度：`drafting → review → producing → ready → approved → published`。Threads 可從 review 直接到 ready；published 表示至少有一筆實際發布紀錄，各平台進度另外看 Publication。Topic 只彙整旗下 Content，不共用單一發布狀態。
 

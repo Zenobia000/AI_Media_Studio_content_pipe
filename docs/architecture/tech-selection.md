@@ -382,7 +382,7 @@ Breeze 在台灣口音的錄音上表現較好。
 | n8n（自架） | 只在「通知＋核准 UI」成為痛點時才加，且不持有流程狀態 | [n8n-io/n8n](https://github.com/n8n-io/n8n)（208k★，Sustainable Use License） | fair-code | 備選 |
 | Temporal／Prefect／Dagster | 單人使用太重 | — | — | 不採用 |
 
-n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-02協調器自寫-python不用-n8n-當主幹)。
+n8n 和自寫 Python 的比較見 [架構文件 ADR-02](architecture.md#adr-02協調器自寫-python不用-n8n-當主幹)。
 
 ---
 
@@ -408,23 +408,23 @@ n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-0
 
 | Spike | 主題 | 票 | 擁有者 | Sprint |
 |---|---|---|---|---|
-| SPK-OPS-1 | 環境：GPU、WSL systemd、Docker、ffmpeg | [T-004](tickets/T-004.md) | 楊舒媁 | S1 |
-| SPK-FET-1 | 全文擷取 | [T-012](tickets/T-012.md) | Albert Chiang | S1 |
-| SPK-PRD-1 | Remotion 技術驗證（HyperFrames 對照） | [T-014](tickets/T-014.md) | 周長曉 | S1 |
-| SPK-DRF-1／2／3 | 引用準確度、口吻、成本 | [T-028](tickets/T-028.md) | 周長曉 | S3 |
-| SPK-SUB-1～4 | ASR、對齊、速度、斷詞分行 | [T-046](tickets/T-046.md) | 周長曉 | S3 |
-| SPK-CAR-1 | 輪播渲染與溢版 | [T-043](tickets/T-043.md)（併入驗收） | 周長曉 | S3 |
-| SPK-COL-2 | Meta App 與 Threads 搜尋權限（**提早送審**） | [T-041](tickets/T-041.md) | 楊舒媁 | S3 |
-| SPK-COL-3 | feed 可靠度＋AINews 重疊率 | [T-040](tickets/T-040.md) | Albert Chiang | S4 |
-| SPK-COL-1 | X API 成本＋L1 媒體 | [T-059](tickets/T-059.md) | Albert Chiang | S4 |
-| SPK-COL-5 | 聚類門檻＋推播送達 | [T-060](tickets/T-060.md) | Albert Chiang | S4 |
-| SPK-FB-1 | 成效回收 | [T-081](tickets/T-081.md) | 楊舒媁 | S4 |
-| SPK-REEL-1 | 平台壓縮後的字幕清晰度 | [T-071](tickets/T-071.md) | 周長曉 | S5 |
-| SPK-PUB-1／2／3 | 官方 API 發布、聚合服務、暫存網址 | [T-085](tickets/T-085.md) | 楊舒媁 | S5 |
-| SPK-COL-4 | 變動監測 | [T-105](tickets/T-105.md)（併入） | Albert Chiang | S6 |
-| SPK-REEL-2／3 | 3D 效能、AI B-roll | [T-097](tickets/T-097.md) | 周長曉 | S6 |
-| SPK-FET-2 | 瀏覽器錄影畫質 | [T-106](tickets/T-106.md)（併入） | Albert Chiang | S7 |
-| SPK-TTS-1 | TTS | [T-100](tickets/T-100.md)（併入） | 周長曉 | S7 |
+| SPK-OPS-1 | 環境：GPU、WSL systemd、Docker、ffmpeg | [T-004](../tickets/T-004.md) | 楊舒媁 | S1 |
+| SPK-FET-1 | 全文擷取 | [T-012](../tickets/T-012.md) | Albert Chiang | S1 |
+| SPK-PRD-1 | Remotion 技術驗證（HyperFrames 對照） | [T-014](../tickets/T-014.md) | 周長曉 | S1 |
+| SPK-DRF-1／2／3 | 引用準確度、口吻、成本 | [T-028](../tickets/T-028.md) | 周長曉 | S3 |
+| SPK-SUB-1～4 | ASR、對齊、速度、斷詞分行 | [T-046](../tickets/T-046.md) | 周長曉 | S3 |
+| SPK-CAR-1 | 輪播渲染與溢版 | [T-043](../tickets/T-043.md)（併入驗收） | 周長曉 | S3 |
+| SPK-COL-2 | Meta App 與 Threads 搜尋權限（**提早送審**） | [T-041](../tickets/T-041.md) | 楊舒媁 | S3 |
+| SPK-COL-3 | feed 可靠度＋AINews 重疊率 | [T-040](../tickets/T-040.md) | Albert Chiang | S4 |
+| SPK-COL-1 | X API 成本＋L1 媒體 | [T-059](../tickets/T-059.md) | Albert Chiang | S4 |
+| SPK-COL-5 | 聚類門檻＋推播送達 | [T-060](../tickets/T-060.md) | Albert Chiang | S4 |
+| SPK-FB-1 | 成效回收 | [T-081](../tickets/T-081.md) | 楊舒媁 | S4 |
+| SPK-REEL-1 | 平台壓縮後的字幕清晰度 | [T-071](../tickets/T-071.md) | 周長曉 | S5 |
+| SPK-PUB-1／2／3 | 官方 API 發布、聚合服務、暫存網址 | [T-085](../tickets/T-085.md) | 楊舒媁 | S5 |
+| SPK-COL-4 | 變動監測 | [T-105](../tickets/T-105.md)（併入） | Albert Chiang | S6 |
+| SPK-REEL-2／3 | 3D 效能、AI B-roll | [T-097](../tickets/T-097.md) | 周長曉 | S6 |
+| SPK-FET-2 | 瀏覽器錄影畫質 | [T-106](../tickets/T-106.md)（併入） | Albert Chiang | S7 |
+| SPK-TTS-1 | TTS | [T-100](../tickets/T-100.md)（併入） | 周長曉 | S7 |
 
 ---
 

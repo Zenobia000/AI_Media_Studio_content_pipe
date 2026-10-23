@@ -7,7 +7,7 @@
 | 對應 Epic | E08 確認與發布、E09 成效與回饋 |
 | 輸入契約 | builds/（IF-012 manifest）、caption.md（IF-009）、citations.json、assets.json |
 | 輸出契約 | approvals、publications、metric_snapshots 資料表；[IF-016 publication.md](07_interfaces.md#if-016publication-與-publicationmd)；reports/weekly.md |
-| 工具 | 見 [技術選型 §發布](../04_Tech_Selection.md) |
+| 工具 | 見 [技術選型 §發布](../architecture/tech-selection.md) |
 
 ---
 

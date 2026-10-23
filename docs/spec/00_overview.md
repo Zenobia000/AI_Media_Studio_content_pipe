@@ -4,7 +4,7 @@
 |---|---|
 | 文件類型 | 軟體需求規格（SA 視角） |
 | 版本 | v1.0｜2026-10-23 |
-| 上游 | [PRD](../01_PRD.md) |
+| 上游 | [PRD](../product/PRD.md) |
 | 章節 | 00 總覽（本文）、[01 核心](01_core.md)、[02 收集](02_collect.md)、[03 補料](03_fetch_assets.md)、[04 草稿](04_draft.md)、[05 製作](05_production.md)、[06 發布與回饋](06_publish_feedback.md)、[07 介面契約](07_interfaces.md) |
 
 本章定義所有模組都要遵守的共通規則。各模組章節只寫自己的功能需求，不重複這裡的內容。
@@ -85,7 +85,7 @@ ID 一經建立就不再改變。改標題不會改 ID。
 
 ### 5.1 工作區與資料歸屬
 
-工作區結構以 [06 §7](../../06_Content_Pipeline_MVP_Handoff.md) 為準，並補上 05 的長期目錄：
+工作區結構以 [06 §7](../archive/06_Content_Pipeline_MVP_Handoff.md) 為準，並補上 05 的長期目錄：
 
 ```text
 newsroom/
@@ -171,7 +171,7 @@ newsroom/
 
 ### 5.8 狀態機
 
-Content、Job、Publication 的狀態與轉換以 [07 狀態圖](../../07_Pipeline_State_Diagrams.md) 為準。
+Content、Job、Publication 的狀態與轉換以 [07 狀態圖](08_state_machines.md) 為準。
 
 | 物件 | 狀態 |
 |---|---|

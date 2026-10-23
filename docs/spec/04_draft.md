@@ -7,7 +7,7 @@
 | 對應 Epic | E04 草稿 |
 | 輸入契約 | sources/*.md（IF-004）、assets.json（IF-005）、notes.md、voice.md、glossary.md |
 | 輸出契約 | [IF-006 drafts](07_interfaces.md#if-006草稿版本-draftsrevisiondraft-產出)、[IF-007 script.md](07_interfaces.md#if-007scriptmd-節奏表draft-產出人修改production-讀取)、IF-008 carousel.md、IF-009 caption.md |
-| 工具 | 見 [技術選型 §草稿](../04_Tech_Selection.md) |
+| 工具 | 見 [技術選型 §草稿](../architecture/tech-selection.md) |
 
 ---
 

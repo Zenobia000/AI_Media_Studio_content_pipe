@@ -7,7 +7,7 @@
 | 對應 Epic | E05 輪播、E06 字幕、E07 Reel |
 | 輸入契約 | script.md（IF-007）、carousel.md（IF-008）、assets.json（IF-005）、glossary.md |
 | 輸出契約 | [IF-010 shots.json](07_interfaces.md#if-010shotsjsonproduction-內部轉換器產出--渲染器讀取)、[IF-011 captions.json](07_interfaces.md#if-011captionsjson字幕流程產出--渲染器讀取)、[IF-012 manifest.json](07_interfaces.md#if-012manifestjson每次-build-一份綁定所有輸入)、`builds/<id>/out/` |
-| 工具 | 見 [技術選型 §製作](../04_Tech_Selection.md) |
+| 工具 | 見 [技術選型 §製作](../architecture/tech-selection.md) |
 
 ---
 

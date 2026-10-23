@@ -3,7 +3,7 @@
 | 項目 | 內容 |
 |---|---|
 | 版本 | v1.0｜2026-10-23 |
-| 上游 | [PRD](01_PRD.md)、[SRS](02_SRS/00_overview.md) |
+| 上游 | [PRD](../product/PRD.md)、[SRS](../spec/00_overview.md) |
 | 圖檔原始碼 | `tools/draw_architecture.py` → `diagrams/*.dot／.png／.svg`（修改後重新執行即可） |
 
 ---
@@ -37,7 +37,7 @@
 
 ## 3. 系統架構圖（部署）
 
-![系統架構圖](diagrams/system-architecture.png)
+![系統架構圖](../diagrams/system-architecture.png)
 
 | 元件 | 執行位置 | 說明 |
 |---|---|---|
@@ -55,7 +55,7 @@
 
 ## 4. 軟體架構圖（分層與模組）
 
-![軟體架構圖](diagrams/software-architecture.png)
+![軟體架構圖](../diagrams/software-architecture.png)
 
 **依賴規則**（違反就不能合併）
 
@@ -105,7 +105,7 @@ repo/
 
 ## 5. 資料流
 
-![資料流](diagrams/data-flow.png)
+![資料流](../diagrams/data-flow.png)
 
 黃色橢圓是人工決策點，也是三人之間交棒時「等人」的地方：
 
@@ -120,9 +120,9 @@ repo/
 
 ## 6. 資料模型（ERD）
 
-![ERD](diagrams/erd.png)
+![ERD](../diagrams/erd.png)
 
-欄位細節見 [SRS 01 §6](02_SRS/01_core.md#6-資料表第一版)。顏色代表該資料表的負責人；寫入資料表一律透過負責人的 repository 函式，其他人只讀。
+欄位細節見 [SRS 01 §6](../spec/01_core.md#6-資料表第一版)。顏色代表該資料表的負責人；寫入資料表一律透過負責人的 repository 函式，其他人只讀。
 
 ## 7. 橫切關注點
 
@@ -168,7 +168,7 @@ repo/
 
 ### ADR-05｜契約先行
 - **決定**：Sprint 1 第一週先寫 `schemas/*.schema.json` 與 fixtures；每個模組的輸出都要通過 schema 驗證才算完成。
-- **原因**：讓下游不必等上游做完，拿 fixture 就能開工（見 [分工與 DAG](05_Team_DAG_Sprint.md)）。
+- **原因**：讓下游不必等上游做完，拿 fixture 就能開工（見 [分工與 DAG](../process/team-dag-sprint.md)）。
 
 ### ADR-06｜外部工具一律經過 adapter
 - **原因**：工具汰換很快（研究時就發現 6 個封存或改名的專案）。adapter 讓「換工具」只影響一個檔案。

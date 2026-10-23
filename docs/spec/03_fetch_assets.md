@@ -7,7 +7,7 @@
 | 對應 Epic | E03 補料與素材 |
 | 輸入 | topic 的 source_ids |
 | 輸出契約 | [IF-004 sources](07_interfaces.md#if-004sourcessource_idmdfetch-產出)、[IF-005 assets.json](07_interfaces.md#if-005assetsjsonfetch-與人工素材盤點產出draftproduction-讀取)、media.md |
-| 工具 | 見 [技術選型 §補料](../04_Tech_Selection.md) |
+| 工具 | 見 [技術選型 §補料](../architecture/tech-selection.md) |
 
 ---
 

@@ -6,7 +6,7 @@
 | 擁有者 | **Albert Chiang** |
 | 對應 Epic | E02 情報收集 |
 | 輸出契約 | sources、candidates 資料表；[IF-001 inbox](07_interfaces.md#if-001inbox-檔案collect--人--produce) |
-| 工具 | 見 [技術選型 §收集](../04_Tech_Selection.md) |
+| 工具 | 見 [技術選型 §收集](../architecture/tech-selection.md) |
 
 ---
 
