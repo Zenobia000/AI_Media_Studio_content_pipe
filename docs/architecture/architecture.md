@@ -4,7 +4,7 @@
 |---|---|
 | 版本 | v1.0｜2026-10-23 |
 | 上游 | [PRD](../product/PRD.md)、[SRS](../spec/00_overview.md) |
-| 圖檔原始碼 | `tools/draw_architecture.py` → `diagrams/*.dot／.png／.svg`（修改後重新執行即可） |
+| 圖檔原始碼 | 系統架構圖：`diagrams/system-architecture.architecture.json`（archify）；其他圖：`tools/draw_architecture.py` → `diagrams/*.dot／.png／.svg`（修改後重新執行即可） |
 
 ---
 
@@ -38,6 +38,8 @@
 ## 3. 系統架構圖（部署）
 
 ![系統架構圖](../diagrams/system-architecture.png)
+
+互動版：[system-architecture.html](../diagrams/system-architecture.html)（下載後用瀏覽器開）。
 
 | 元件 | 執行位置 | 說明 |
 |---|---|---|

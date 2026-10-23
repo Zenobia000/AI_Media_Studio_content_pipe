@@ -51,7 +51,7 @@
 | 創作者實際怎麼操作，從選題到回收成效 | [User Flow 圖](docs/diagrams/user-flow.png)；互動版是 [user-flow.html](docs/diagrams/user-flow.html)，下載後用瀏覽器開 |
 | 每個功能的詳細規格 | [功能規格（SRS）總覽](docs/spec/00_overview.md)，各模組見下表 |
 | 模組之間交接的資料格式 | [介面契約](docs/spec/07_interfaces.md) |
-| 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md) |
+| 系統怎麼搭、技術堆疊、架構圖 | [架構](docs/architecture/architecture.md)；[系統架構圖](docs/diagrams/system-architecture.png)，互動版是 [system-architecture.html](docs/diagrams/system-architecture.html) |
 | 每個環節用什麼工具、為什麼 | [技術選型](docs/architecture/tech-selection.md) |
 | 誰做什麼、交棒順序、每個 Sprint 的目標 | [分工、DAG 與 Sprint 計畫](docs/process/team-dag-sprint.md) |
 | 分支怎麼開、怎麼合併 | [分支策略](docs/process/branching-strategy.md) |
