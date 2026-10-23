@@ -38,7 +38,7 @@
 | [T-011](T-011.md) | add-source：手動新增候選 | Albert Chiang | 1 | feature | T-010、T-006 | T-021 | todo |
 | [T-012](T-012.md) | SPK-FET-1 全文擷取方案驗證 | Albert Chiang | 1 | spike | T-001 | T-023 | todo |
 | [T-013](T-013.md) | render/ Node 專案骨架與 IF-013 CLI 殼 | 周長曉 | 1 | chore | T-002 | T-014、T-042、T-047 | todo |
-| [T-014](T-014.md) | SPK-PRD-1 合成層比較：Remotion 與 HyperFrames（含授權） | 周長曉 | 2 | spike | T-004、T-013 | T-042、T-067 | todo |
+| [T-014](T-014.md) | SPK-PRD-1 合成層驗證：Remotion（HyperFrames 對照） | 周長曉 | 2 | spike | T-004、T-013 | T-042、T-067 | todo |
 | [T-015](T-015.md) | LLM adapter 與成本紀錄 | 周長曉 | 1 | feature | T-005 | T-016、T-051、T-078、T-101 | todo |
 | [T-016](T-016.md) | 事實抽取（facts.json） | 周長曉 | 2 | feature | T-015、T-003 | T-017 | todo |
 

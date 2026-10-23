@@ -49,5 +49,4 @@ PRD  US-xxx（使用者故事）
 ## 需要主管先處理的事
 
 1. **2026-10-30 前**：決定要不要登記 Reddit API app（[PRD Q5](01_PRD.md#13-待決事項)；Reddit 2026-10-31 起不再受理新的公開 API 申請）。
-2. **S1 結束前**：Remotion 授權，付費或改用 HyperFrames（PRD Q4；[技術選型 §6](04_Tech_Selection.md#6-remotion-授權需要主管決定prd-q4)）。
-3. 其他決策點見 [分工與 DAG §6](05_Team_DAG_Sprint.md#6-主管要盯的決策點)。
+2. 其他決策點見 [分工與 DAG §6](05_Team_DAG_Sprint.md#6-主管要盯的決策點)。

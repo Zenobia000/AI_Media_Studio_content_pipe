@@ -7,7 +7,7 @@ Build、shots.json、Reel 模板、渲染、規格檢查、動畫層。
 | 票 | 標題 | 負責人 | Sprint | 估點 |
 |---|---|---|---|---|
 | [T-013](T-013.md) | render/ Node 專案骨架與 IF-013 CLI 殼 | 周長曉 | S1 | 1 |
-| [T-014](T-014.md) | SPK-PRD-1 合成層比較：Remotion 與 HyperFrames（含授權） | 周長曉 | S1 | 2 |
+| [T-014](T-014.md) | SPK-PRD-1 合成層驗證：Remotion（HyperFrames 對照） | 周長曉 | S1 | 2 |
 | [T-047](T-047.md) | Build 建立與 manifest（含冪等） | 周長曉 | S3 | 1 |
 | [T-057](T-057.md) | 素材前處理（ffmpeg 正規化） | Albert Chiang | S4 | 1 |
 | [T-066](T-066.md) | Reel：節奏表轉成 shots.json | 周長曉 | S4 | 2 |

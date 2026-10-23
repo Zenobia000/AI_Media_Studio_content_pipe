@@ -162,10 +162,9 @@ repo/
 - **原因**：人用 Obsidian 編輯 Markdown 最自然；執行紀錄需要查詢與交易。兩邊不各存一份可編輯的資料，避免不一致（PRD D4）。
 - **規則**：程式只寫受管區塊，或寫自己產生的檔案；Markdown 裡的狀態摘要只是給人看的。
 
-### ADR-04｜影片合成層：Remotion，HyperFrames 為授權備援（待定）
-- **背景**：團隊 4 人，依 Remotion 授權屬付費範圍；由程式自動渲染屬 Automator 方案，每月最低 100 美元（技術選型 §6）。
-- **暫定**：渲染器透過 IF-013 的 CLI 介面隔離，Python 端不知道底層是哪一種。S1 由周長曉做 SPK-PRD-1，主管在 S1 結束前決定（PRD Q4）。
-- **在決定之前**：模板只使用兩邊都能做到的功能。
+### ADR-04｜影片合成層：Remotion，HyperFrames 為技術備援
+- **決定**：採用 Remotion。POC 階段不考慮授權（PRD D14）。
+- **隔離**：渲染器透過 IF-013 的 CLI 介面隔離，Python 端不知道底層是哪一種；SPK-PRD-1 若發現 Remotion 有技術問題（速度、中文字型），或轉商用時授權成本不划算，可以換成 HyperFrames 而不動 Python 端。
 
 ### ADR-05｜契約先行
 - **決定**：Sprint 1 第一週先寫 `schemas/*.schema.json` 與 fixtures；每個模組的輸出都要通過 schema 驗證才算完成。

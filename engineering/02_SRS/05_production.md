@@ -168,7 +168,7 @@ Python（newsroom.production）                       Node（render/）
 
 | Spike | 內容 | 過關條件 |
 |---|---|---|
-| SPK-PRD-1 合成層與授權 | 同一支 60 秒 AI Today 腳本，用 Remotion 與 HyperFrames 各做一版；同時向 Remotion 確認授權分類 | 60 秒渲染 ≤ 3 分鐘（CPU）；中文無缺字；改文案後 ≤ 1 次重渲染就正確；授權成本可接受 |
+| SPK-PRD-1 合成層 | 同一支 60 秒 AI Today 腳本，用 Remotion 與 HyperFrames 各做一版（POC 不比較授權，PRD D14） | 60 秒渲染 ≤ 3 分鐘（CPU）；中文無缺字；改文案後 ≤ 1 次重渲染就正確 |
 | SPK-CAR-1 輪播渲染 | 20 組真實繁中文案，用 headless 瀏覽器渲染 | 溢版召回率 100%；每張 ≤ 1 秒；字型 ≤ 1 MB；行首無標點 |
 | SPK-SUB-1 ASR 辨識率 | 10 段自錄 Reel 音檔，比較 2–3 個 ASR 方案 | CER ≤ 8%；術語錯誤 ≤ 2 個／段；輸出為繁體 |
 | SPK-SUB-2 對齊準度 | 3 段人工標註錄音，比較 2–3 個對齊方案 | 平均誤差 ≤ 80 ms；> 200 ms 的字 ≤ 3% |

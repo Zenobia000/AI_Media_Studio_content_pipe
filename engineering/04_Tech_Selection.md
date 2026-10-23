@@ -270,9 +270,9 @@ Breeze 在台灣口音的錄音上表現較好。
 
 | 工具 | 角色 | 連結 | 授權 | 最後更新 | 社群 | 標記 |
 |---|---|---|---|---|---|---|
-| Remotion | 主力合成：字幕、2D、圖表、最終輸出（React，以 frame 驅動） | [remotion-dev/remotion](https://github.com/remotion-dev/remotion) | **Remotion License（見 §6）** | 2026-10-22 | 66.4k★ | **需 Spike（授權）** |
+| Remotion | 主力合成：字幕、2D、圖表、最終輸出（React，以 frame 驅動） | [remotion-dev/remotion](https://github.com/remotion-dev/remotion) | Remotion License（POC 不處理，見 §6） | 2026-10-22 | 66.4k★ | **採用** |
 | remotion-dev/skills | 給 Claude Code 用的 Remotion 技能 | [repo](https://github.com/remotion-dev/skills) | — | 2026-10-22 | 5.5k★ | **採用** |
-| HyperFrames（HeyGen） | 授權備援：HTML／GSAP 寫動畫，headless Chrome＋ffmpeg 輸出；官方有 Remotion 轉換技能 | [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) | Apache-2.0 | 2026-10-23 | 70k★ | **需 Spike** |
+| HyperFrames（HeyGen） | 技術備援，也是商用時的授權備援：HTML／GSAP 寫動畫，headless Chrome＋ffmpeg 輸出；官方有 Remotion 轉換技能 | [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) | Apache-2.0 | 2026-10-23 | 70k★ | **需 Spike** |
 | ffmpeg | 素材正規化（30fps、yuv420p）、拼接、faststart | [FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg) | LGPL／GPL | 2026-10 | 65.6k★ | **採用** |
 | MoviePy | 純 Python 的簡單拼接 | [Zulko/moviepy](https://github.com/Zulko/moviepy) | MIT | 2026-08 | 15k★ | 備選 |
 | Motion Canvas／Revideo | 和 Remotion 功能重疊 | [motion-canvas](https://github.com/motion-canvas/motion-canvas)、[midrender/revideo](https://github.com/midrender/revideo) | MIT | 2026-07 | 19.4k★／4.1k★ | 備選 |
@@ -386,7 +386,9 @@ n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-0
 
 ---
 
-## 6. Remotion 授權（需要主管決定，PRD Q4）
+## 6. Remotion 授權（POC 階段不處理，轉商用前再評估）
+
+**2026-10-23 決定**：目前是內部 POC，不對外販售；授權問題留到商用前再評估（PRD D14）。以下事實留作轉商用時的參考。
 
 | 事實 | 出處 |
 |---|---|
@@ -396,12 +398,7 @@ n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-0
 | Creator 方案每人每月 25 美元，只適用於沒有建立自動化的手動製作 | 同上 |
 | 官方預告 Remotion 5.0 授權會再調整 | 同上 |
 
-我們是主管加 3 名工程師共 4 人，落在付費範圍。有兩條路：
-
-1. **付費**：Automator 方案，每月約 100 美元起。
-2. **改用 HyperFrames**：Apache-2.0，官方提供從 Remotion 轉換的技能，宣稱能轉約 80% 的內容。
-
-建議做法：S1 由周長曉做 SPK-PRD-1 的比較，同時由主管向 Remotion 詢問「4 人共同經營一個個人創作者帳號」屬於哪一類，再決定。在決定之前，Reel 模板只用兩邊都能做的功能（字幕、2D、圖片與影片疊加）。
+轉商用時的兩條路：付費（Automator，每月約 100 美元起），或改用 HyperFrames（Apache-2.0，官方提供從 Remotion 轉換的技能，宣稱能轉約 80% 的內容）。IF-013 已把渲染器隔離，換掉不影響 Python 端。
 
 ---
 
@@ -413,7 +410,7 @@ n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-0
 |---|---|---|---|---|
 | SPK-OPS-1 | 環境：GPU、WSL systemd、Docker、ffmpeg | [T-004](tickets/T-004.md) | 楊舒媁 | S1 |
 | SPK-FET-1 | 全文擷取 | [T-012](tickets/T-012.md) | Albert Chiang | S1 |
-| SPK-PRD-1 | Remotion 與 HyperFrames＋授權 | [T-014](tickets/T-014.md) | 周長曉 | S1 |
+| SPK-PRD-1 | Remotion 技術驗證（HyperFrames 對照） | [T-014](tickets/T-014.md) | 周長曉 | S1 |
 | SPK-DRF-1／2／3 | 引用準確度、口吻、成本 | [T-028](tickets/T-028.md) | 周長曉 | S3 |
 | SPK-SUB-1～4 | ASR、對齊、速度、斷詞分行 | [T-046](tickets/T-046.md) | 周長曉 | S3 |
 | SPK-CAR-1 | 輪播渲染與溢版 | [T-043](tickets/T-043.md)（併入驗收） | 周長曉 | S3 |
@@ -435,7 +432,7 @@ n8n 和自寫 Python 的比較見 [架構文件 ADR-02](03_Architecture.md#adr-0
 
 | 05 文件寫的 | 研究結果 |
 |---|---|
-| Remotion「4 人以上才需要購買」 | 我們剛好 4 人，落在付費範圍（§6） |
+| Remotion「4 人以上才需要購買」 | 我們剛好 4 人，落在付費範圍；POC 階段不處理（§6） |
 | X API 每月 15–50 美元 | 依官方按量計費推估，每月約 90–225 美元（§1.1） |
 | Threads 關鍵字搜尋每 7 天約 500 次 | 官方文件是每 24 小時 2,200 次，但要通過審核（§1.2） |
 | Reddit 官方 API／RSS | 即將關閉（§1.3） |
