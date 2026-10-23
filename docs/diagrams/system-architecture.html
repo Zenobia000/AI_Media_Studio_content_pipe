@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 3.2.0">
   <meta name="archify-reader-contract" content="declared-wide-v1">
-  <title>系統架構｜單機模組化單體與外部服務</title>
+  <title>系統架構｜Skills 編排與確定性工具</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -5193,7 +5193,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
            data-preset-badge-blueprint="藍圖 / 修訂 01"
            data-preset-badge-editorial="編輯風格 / 現場筆記">
         <div class="pulse-dot"></div>
-        <h1>系統架構｜單機模組化單體與外部服務</h1>
+        <h1>系統架構｜Skills 編排與確定性工具</h1>
       </div>
     </div>
 
@@ -5202,8 +5202,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 圖版 04">
-      <svg viewBox="0 0 1390 812" role="img" lang="zh-TW" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
-        <title id="archify-diagram-title">系統架構｜單機模組化單體與外部服務</title>
+      <svg viewBox="0 0 1450 862" role="img" lang="zh-TW" aria-labelledby="archify-diagram-title archify-diagram-description" data-animation="trace" data-preset="classic" data-quality-profile="showcase" data-node-ui="" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
+        <title id="archify-diagram-title">系統架構｜Skills 編排與確定性工具</title>
         <desc id="archify-diagram-description">由 Archify 產生的架構圖。</desc>
         <!-- Definitions -->
         <defs>
@@ -5249,363 +5249,375 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="創作者的電腦（Windows 11）" x="208" y="6" width="844" height="738" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="創作者的電腦（Windows 11）" x="208" y="25" width="914" height="769" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="1" data-composition-frame-label="WSL2（Ubuntu，開啟 systemd）" x="416" y="6" width="628" height="738" rx="8" class="c-security-group" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="1" data-composition-frame-label="WSL2（Ubuntu，開啟 systemd）" x="416" y="25" width="698" height="769" rx="8" class="c-security-group" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
         <g data-graph-role="automatic-crossover" style="--step:0">
-          <path data-graph-role="automatic-crossover-underlay" d="M 160 355 L 230 355" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="creator" data-edge-to="claude_code" data-edge-label="下指令" data-edge-key="0" data-edge-id="c_command" data-composition-points="160,355;230,355" data-composition-crossover="halo" data-composition-independent="true" d="M 160 355 L 230 355" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 160 398.05 L 430 398.05" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="creator" data-edge-to="claude_code" data-edge-label="用口語下需求" data-edge-key="0" data-edge-id="c_ask" data-composition-points="160,398.05;430,398.05" data-composition-crossover="halo" data-composition-independent="true" d="M 160 398.05 L 430 398.05" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:1">
-          <path data-graph-role="automatic-crossover-underlay" d="M 100 385 L 100 684 Q 100 692 108 692 L 230 692" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="creator" data-edge-to="obsidian" data-edge-label="看 inbox、改稿" data-edge-key="1" data-edge-id="c_edit" data-composition-points="100,385;100,692;230,692" data-composition-crossover="halo" data-composition-independent="true" d="M 100 385 L 100 684 Q 100 692 108 692 L 230 692" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 100 420 L 100 734 Q 100 742 108 742 L 230 742" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="creator" data-edge-to="obsidian" data-edge-label="看 inbox、改稿" data-edge-key="1" data-edge-id="c_edit" data-composition-points="100,420;100,742;230,742" data-composition-crossover="halo" data-composition-independent="true" d="M 100 420 L 100 734 Q 100 742 108 742 L 230 742" class="a-default" data-animate="edge" style="--step:1" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:2">
-          <path data-graph-role="automatic-crossover-underlay" d="M 370 348 L 650 348" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="claude_code" data-edge-to="cli" data-edge-label="呼叫 CLI" data-edge-key="2" data-edge-id="c_invoke" data-composition-points="370,348;650,348" data-composition-crossover="halo" data-composition-independent="true" d="M 370 348 L 650 348" class="a-emphasis" data-animate="edge" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 446 350 L 446 208 Q 446 200 438 200 L 190 200" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="claude_code" data-edge-to="model" data-edge-label="模型推論" data-edge-key="2" data-edge-id="c_model" data-composition-points="446,350;446,200;190,200" data-composition-crossover="halo" data-composition-independent="true" d="M 446 350 L 446 208 Q 446 200 438 200 L 190 200" class="a-dashed" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:3">
-          <path data-graph-role="automatic-crossover-underlay" d="M 570 72 L 710 72 Q 718 72 718 80 L 718 300" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="timer" data-edge-to="cli" data-edge-label="定時執行" data-edge-key="3" data-edge-id="c_timer" data-composition-points="570,72;718,72;718,300" data-composition-crossover="halo" data-composition-independent="true" d="M 570 72 L 710 72 Q 718 72 718 80 L 718 300" class="a-dashed" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 505 430 L 505 550" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="claude_code" data-edge-to="skills" data-edge-label="讀 skill" data-edge-key="3" data-edge-id="c_skill" data-composition-points="505,430;505,550" data-composition-crossover="halo" data-composition-independent="true" d="M 505 430 L 505 550" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:4">
-          <path data-graph-role="automatic-crossover-underlay" d="M 580 496 L 658 496 Q 666 496 666 488 L 666 410" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="changedetect" data-edge-to="cli" data-edge-label="webhook" data-edge-key="4" data-edge-id="c_webhook" data-composition-points="580,496;666,496;666,410" data-composition-crossover="halo" data-composition-independent="true" d="M 580 496 L 658 496 Q 666 496 666 488 L 666 410" class="a-dashed" data-animate="edge" style="--step:4" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 580 390 L 720 390" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="claude_code" data-edge-to="tools" data-edge-label="呼叫工具 --json" data-edge-key="4" data-edge-id="c_call" data-composition-points="580,390;720,390" data-composition-crossover="halo" data-composition-independent="true" d="M 580 390 L 720 390" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:5">
-          <path data-graph-role="automatic-crossover-underlay" d="M 725 410 L 725 660" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="cli" data-edge-to="workspace" data-edge-label="讀寫" data-edge-key="5" data-edge-id="c_rw" data-composition-points="725,410;725,660" data-composition-crossover="halo" data-composition-independent="true" d="M 725 410 L 725 660" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 795 234 L 795 330" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="timer" data-edge-to="tools" data-edge-label="定時收集" data-edge-key="5" data-edge-id="c_collect" data-composition-points="795,234;795,330" data-composition-crossover="halo" data-composition-independent="true" d="M 795 234 L 795 330" class="a-dashed" data-animate="edge" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
-          <path data-graph-role="automatic-crossover-underlay" d="M 370 692 L 650 692" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="obsidian" data-edge-to="workspace" data-edge-label="讀寫 Markdown" data-edge-key="6" data-edge-id="c_md" data-composition-points="370,692;650,692" data-composition-crossover="halo" data-composition-independent="true" d="M 370 692 L 650 692" class="a-default" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 720 202 L 513 202 Q 505 202 505 210 L 505 350" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="timer" data-edge-to="claude_code" data-edge-label="claude -p 跑 skill" data-edge-key="6" data-edge-id="c_headless" data-composition-points="720,202;505,202;505,350" data-composition-crossover="halo" data-composition-independent="true" d="M 720 202 L 513 202 Q 505 202 505 210 L 505 350" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 784 300 L 784 86 Q 784 78 792 78 L 880 78" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="cli" data-edge-to="render" data-edge-label="subprocess＋JSON" data-edge-key="7" data-edge-id="c_render" data-composition-points="784,300;784,78;880,78" data-composition-crossover="halo" data-composition-independent="true" d="M 784 300 L 784 86 Q 784 78 792 78 L 880 78" class="a-default" data-animate="edge" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 795 450 L 795 710" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="tools" data-edge-to="workspace" data-edge-label="讀寫" data-edge-key="7" data-edge-id="c_rw" data-composition-points="795,450;795,710" data-composition-crossover="halo" data-composition-independent="true" d="M 795 450 L 795 710" class="a-emphasis" data-animate="edge" style="--step:7" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
-          <path data-graph-role="automatic-crossover-underlay" d="M 800 355 L 880 355" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="cli" data-edge-to="adapters" data-edge-key="8" data-edge-id="c_adapter" data-composition-points="800,355;880,355" data-composition-crossover="halo" data-composition-independent="true" d="M 800 355 L 880 355" class="a-emphasis" data-animate="edge" style="--step:8" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 370 742 L 720 742" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="obsidian" data-edge-to="workspace" data-edge-label="讀寫 Markdown" data-edge-key="8" data-edge-id="c_md" data-composition-points="370,742;720,742" data-composition-crossover="halo" data-composition-independent="true" d="M 370 742 L 720 742" class="a-default" data-animate="edge" style="--step:8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:9">
-          <path data-graph-role="automatic-crossover-underlay" d="M 955 610 L 955 660" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="adapters" data-edge-to="local_tools" data-edge-label="本機執行" data-edge-key="9" data-edge-id="c_local" data-composition-points="955,610;955,660" data-composition-crossover="halo" data-composition-independent="true" d="M 955 610 L 955 660" class="a-default" data-animate="edge" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 870 390 L 950 390" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="tools" data-edge-to="adapters" data-edge-key="9" data-edge-id="c_adapter" data-composition-points="870,390;950,390" data-composition-crossover="halo" data-composition-independent="true" d="M 870 390 L 950 390" class="a-emphasis" data-animate="edge" style="--step:9" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
-        <path data-edge-from="adapters" data-edge-to="feeds" data-edge-label="抓取" data-edge-key="10" data-edge-id="c_feeds" data-composition-points="1030,370;1105,370;1105,160;1180,160" d="M 1030 370 L 1097 370 Q 1105 370 1105 362 L 1105 168 Q 1105 160 1113 160 L 1180 160" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="adapters" data-edge-to="x_api" data-edge-label="抓取" data-edge-key="11" data-edge-id="c_x" data-composition-points="1030,370;1105,370;1105,230;1180,230" d="M 1030 370 L 1097 370 Q 1105 370 1105 362 L 1105 238 Q 1105 230 1113 230 L 1180 230" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="adapters" data-edge-to="web" data-edge-label="補料" data-edge-key="12" data-edge-id="c_web" data-composition-points="1030,370;1105,370;1105,300;1180,300" d="M 1030 370 L 1097 370 Q 1105 370 1105 362 L 1105 308 Q 1105 300 1113 300 L 1180 300" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="adapters" data-edge-to="llm" data-edge-label="API" data-edge-key="13" data-edge-id="c_llm" data-composition-points="1030,370;1105,370;1105,370;1180,370" d="M 1030 370 L 1105 370 L 1105 370 L 1180 370" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="adapters" data-edge-to="meta" data-edge-label="發布、成效" data-edge-key="14" data-edge-id="c_meta" data-composition-points="1030,370;1105,370;1105,440;1180,440" d="M 1030 370 L 1097 370 Q 1105 370 1105 378 L 1105 432 Q 1105 440 1113 440 L 1180 440" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="adapters" data-edge-to="aggregator" data-edge-label="上傳" data-edge-key="15" data-edge-id="c_agg" data-composition-points="1030,370;1105,370;1105,510;1180,510" d="M 1030 370 L 1097 370 Q 1105 370 1105 378 L 1105 502 Q 1105 510 1113 510 L 1180 510" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="adapters" data-edge-to="ntfy" data-edge-label="推播" data-edge-key="16" data-edge-id="c_ntfy" data-composition-points="1030,370;1105,370;1105,580;1180,580" d="M 1030 370 L 1097 370 Q 1105 370 1105 378 L 1105 572 Q 1105 580 1113 580 L 1180 580" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <g data-graph-role="automatic-crossover" style="--step:10">
+          <path data-graph-role="automatic-crossover-underlay" d="M 1025 180 L 1025 110" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="adapters" data-edge-to="render" data-edge-label="subprocess＋JSON" data-edge-key="10" data-edge-id="c_render" data-composition-points="1025,180;1025,110" data-composition-crossover="halo" data-composition-independent="true" d="M 1025 180 L 1025 110" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <g data-graph-role="automatic-crossover" style="--step:11">
+          <path data-graph-role="automatic-crossover-underlay" d="M 1025 620 L 1025 710" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="adapters" data-edge-to="local_tools" data-edge-label="本機執行" data-edge-key="11" data-edge-id="c_local" data-composition-points="1025,620;1025,710" data-composition-crossover="halo" data-composition-independent="true" d="M 1025 620 L 1025 710" class="a-default" data-animate="edge" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        </g>
+        <path data-edge-from="adapters" data-edge-to="feeds" data-edge-label="抓取" data-edge-key="12" data-edge-id="c_feeds" data-composition-points="1100,400;1170,400;1170,225;1240,225" d="M 1100 400 L 1162 400 Q 1170 400 1170 392 L 1170 233 Q 1170 225 1178 225 L 1240 225" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="adapters" data-edge-to="x_api" data-edge-label="抓取" data-edge-key="13" data-edge-id="c_x_api" data-composition-points="1100,400;1170,400;1170,295;1240,295" d="M 1100 400 L 1162 400 Q 1170 400 1170 392 L 1170 303 Q 1170 295 1178 295 L 1240 295" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="adapters" data-edge-to="web" data-edge-label="補料" data-edge-key="14" data-edge-id="c_web" data-composition-points="1100,400;1170,400;1170,365;1240,365" d="M 1100 400 L 1162 400 Q 1170 400 1170 392 L 1170 373 Q 1170 365 1178 365 L 1240 365" class="a-default" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="adapters" data-edge-to="meta" data-edge-label="發布、成效" data-edge-key="15" data-edge-id="c_meta" data-composition-points="1100,400;1170,400;1170,435;1240,435" d="M 1100 400 L 1162 400 Q 1170 400 1170 408 L 1170 427 Q 1170 435 1178 435 L 1240 435" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="adapters" data-edge-to="aggregator" data-edge-label="上傳" data-edge-key="16" data-edge-id="c_aggregator" data-composition-points="1100,400;1170,400;1170,505;1240,505" d="M 1100 400 L 1162 400 Q 1170 400 1170 408 L 1170 497 Q 1170 505 1178 505 L 1240 505" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="adapters" data-edge-to="ntfy" data-edge-label="推播" data-edge-key="17" data-edge-id="c_ntfy" data-composition-points="1100,400;1170,400;1170,575;1240,575" d="M 1100 400 L 1162 400 Q 1170 400 1170 408 L 1170 567 Q 1170 575 1178 575 L 1240 575" class="a-dashed" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
 
         <!-- Components -->
         <g id="node-creator" data-node-id="creator" data-node-label="創作者" tabindex="0" role="button" aria-label="聚焦創作者，唯一使用者, 架構元件" aria-pressed="false" data-node-kind="external" data-node-sublabel="唯一使用者" data-node-context="架構元件">
           <title>創作者 · 唯一使用者 · 架構元件</title>
-          <rect x="40" y="325" width="120" height="60" rx="8" class="c-mask"/>
-          <rect x="40" y="325" width="120" height="60" rx="8" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="person" class="semantic-sigil s-external" transform="translate(46 331) scale(0.6875)">
+          <rect x="40" y="360" width="120" height="60" rx="8" class="c-mask"/>
+          <rect x="40" y="360" width="120" height="60" rx="8" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="person" class="semantic-sigil s-external" transform="translate(46 366) scale(0.6875)">
             <circle cx="8" cy="4.5" r="2.5"/><path d="M3 14v-2a5 5 0 0 1 10 0v2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="100" y="353" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">創作者</text>
-        <text data-detail="context" x="100" y="369" class="t-muted" font-size="9" text-anchor="middle">唯一使用者</text>
+          <text data-node-label="" data-detail-anchor="" x="100" y="388" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">創作者</text>
+        <text data-detail="context" x="100" y="404" class="t-muted" font-size="9" text-anchor="middle">唯一使用者</text>
         </g>
 
-        <g id="node-claude_code" data-node-id="claude_code" data-node-label="Claude Code" tabindex="0" role="button" aria-label="聚焦Claude Code，slash command, 創作者的電腦（Windows 11）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="slash command" data-node-context="創作者的電腦（Windows 11）">
-          <title>Claude Code · slash command · 創作者的電腦（Windows 11）</title>
-          <rect x="230" y="325" width="140" height="60" rx="8" class="c-mask"/>
-          <rect x="230" y="325" width="140" height="60" rx="8" class="c-frontend" data-animate="node" style="--step:1" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(236 331) scale(0.6875)">
-            <rect x="2" y="3" width="12" height="10" rx="2"/>
-            <path d="M2 6.5h12"/>
-            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
-            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+        <g id="node-model" data-node-id="model" data-node-label="Claude 模型" tabindex="0" role="button" aria-label="聚焦Claude 模型，訂閱或 API, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="訂閱或 API" data-node-context="架構元件">
+          <title>Claude 模型 · 訂閱或 API · 架構元件</title>
+          <rect x="40" y="160" width="150" height="56" rx="8" class="c-mask"/>
+          <rect x="40" y="160" width="150" height="56" rx="8" class="c-cloud" data-animate="node" style="--step:3" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(46 166) scale(0.6875)">
+            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="300" y="353" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude Code</text>
-        <text data-detail="context" x="300" y="369" class="t-muted" font-size="9" text-anchor="middle">slash command</text>
+          <text data-node-label="" data-detail-anchor="" x="115" y="186" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude 模型</text>
+        <text data-detail="context" x="115" y="202" class="t-muted" font-size="9" text-anchor="middle">訂閱或 API</text>
         </g>
 
         <g id="node-obsidian" data-node-id="obsidian" data-node-label="Obsidian" tabindex="0" role="button" aria-label="聚焦Obsidian，經 \\wsl$\ 開工作區, 創作者的電腦（Windows 11）" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="經 \\wsl$\ 開工作區" data-node-context="創作者的電腦（Windows 11）">
           <title>Obsidian · 經 \\wsl$\ 開工作區 · 創作者的電腦（Windows 11）</title>
-          <rect x="230" y="660" width="140" height="64" rx="8" class="c-mask"/>
-          <rect x="230" y="660" width="140" height="64" rx="8" class="c-frontend" data-animate="node" style="--step:2" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(236 666) scale(0.6875)">
+          <rect x="230" y="710" width="140" height="64" rx="8" class="c-mask"/>
+          <rect x="230" y="710" width="140" height="64" rx="8" class="c-frontend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(236 716) scale(0.6875)">
             <rect x="2" y="3" width="12" height="10" rx="2"/>
             <path d="M2 6.5h12"/>
             <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="300" y="690" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Obsidian</text>
-        <text data-detail="context" x="300" y="706" class="t-muted" font-size="9" text-anchor="middle">經 \\wsl$\ 開工作區</text>
+          <text data-node-label="" data-detail-anchor="" x="300" y="740" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Obsidian</text>
+        <text data-detail="context" x="300" y="756" class="t-muted" font-size="9" text-anchor="middle">經 \\wsl$\ 開工作區</text>
         </g>
 
-        <g id="node-timer" data-node-id="timer" data-node-label="systemd timer" tabindex="0" role="button" aria-label="聚焦systemd timer，收集、早報、成效回收, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="收集、早報、成效回收" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
-          <title>systemd timer · 收集、早報、成效回收 · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
-          <rect x="430" y="40" width="140" height="64" rx="8" class="c-mask"/>
-          <rect x="430" y="40" width="140" height="64" rx="8" class="c-messagebus" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="clock" class="semantic-sigil s-messagebus" transform="translate(436 46) scale(0.6875)">
+        <g id="node-claude_code" data-node-id="claude_code" data-node-label="Claude Code" tabindex="0" role="button" aria-label="聚焦Claude Code，互動，或 claude -p, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="security" data-node-sublabel="互動，或 claude -p" data-node-tag="agent harness" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
+          <title>Claude Code · 互動，或 claude -p · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd） · agent harness</title>
+          <rect x="430" y="350" width="150" height="80" rx="8" class="c-mask"/>
+          <rect x="430" y="350" width="150" height="80" rx="8" class="c-security" data-animate="node" style="--step:1" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(436 356) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="505" y="388" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude Code</text>
+        <text data-detail="context" x="505" y="404" class="t-muted" font-size="9" text-anchor="middle">互動，或 claude -p</text>
+        <text data-detail="fine" x="505" y="422" class="t-security" font-size="7" text-anchor="middle">agent harness</text>
+        </g>
+
+        <g id="node-skills" data-node-id="skills" data-node-label="skills＋CLAUDE.md" tabindex="0" role="button" aria-label="聚焦skills＋CLAUDE.md，流程與判斷標準, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="security" data-node-sublabel="流程與判斷標準" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
+          <title>skills＋CLAUDE.md · 流程與判斷標準 · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
+          <rect x="430" y="550" width="150" height="64" rx="8" class="c-mask"/>
+          <rect x="430" y="550" width="150" height="64" rx="8" class="c-security" data-animate="node" style="--step:4" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(436 556) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="505" y="580" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">skills＋CLAUDE.md</text>
+        <text data-detail="context" x="505" y="596" class="t-muted" font-size="9" text-anchor="middle">流程與判斷標準</text>
+        </g>
+
+        <g id="node-timer" data-node-id="timer" data-node-label="systemd timer" tabindex="0" role="button" aria-label="聚焦systemd timer，收集、早報、週報, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="收集、早報、週報" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
+          <title>systemd timer · 收集、早報、週報 · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
+          <rect x="720" y="170" width="150" height="64" rx="8" class="c-mask"/>
+          <rect x="720" y="170" width="150" height="64" rx="8" class="c-messagebus" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="clock" class="semantic-sigil s-messagebus" transform="translate(726 176) scale(0.6875)">
             <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="500" y="70" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">systemd timer</text>
-        <text data-detail="context" x="500" y="86" class="t-muted" font-size="9" text-anchor="middle">收集、早報、成效回收</text>
+          <text data-node-label="" data-detail-anchor="" x="795" y="200" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">systemd timer</text>
+        <text data-detail="context" x="795" y="216" class="t-muted" font-size="9" text-anchor="middle">收集、早報、週報</text>
         </g>
 
-        <g id="node-changedetect" data-node-id="changedetect" data-node-label="changedetection.io" tabindex="0" role="button" aria-label="聚焦changedetection.io，Docker，R5 起, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="Docker，R5 起" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
-          <title>changedetection.io · Docker，R5 起 · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
-          <rect x="430" y="480" width="150" height="64" rx="8" class="c-mask"/>
-          <rect x="430" y="480" width="150" height="64" rx="8" class="c-messagebus" data-animate="node" style="--step:4" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(436 486) scale(0.6875)">
-            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
-            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
-            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
-            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="505" y="510" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">changedetection.io</text>
-        <text data-detail="context" x="505" y="526" class="t-muted" font-size="9" text-anchor="middle">Docker，R5 起</text>
-        </g>
-
-        <g id="node-cli" data-node-id="cli" data-node-label="newsroom CLI" tabindex="0" role="button" aria-label="聚焦newsroom CLI，Python 3.11＋poetry, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Python 3.11＋poetry" data-node-tag="協調器與領域模組" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
-          <title>newsroom CLI · Python 3.11＋poetry · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd） · 協調器與領域模組</title>
-          <rect x="650" y="300" width="150" height="110" rx="8" class="c-mask"/>
-          <rect x="650" y="300" width="150" height="110" rx="8" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(656 306) scale(0.6875)">
+        <g id="node-tools" data-node-id="tools" data-node-label="newsroom 工具" tabindex="0" role="button" aria-label="聚焦newsroom 工具，JSON 進出、不呼叫 LLM, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="JSON 進出、不呼叫 LLM" data-node-tag="冪等、鎖、關卡" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
+          <title>newsroom 工具 · JSON 進出、不呼叫 LLM · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd） · 冪等、鎖、關卡</title>
+          <rect x="720" y="330" width="150" height="120" rx="8" class="c-mask"/>
+          <rect x="720" y="330" width="150" height="120" rx="8" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(726 336) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="725" y="353" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">newsroom CLI</text>
-        <text data-detail="context" x="725" y="369" class="t-muted" font-size="9" text-anchor="middle">Python 3.11＋poetry</text>
-        <text data-detail="fine" x="725" y="402" class="t-backend" font-size="7" text-anchor="middle">協調器與領域模組</text>
+          <text data-node-label="" data-detail-anchor="" x="795" y="388" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">newsroom 工具</text>
+        <text data-detail="context" x="795" y="404" class="t-muted" font-size="9" text-anchor="middle">JSON 進出、不呼叫 LLM</text>
+        <text data-detail="fine" x="795" y="442" class="t-backend" font-size="7" text-anchor="middle">冪等、鎖、關卡</text>
         </g>
 
         <g id="node-workspace" data-node-id="workspace" data-node-label="newsroom/ 工作區" tabindex="0" role="button" aria-label="聚焦newsroom/ 工作區，Markdown、media、SQLite, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="database" data-node-sublabel="Markdown、media、SQLite" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
           <title>newsroom/ 工作區 · Markdown、media、SQLite · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
-          <rect x="650" y="660" width="150" height="64" rx="8" class="c-mask"/>
-          <rect x="650" y="660" width="150" height="64" rx="8" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(656 666) scale(0.6875)">
+          <rect x="720" y="710" width="150" height="64" rx="8" class="c-mask"/>
+          <rect x="720" y="710" width="150" height="64" rx="8" class="c-database" data-animate="node" style="--step:8" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(726 716) scale(0.6875)">
             <ellipse cx="8" cy="4" rx="5" ry="2"/>
             <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="725" y="690" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">newsroom/ 工作區</text>
-        <text data-detail="context" x="725" y="706" class="t-muted" font-size="9" text-anchor="middle">Markdown、media、SQLite</text>
+          <text data-node-label="" data-detail-anchor="" x="795" y="740" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">newsroom/ 工作區</text>
+        <text data-detail="context" x="795" y="756" class="t-muted" font-size="9" text-anchor="middle">Markdown、media、SQLite</text>
         </g>
 
         <g id="node-render" data-node-id="render" data-node-label="render/" tabindex="0" role="button" aria-label="聚焦render/，Node＋Remotion, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Node＋Remotion" data-node-tag="Reel、輪播" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
           <title>render/ · Node＋Remotion · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd） · Reel、輪播</title>
-          <rect x="880" y="30" width="150" height="64" rx="8" class="c-mask"/>
-          <rect x="880" y="30" width="150" height="64" rx="8" class="c-backend" data-animate="node" style="--step:8" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(886 36) scale(0.6875)">
+          <rect x="950" y="50" width="150" height="60" rx="8" class="c-mask"/>
+          <rect x="950" y="50" width="150" height="60" rx="8" class="c-backend" data-animate="node" style="--step:11" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(956 56) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="955" y="60" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">render/</text>
-        <text data-detail="context" x="955" y="76" class="t-muted" font-size="9" text-anchor="middle">Node＋Remotion</text>
-        <text data-detail="fine" x="955" y="86" class="t-backend" font-size="7" text-anchor="middle">Reel、輪播</text>
+          <text data-node-label="" data-detail-anchor="" x="1025" y="78" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">render/</text>
+        <text data-detail="context" x="1025" y="94" class="t-muted" font-size="9" text-anchor="middle">Node＋Remotion</text>
+        <text data-detail="fine" x="1025" y="102" class="t-backend" font-size="7" text-anchor="middle">Reel、輪播</text>
         </g>
 
         <g id="node-adapters" data-node-id="adapters" data-node-label="adapter 層" tabindex="0" role="button" aria-label="聚焦adapter 層，外部工具一律經過這裡, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="外部工具一律經過這裡" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
           <title>adapter 層 · 外部工具一律經過這裡 · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
-          <rect x="880" y="130" width="150" height="480" rx="8" class="c-mask"/>
-          <rect x="880" y="130" width="150" height="480" rx="8" class="c-backend" data-animate="node" style="--step:9" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(886 136) scale(0.6875)">
+          <rect x="950" y="180" width="150" height="440" rx="8" class="c-mask"/>
+          <rect x="950" y="180" width="150" height="440" rx="8" class="c-backend" data-animate="node" style="--step:10" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(956 186) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="955" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">adapter 層</text>
-        <text data-detail="context" x="955" y="384" class="t-muted" font-size="9" text-anchor="middle">外部工具一律經過這裡</text>
+          <text data-node-label="" data-detail-anchor="" x="1025" y="398" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">adapter 層</text>
+        <text data-detail="context" x="1025" y="414" class="t-muted" font-size="9" text-anchor="middle">外部工具一律經過這裡</text>
         </g>
 
         <g id="node-local_tools" data-node-id="local_tools" data-node-label="本機工具與模型" tabindex="0" role="button" aria-label="聚焦本機工具與模型，ffmpeg、yt-dlp、Playwright、ASR, 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）" aria-pressed="false" data-node-kind="backend" data-node-sublabel="ffmpeg、yt-dlp、Playwright、ASR" data-node-context="創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）">
           <title>本機工具與模型 · ffmpeg、yt-dlp、Playwright、ASR · 創作者的電腦（Windows 11） › WSL2（Ubuntu，開啟 systemd）</title>
-          <rect x="880" y="660" width="150" height="64" rx="8" class="c-mask"/>
-          <rect x="880" y="660" width="150" height="64" rx="8" class="c-backend" data-animate="node" style="--step:10" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(886 666) scale(0.6875)">
+          <rect x="950" y="710" width="150" height="64" rx="8" class="c-mask"/>
+          <rect x="950" y="710" width="150" height="64" rx="8" class="c-backend" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(956 716) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="955" y="690" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">本機工具與模型</text>
-        <text data-detail="context" x="955" y="706" class="t-muted" font-size="7.6" text-anchor="middle">ffmpeg、yt-dlp、Playwright、ASR</text>
+          <text data-node-label="" data-detail-anchor="" x="1025" y="740" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">本機工具與模型</text>
+        <text data-detail="context" x="1025" y="756" class="t-muted" font-size="7.6" text-anchor="middle">ffmpeg、yt-dlp、Playwright、ASR</text>
         </g>
 
         <g id="node-feeds" data-node-id="feeds" data-node-label="資訊來源" tabindex="0" role="button" aria-label="聚焦資訊來源，RSS、GitHub、HN、電子報, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="RSS、GitHub、HN、電子報" data-node-context="架構元件">
           <title>資訊來源 · RSS、GitHub、HN、電子報 · 架構元件</title>
-          <rect x="1180" y="134" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="134" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:11" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 140) scale(0.6875)">
+          <rect x="1240" y="199" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="199" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 205) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="158" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">資訊來源</text>
-        <text data-detail="context" x="1265" y="174" class="t-muted" font-size="9" text-anchor="middle">RSS、GitHub、HN、電子報</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="223" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">資訊來源</text>
+        <text data-detail="context" x="1325" y="239" class="t-muted" font-size="9" text-anchor="middle">RSS、GitHub、HN、電子報</text>
         </g>
 
         <g id="node-x_api" data-node-id="x_api" data-node-label="X API" tabindex="0" role="button" aria-label="聚焦X API，List、書籤，R4 起, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="List、書籤，R4 起" data-node-context="架構元件">
           <title>X API · List、書籤，R4 起 · 架構元件</title>
-          <rect x="1180" y="204" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="204" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 210) scale(0.6875)">
+          <rect x="1240" y="269" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="269" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 275) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="228" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">X API</text>
-        <text data-detail="context" x="1265" y="244" class="t-muted" font-size="9" text-anchor="middle">List、書籤，R4 起</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="293" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">X API</text>
+        <text data-detail="context" x="1325" y="309" class="t-muted" font-size="9" text-anchor="middle">List、書籤，R4 起</text>
         </g>
 
         <g id="node-web" data-node-id="web" data-node-label="網站與影片平台" tabindex="0" role="button" aria-label="聚焦網站與影片平台，原文與素材, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="原文與素材" data-node-context="架構元件">
           <title>網站與影片平台 · 原文與素材 · 架構元件</title>
-          <rect x="1180" y="274" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="274" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 280) scale(0.6875)">
+          <rect x="1240" y="339" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="339" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 345) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="298" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">網站與影片平台</text>
-        <text data-detail="context" x="1265" y="314" class="t-muted" font-size="9" text-anchor="middle">原文與素材</text>
-        </g>
-
-        <g id="node-llm" data-node-id="llm" data-node-label="Claude API" tabindex="0" role="button" aria-label="聚焦Claude API，抽事實、寫稿、週報, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="抽事實、寫稿、週報" data-node-context="架構元件">
-          <title>Claude API · 抽事實、寫稿、週報 · 架構元件</title>
-          <rect x="1180" y="344" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="344" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 350) scale(0.6875)">
-            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude API</text>
-        <text data-detail="context" x="1265" y="384" class="t-muted" font-size="9" text-anchor="middle">抽事實、寫稿、週報</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">網站與影片平台</text>
+        <text data-detail="context" x="1325" y="379" class="t-muted" font-size="9" text-anchor="middle">原文與素材</text>
         </g>
 
         <g id="node-meta" data-node-id="meta" data-node-label="Meta Graph API" tabindex="0" role="button" aria-label="聚焦Meta Graph API，IG、Threads, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="IG、Threads" data-node-context="架構元件">
           <title>Meta Graph API · IG、Threads · 架構元件</title>
-          <rect x="1180" y="414" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="414" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 420) scale(0.6875)">
+          <rect x="1240" y="409" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="409" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 415) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Meta Graph API</text>
-        <text data-detail="context" x="1265" y="454" class="t-muted" font-size="9" text-anchor="middle">IG、Threads</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="433" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Meta Graph API</text>
+        <text data-detail="context" x="1325" y="449" class="t-muted" font-size="9" text-anchor="middle">IG、Threads</text>
         </g>
 
         <g id="node-aggregator" data-node-id="aggregator" data-node-label="聚合發布服務" tabindex="0" role="button" aria-label="聚焦聚合發布服務，R6 自動發布, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="R6 自動發布" data-node-context="架構元件">
           <title>聚合發布服務 · R6 自動發布 · 架構元件</title>
-          <rect x="1180" y="484" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="484" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 490) scale(0.6875)">
+          <rect x="1240" y="479" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="479" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 485) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="508" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">聚合發布服務</text>
-        <text data-detail="context" x="1265" y="524" class="t-muted" font-size="9" text-anchor="middle">R6 自動發布</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="503" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">聚合發布服務</text>
+        <text data-detail="context" x="1325" y="519" class="t-muted" font-size="9" text-anchor="middle">R6 自動發布</text>
         </g>
 
         <g id="node-ntfy" data-node-id="ntfy" data-node-label="ntfy" tabindex="0" role="button" aria-label="聚焦ntfy，S 級事件推播，R4 起, 架構元件" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="S 級事件推播，R4 起" data-node-context="架構元件">
           <title>ntfy · S 級事件推播，R4 起 · 架構元件</title>
-          <rect x="1180" y="554" width="170" height="52" rx="8" class="c-mask"/>
-          <rect x="1180" y="554" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1186 560) scale(0.6875)">
+          <rect x="1240" y="549" width="170" height="52" rx="8" class="c-mask"/>
+          <rect x="1240" y="549" width="170" height="52" rx="8" class="c-cloud" data-animate="node" style="--step:12" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1246 555) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="1265" y="578" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ntfy</text>
-        <text data-detail="context" x="1265" y="594" class="t-muted" font-size="9" text-anchor="middle">S 級事件推播，R4 起</text>
+          <text data-node-label="" data-detail-anchor="" x="1325" y="573" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">ntfy</text>
+        <text data-detail="context" x="1325" y="589" class="t-muted" font-size="9" text-anchor="middle">S 級事件推播，R4 起</text>
         </g>
 
         <!-- Connection labels -->
-        <g data-detail="context" data-edge-from="creator" data-edge-to="claude_code" data-edge-label="下指令" data-edge-key="0" data-edge-id="c_command">
-          <rect x="175.6" y="335" width="38.8" height="14" rx="3" class="c-mask"/>
-          <text x="195" y="345" class="t-edge-emphasis" font-size="8" text-anchor="middle">下指令</text>
+        <g data-detail="context" data-edge-from="creator" data-edge-to="claude_code" data-edge-label="用口語下需求" data-edge-key="0" data-edge-id="c_ask">
+          <rect x="261.2" y="378.05" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="295" y="388.05" class="t-edge-emphasis" font-size="8" text-anchor="middle">用口語下需求</text>
         </g>
         <g data-detail="context" data-edge-from="creator" data-edge-to="obsidian" data-edge-label="看 inbox、改稿" data-edge-key="1" data-edge-id="c_edit">
-          <rect x="126.4" y="672" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="165" y="682" class="t-edge-default" font-size="8" text-anchor="middle">看 inbox、改稿</text>
+          <rect x="126.4" y="722" width="77.2" height="14" rx="3" class="c-mask"/>
+          <text x="165" y="732" class="t-edge-default" font-size="8" text-anchor="middle">看 inbox、改稿</text>
         </g>
-        <g data-detail="context" data-edge-from="claude_code" data-edge-to="cli" data-edge-label="呼叫 CLI" data-edge-key="2" data-edge-id="c_invoke">
-          <rect x="485.8" y="328" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="338" class="t-edge-emphasis" font-size="8" text-anchor="middle">呼叫 CLI</text>
+        <g data-detail="context" data-edge-from="claude_code" data-edge-to="model" data-edge-label="模型推論" data-edge-key="2" data-edge-id="c_model">
+          <rect x="293.8" y="180" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="318" y="190" class="t-edge-dashed" font-size="8" text-anchor="middle">模型推論</text>
         </g>
-        <g data-detail="context" data-edge-from="timer" data-edge-to="cli" data-edge-label="定時執行" data-edge-key="3" data-edge-id="c_timer">
-          <rect x="693.8" y="166" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="718" y="176" class="t-edge-dashed" font-size="8" text-anchor="middle">定時執行</text>
+        <g data-detail="context" data-edge-from="claude_code" data-edge-to="skills" data-edge-label="讀 skill" data-edge-key="3" data-edge-id="c_skill">
+          <rect x="450.6" y="483" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="474.8" y="493" class="t-edge-default" font-size="8" text-anchor="middle">讀 skill</text>
         </g>
-        <g data-detail="context" data-edge-from="changedetect" data-edge-to="cli" data-edge-label="webhook" data-edge-key="4" data-edge-id="c_webhook">
-          <rect x="644.2" y="433" width="43.6" height="14" rx="3" class="c-mask"/>
-          <text x="666" y="443" class="t-edge-dashed" font-size="8" text-anchor="middle">webhook</text>
+        <g data-detail="context" data-edge-from="claude_code" data-edge-to="tools" data-edge-label="呼叫工具 --json" data-edge-key="4" data-edge-id="c_call">
+          <rect x="609" y="370" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="650" y="380" class="t-edge-emphasis" font-size="8" text-anchor="middle">呼叫工具 --json</text>
         </g>
-        <g data-detail="context" data-edge-from="cli" data-edge-to="workspace" data-edge-label="讀寫" data-edge-key="5" data-edge-id="c_rw">
-          <rect x="689" y="528" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="704" y="538" class="t-edge-emphasis" font-size="8" text-anchor="middle">讀寫</text>
+        <g data-detail="context" data-edge-from="timer" data-edge-to="tools" data-edge-label="定時收集" data-edge-key="5" data-edge-id="c_collect">
+          <rect x="740.5999999999999" y="275" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="764.8" y="285" class="t-edge-dashed" font-size="8" text-anchor="middle">定時收集</text>
         </g>
-        <g data-detail="context" data-edge-from="obsidian" data-edge-to="workspace" data-edge-label="讀寫 Markdown" data-edge-key="6" data-edge-id="c_md">
-          <rect x="473.8" y="672" width="72.4" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="682" class="t-edge-default" font-size="8" text-anchor="middle">讀寫 Markdown</text>
+        <g data-detail="context" data-edge-from="timer" data-edge-to="claude_code" data-edge-label="claude -p 跑 skill" data-edge-key="6" data-edge-id="c_headless">
+          <rect x="456.8" y="256" width="96.39999999999999" height="14" rx="3" class="c-mask"/>
+          <text x="505" y="266" class="t-edge-dashed" font-size="8" text-anchor="middle">claude -p 跑 skill</text>
         </g>
-        <g data-detail="context" data-edge-from="cli" data-edge-to="render" data-edge-label="subprocess＋JSON" data-edge-key="7" data-edge-id="c_render">
-          <rect x="788.6" y="58" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="832" y="68" class="t-edge-default" font-size="8" text-anchor="middle">subprocess＋JSON</text>
+        <g data-detail="context" data-edge-from="tools" data-edge-to="workspace" data-edge-label="讀寫" data-edge-key="7" data-edge-id="c_rw">
+          <rect x="759" y="573" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="774" y="583" class="t-edge-emphasis" font-size="8" text-anchor="middle">讀寫</text>
+        </g>
+        <g data-detail="context" data-edge-from="obsidian" data-edge-to="workspace" data-edge-label="讀寫 Markdown" data-edge-key="8" data-edge-id="c_md">
+          <rect x="508.8" y="722" width="72.4" height="14" rx="3" class="c-mask"/>
+          <text x="545" y="732" class="t-edge-default" font-size="8" text-anchor="middle">讀寫 Markdown</text>
         </g>
 
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="local_tools" data-edge-label="本機執行" data-edge-key="9" data-edge-id="c_local">
-          <rect x="900.5999999999999" y="628" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="924.8" y="638" class="t-edge-default" font-size="8" text-anchor="middle">本機執行</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="render" data-edge-label="subprocess＋JSON" data-edge-key="10" data-edge-id="c_render">
+          <rect x="981.6" y="160" width="86.8" height="14" rx="3" class="c-mask"/>
+          <text x="1025" y="170" class="t-edge-default" font-size="8" text-anchor="middle">subprocess＋JSON</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="feeds" data-edge-label="抓取" data-edge-key="10" data-edge-id="c_feeds">
-          <rect x="1127.5" y="140" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="150" class="t-edge-default" font-size="8" text-anchor="middle">抓取</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="local_tools" data-edge-label="本機執行" data-edge-key="11" data-edge-id="c_local">
+          <rect x="970.5999999999999" y="658" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="994.8" y="668" class="t-edge-default" font-size="8" text-anchor="middle">本機執行</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="x_api" data-edge-label="抓取" data-edge-key="11" data-edge-id="c_x">
-          <rect x="1127.5" y="210" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="220" class="t-edge-default" font-size="8" text-anchor="middle">抓取</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="feeds" data-edge-label="抓取" data-edge-key="12" data-edge-id="c_feeds">
+          <rect x="1190" y="205" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="215" class="t-edge-default" font-size="8" text-anchor="middle">抓取</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="web" data-edge-label="補料" data-edge-key="12" data-edge-id="c_web">
-          <rect x="1127.5" y="280" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="290" class="t-edge-default" font-size="8" text-anchor="middle">補料</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="x_api" data-edge-label="抓取" data-edge-key="13" data-edge-id="c_x_api">
+          <rect x="1190" y="275" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="285" class="t-edge-default" font-size="8" text-anchor="middle">抓取</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="llm" data-edge-label="API" data-edge-key="13" data-edge-id="c_llm">
-          <rect x="1052.5" y="350" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1067.5" y="360" class="t-edge-emphasis" font-size="8" text-anchor="middle">API</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="web" data-edge-label="補料" data-edge-key="14" data-edge-id="c_web">
+          <rect x="1190" y="345" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="355" class="t-edge-default" font-size="8" text-anchor="middle">補料</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="meta" data-edge-label="發布、成效" data-edge-key="14" data-edge-id="c_meta">
-          <rect x="1113.5" y="420" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="430" class="t-edge-emphasis" font-size="8" text-anchor="middle">發布、成效</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="meta" data-edge-label="發布、成效" data-edge-key="15" data-edge-id="c_meta">
+          <rect x="1176" y="415" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="425" class="t-edge-emphasis" font-size="8" text-anchor="middle">發布、成效</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="aggregator" data-edge-label="上傳" data-edge-key="15" data-edge-id="c_agg">
-          <rect x="1127.5" y="490" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="500" class="t-edge-dashed" font-size="8" text-anchor="middle">上傳</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="aggregator" data-edge-label="上傳" data-edge-key="16" data-edge-id="c_aggregator">
+          <rect x="1190" y="485" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="495" class="t-edge-dashed" font-size="8" text-anchor="middle">上傳</text>
         </g>
-        <g data-detail="context" data-edge-from="adapters" data-edge-to="ntfy" data-edge-label="推播" data-edge-key="16" data-edge-id="c_ntfy">
-          <rect x="1127.5" y="560" width="30" height="14" rx="3" class="c-mask"/>
-          <text x="1142.5" y="570" class="t-edge-dashed" font-size="8" text-anchor="middle">推播</text>
+        <g data-detail="context" data-edge-from="adapters" data-edge-to="ntfy" data-edge-label="推播" data-edge-key="17" data-edge-id="c_ntfy">
+          <rect x="1190" y="555" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1205" y="565" class="t-edge-dashed" font-size="8" text-anchor="middle">推播</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
         <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="創作者的電腦（Windows 11）">
-          <rect data-graph-role="structural-frame-label-mask" x="212" y="10" width="150.4" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="216" y="23" class="t-cloud" font-size="9" font-weight="600">創作者的電腦（Windows 11）</text>
+          <rect data-graph-role="structural-frame-label-mask" x="212" y="29" width="155.93549947096773" height="17" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="216" y="42.35483970967742" class="t-cloud" font-size="9.35483970967742" font-weight="600">創作者的電腦（Windows 11）</text>
         </g>
 
         <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="security-group" data-composition-frame-label="WSL2（Ubuntu，開啟 systemd）">
-          <rect data-graph-role="structural-frame-label-mask" x="420" y="10" width="161.2" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="424" y="23" class="t-security" font-size="9" font-weight="600">WSL2（Ubuntu，開啟 systemd）</text>
+          <rect data-graph-role="structural-frame-label-mask" x="420" y="29" width="167.16130712258064" height="17" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="424" y="42.35483970967742" class="t-security" font-size="9.35483970967742" font-weight="600">WSL2（Ubuntu，開啟 systemd）</text>
         </g>
 
         <!-- Legend -->
         <g data-legend="" data-legend-bridge="">
-          <text x="40" y="776" class="t-primary" font-size="12" font-weight="650">圖例</text>
-          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="操作介面" data-legend-x="40" data-legend-baseline="796" data-legend-width="93">
-            <rect x="40" y="787" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
-            <text x="62" y="796" class="t-muted" font-size="10" font-weight="500">操作介面</text>
+          <text x="40" y="826" class="t-primary" font-size="12" font-weight="650">圖例</text>
+          <g data-legend-semantic-kind="frontend" data-legend-kind="frontend" data-legend-label="操作介面" data-legend-x="40" data-legend-baseline="846" data-legend-width="93">
+            <rect x="40" y="837" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
+            <text x="62" y="846" class="t-muted" font-size="10" font-weight="500">操作介面</text>
           </g>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="本機程式" data-legend-x="155" data-legend-baseline="796" data-legend-width="93">
-            <rect x="155" y="787" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="177" y="796" class="t-muted" font-size="10" font-weight="500">本機程式</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="確定性工具" data-legend-x="155" data-legend-baseline="846" data-legend-width="105">
+            <rect x="155" y="837" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
+            <text x="177" y="846" class="t-muted" font-size="10" font-weight="500">確定性工具</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="工作區資料" data-legend-x="270" data-legend-baseline="796" data-legend-width="105">
-            <rect x="270" y="787" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="292" y="796" class="t-muted" font-size="10" font-weight="500">工作區資料</text>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="工作區資料" data-legend-x="282" data-legend-baseline="846" data-legend-width="105">
+            <rect x="282" y="837" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
+            <text x="304" y="846" class="t-muted" font-size="10" font-weight="500">工作區資料</text>
           </g>
-          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="網路服務" data-legend-x="397" data-legend-baseline="796" data-legend-width="93">
-            <rect x="397" y="787" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
-            <text x="419" y="796" class="t-muted" font-size="10" font-weight="500">網路服務</text>
+          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="網路服務" data-legend-x="409" data-legend-baseline="846" data-legend-width="93">
+            <rect x="409" y="837" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
+            <text x="431" y="846" class="t-muted" font-size="10" font-weight="500">網路服務</text>
           </g>
-          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="自動觸發" data-legend-x="512" data-legend-baseline="796" data-legend-width="93">
-            <rect x="512" y="787" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
-            <text x="534" y="796" class="t-muted" font-size="10" font-weight="500">自動觸發</text>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="AI 編排" data-legend-x="524" data-legend-baseline="846" data-legend-width="87">
+            <rect x="524" y="837" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
+            <text x="546" y="846" class="t-muted" font-size="10" font-weight="500">AI 編排</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="創作者" data-legend-x="627" data-legend-baseline="796" data-legend-width="81">
-            <rect x="627" y="787" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="649" y="796" class="t-muted" font-size="10" font-weight="500">創作者</text>
+          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="排程觸發" data-legend-x="633" data-legend-baseline="846" data-legend-width="93">
+            <rect x="633" y="837" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
+            <text x="655" y="846" class="t-muted" font-size="10" font-weight="500">排程觸發</text>
+          </g>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="創作者" data-legend-x="748" data-legend-baseline="846" data-legend-width="81">
+            <rect x="748" y="837" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="770" y="846" class="t-muted" font-size="10" font-weight="500">創作者</text>
           </g>
         </g>
       </svg>
@@ -5788,36 +5800,36 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <div class="card">
         <div class="card-header">
           <div class="card-dot cyan"></div>
-          <h3>依賴規則</h3>
+          <h3>分層原則</h3>
         </div>
         <ul>
-          <li>模組化單體：不拆服務、不用訊息佇列</li>
-          <li>領域模組之間只透過檔案與 SQLite 交接</li>
-          <li>外部工具一律經過 adapter，每個都能單獨停用</li>
+          <li>skill 寫判斷與流程，agent 依 skill 決定呼叫哪些工具</li>
+          <li>工具 JSON 進出、不呼叫 LLM，可以重跑</li>
+          <li>發布確認、冪等、預算寫死在工具裡，skill 繞不過</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot amber"></div>
-          <h3>部署注意</h3>
+          <h3>排程</h3>
         </div>
         <ul>
-          <li>WSL 開啟 systemd，並關閉 Windows 自動睡眠</li>
-          <li>Obsidian 從 Windows 端開 WSL 內的工作區</li>
-          <li>金鑰放環境變數或 keyring，不進工作區</li>
+          <li>收集每 15 分鐘直接執行工具，不經過 agent</li>
+          <li>早報、週報用 claude -p 跑 skill，有回合與花費上限</li>
+          <li>R5 起 changedetection.io（Docker）以 webhook 觸發收集</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
           <div class="card-dot violet"></div>
-          <h3>分期上線</h3>
+          <h3>部署注意</h3>
         </div>
         <ul>
-          <li>R4 起接 X API、ntfy 推播、成效自動回收</li>
-          <li>R5 起加 changedetection.io（Docker）</li>
-          <li>R6 起經聚合服務自動發布，另需物件儲存提供暫存公開網址</li>
+          <li>WSL 開啟 systemd，並關閉 Windows 自動睡眠</li>
+          <li>Claude Code 在工作區目錄啟動，skills 由 init 連結進來</li>
+          <li>金鑰放環境變數或 keyring，不進工作區</li>
         </ul>
       </div>
     </div>

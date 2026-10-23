@@ -1,6 +1,6 @@
-"""Render architecture diagrams (software, data flow, ERD) with local Graphviz.
+"""Render the ERD with local Graphviz.
 
-The system architecture diagram is authored with archify: diagrams/system-architecture.architecture.json.
+System architecture, software architecture and data flow are authored with archify: diagrams/*.architecture.json, *.dataflow.json.
 """
 from pathlib import Path
 import subprocess
@@ -16,7 +16,7 @@ HEAD = [
 ]
 
 # Owner colors keep the three engineers' modules visually distinct.
-ALBERT, CHANGXIAO, SHUWEI, SHARED, EXT = '#e3f0e1', '#fdf0dc', '#e8e4f6', '#eef4fa', '#f4f4f4'
+ALBERT, CHANGXIAO, SHUWEI = '#e3f0e1', '#fdf0dc', '#e8e4f6'
 
 
 def render(name: str, body: list[str], title: str, rankdir: str = 'TB') -> None:
@@ -25,69 +25,6 @@ def render(name: str, body: list[str], title: str, rankdir: str = 'TB') -> None:
     dot.write_text('\n'.join(lines), encoding='utf-8')
     for fmt in ('png', 'svg'):
         subprocess.run(['dot', f'-T{fmt}', str(dot), '-o', str(OUT / f'{name}.{fmt}')], check=True)
-
-
-def legend() -> list[str]:
-    return [
-        'subgraph cluster_legend { label="負責人"; style="rounded,dashed"; color="#9aa7b3"; fontsize=12;',
-        f'lg_a [label="Albert Chiang｜素材收集", fillcolor="{ALBERT}"];',
-        f'lg_c [label="周長曉｜文章與影片", fillcolor="{CHANGXIAO}"];',
-        f'lg_s [label="楊舒媁｜排程與發布", fillcolor="{SHUWEI}"];',
-        'lg_a -> lg_c -> lg_s [style=invis]; }',
-    ]
-
-
-def software() -> None:
-    body = [
-        'subgraph cluster_ui { label="入口層"; style="rounded"; color="#9aa7b3";',
-        f'node [fillcolor="{SHARED}"]; cli [label="cli（Typer）"]; slash [label=".claude/commands\\n/inbox /produce /reel …"]; }}',
-        'subgraph cluster_app { label="流程層"; style="rounded"; color="#9aa7b3";',
-        f'orch [label="orchestrator\\nJob／鎖／指紋／重跑", fillcolor="{SHUWEI}"]; sched [label="scheduler／notify／budget", fillcolor="{SHUWEI}"]; }}',
-        'subgraph cluster_domain { label="領域模組（各自實作 Step 介面）"; style="rounded"; color="#9aa7b3";',
-        f'collect [label="collect\\n收集器、正規化、聚類、熱度、inbox、建題", fillcolor="{ALBERT}"];',
-        f'fetch [label="fetch\\n原文擷取、分層補料、素材盤點", fillcolor="{ALBERT}"];',
-        f'draft [label="draft\\n事實抽取、寫稿、引用檢查、版本", fillcolor="{CHANGXIAO}"];',
-        f'prod [label="production\\nbuild 轉換、字幕、輪播、Reel、規格檢查", fillcolor="{CHANGXIAO}"];',
-        f'pub [label="publish\\nreview、approve、發布包、發布", fillcolor="{SHUWEI}"];',
-        f'fb [label="feedback\\n成效、週報、建議", fillcolor="{SHUWEI}"]; }}',
-        'subgraph cluster_infra { label="基礎層（core）"; style="rounded"; color="#9aa7b3";',
-        f'ws [label="workspace\\n路徑、受管區塊、front-matter、原子寫入", fillcolor="{ALBERT}"];',
-        f'db [label="db\\nSQLite、migration、repository", fillcolor="{ALBERT}"];',
-        f'cfg [label="config／log", fillcolor="{ALBERT}"]; schema [label="schemas\\n07 介面契約", fillcolor="{SHARED}"]; }}',
-        'subgraph cluster_adapters { label="Adapter 層（可替換的外部工具）"; style="rounded"; color="#9aa7b3"; node [fillcolor="#f7f7f7"];',
-        'a_col [label="Collector\\nrss／github／hn／x／…"]; a_dl [label="Extractor／Downloader\\ntrafilatura／yt-dlp／…"];',
-        'a_llm [label="LLM\\nAnthropic"]; a_asr [label="Aligner／ASR"]; a_render [label="Renderer\\nNode CLI"];',
-        'a_pub [label="Publisher／Metrics\\nIG／Threads／…"]; a_note [label="Notifier\\nntfy"]; }',
-        'node_r [label="render/（Node）\\n模板與元件", fillcolor="#fdf0dc"];',
-        'cli -> orch; slash -> cli; sched -> orch;',
-        'orch -> collect; orch -> fetch; orch -> draft; orch -> prod; orch -> pub; orch -> fb;',
-        'collect -> a_col; fetch -> a_dl; draft -> a_llm; prod -> a_asr; prod -> a_render -> node_r; pub -> a_pub; fb -> a_pub; sched -> a_note;',
-        'collect -> ws [lhead=cluster_infra, style=dashed, label="所有領域模組都只依賴 core"];',
-        'pub -> db [style=dashed]; draft -> schema [style=dashed];',
-        *legend(),
-    ]
-    render('software-architecture', body, '軟體架構圖｜分層與模組歸屬（依賴方向由上往下）')
-
-
-def dataflow() -> None:
-    body = [
-        f'src [label="來源\\nX／RSS／HN／手動網址", fillcolor="{EXT}"];',
-        f'col [label="collect", fillcolor="{ALBERT}"]; inbox [label="inbox/YYYY-MM-DD.md\\n（IF-001）", shape=note];',
-        'human1 [label="人：勾選、節目、格式、備註", shape=oval, fillcolor="#fff7d6"];',
-        f'topic [label="建題\\ntopic.md／content.md\\n（IF-002／003）", fillcolor="{ALBERT}"];',
-        f'fetch [label="fetch", fillcolor="{ALBERT}"]; srcmd [label="sources/*.md（IF-004）\\nassets.json（IF-005）", shape=note];',
-        f'draft [label="draft", fillcolor="{CHANGXIAO}"]; drafts [label="drafts/rNNN（IF-006）\\nscript／carousel／caption", shape=note];',
-        'human2 [label="人：改稿、select、錄旁白", shape=oval, fillcolor="#fff7d6"];',
-        f'prod [label="production", fillcolor="{CHANGXIAO}"]; build [label="builds/<id>\\nshots／captions／manifest\\n（IF-010～012）＋out/", shape=note];',
-        f'review [label="review／approve", fillcolor="{SHUWEI}"]; human3 [label="人：處理待確認項、確認", shape=oval, fillcolor="#fff7d6"];',
-        f'pub [label="發布包／發布", fillcolor="{SHUWEI}"]; publ [label="publications（IF-016）", shape=cylinder];',
-        f'fb [label="成效／週報", fillcolor="{SHUWEI}"]; metrics [label="metric_snapshots（IF-017）\\nreports/weekly.md", shape=cylinder];',
-        'src -> col -> inbox -> human1 -> topic -> fetch -> srcmd -> draft -> drafts -> human2 -> prod -> build -> review;',
-        'human3 -> review [dir=back]; review -> pub -> publ -> fb -> metrics;',
-        'metrics -> human1 [style=dashed, label="下週選題參考"];',
-        'human2 -> fetch [style=dashed, label="補素材"]; review -> human2 [style=dashed, label="要修改"];',
-    ]
-    render('data-flow', body, '資料流｜交棒物與人工決策點', rankdir='LR')
 
 
 def erd() -> None:
@@ -105,9 +42,10 @@ def erd() -> None:
         table('topic_sources', ['topic_id FK', 'source_id FK'], ALBERT),
         table('assets', ['topic_id＋asset_id PK', 'path／type／origin', 'source_id FK', 'fetch_layer／sha256'], ALBERT),
         table('contents', ['topic_id＋content_id PK', 'program／format', 'status', 'selected_revision', 'wave'], SHUWEI),
-        table('jobs', ['job_id PK', 'kind／target', 'status／attempt', 'input_fingerprint', 'error_code', 'cost_usd'], SHUWEI),
+        table('agent_runs', ['run_id PK', 'skill／trigger', 'status／turns', 'started_at／ended_at', 'cost_usd'], SHUWEI),
+        table('jobs', ['job_id PK', 'run_id FK', 'kind／target', 'status／attempt', 'input_fingerprint', 'error_code', 'cost_usd'], SHUWEI),
         table('builds', ['build_id PK', 'content_ref FK', 'manifest_path', 'status／stale'], CHANGXIAO),
-        table('approvals', ['approval_id PK', 'content_ref FK', 'build_id FK', 'approved_at／revoked_at'], SHUWEI),
+        table('approvals', ['approval_id PK', 'content_ref FK', 'build_id FK', 'run_id FK／human_quote', 'approved_at／revoked_at'], SHUWEI),
         table('publications', ['publication_id PK', 'content_ref FK', 'build_id FK', 'platform／status', 'url／published_at'], SHUWEI),
         table('metric_snapshots', ['publication_id FK', 'captured_at', 'source／metric_version', 'metrics_json'], SHUWEI),
         'sources -> source_signals [label="1:N"]; candidates -> candidate_sources; sources -> candidate_sources;',
@@ -115,12 +53,11 @@ def erd() -> None:
         'topics -> contents [label="1:N"]; contents -> builds [label="1:N"]; contents -> jobs [style=dashed, label="target"];',
         'builds -> approvals; contents -> approvals; builds -> publications; contents -> publications [label="1:N"];',
         'publications -> metric_snapshots [label="1:N"]; candidates -> topics [style=dashed, label="picked"];',
+        'agent_runs -> jobs [label="1:N"]; agent_runs -> approvals [style=dashed, label="0..1"];',
     ]
     render('erd', body, 'ERD｜SQLite 主要資料表（顏色代表負責人）', rankdir='LR')
 
 
 if __name__ == '__main__':
-    software()
-    dataflow()
     erd()
     print('ok')

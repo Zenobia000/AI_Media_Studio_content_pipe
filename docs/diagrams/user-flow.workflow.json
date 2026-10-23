@@ -39,7 +39,7 @@
     },
     {
       "id": "system",
-      "label": "newsroom 系統（自動）"
+      "label": "agent＋工具（自動）"
     },
     {
       "id": "outside",
@@ -114,7 +114,7 @@
       "type": "frontend",
       "icon": "person",
       "label": "手動加網址",
-      "sublabel": "newsroom add-source"
+      "sublabel": "把網址貼給 agent"
     },
     {
       "id": "pick",
@@ -122,8 +122,8 @@
       "col": 1,
       "type": "frontend",
       "icon": "person",
-      "label": "勾選題目",
-      "sublabel": "Obsidian → /produce"
+      "label": "說要做哪題",
+      "sublabel": "例如「第 3 題做 Reel」"
     },
     {
       "id": "review_draft",
@@ -132,7 +132,7 @@
       "type": "frontend",
       "icon": "decision",
       "label": "審稿與修改",
-      "sublabel": "不滿意就 redraft",
+      "sublabel": "口頭要求改稿或選版",
       "tag": "人工把關"
     },
     {
@@ -151,7 +151,7 @@
       "type": "security",
       "icon": "decision",
       "label": "預覽並確認",
-      "sublabel": "review → approve",
+      "sublabel": "明確說確認才算",
       "tag": "人工把關"
     },
     {
@@ -186,8 +186,8 @@
       "col": 2,
       "type": "backend",
       "label": "產出草稿",
-      "sublabel": "補料、抽事實、寫稿",
-      "tag": "引用檢查"
+      "sublabel": "produce-topic skill",
+      "tag": "工具驗證"
     },
     {
       "id": "make",
@@ -195,7 +195,7 @@
       "col": 3,
       "type": "backend",
       "label": "製作成品",
-      "sublabel": "輪播、字幕、Reel",
+      "sublabel": "make-* skill",
       "tag": "規格檢查"
     },
     {
@@ -204,7 +204,7 @@
       "col": 4,
       "type": "backend",
       "label": "發布",
-      "sublabel": "R1–R5 原生排程紀錄",
+      "sublabel": "R1–R5 回報網址",
       "tag": "R6 自動發布"
     },
     {
@@ -228,8 +228,8 @@
       "lane": "outside",
       "col": 2,
       "type": "cloud",
-      "label": "Claude API",
-      "sublabel": "抽事實與寫稿"
+      "label": "Claude 模型",
+      "sublabel": "agent 推論"
     },
     {
       "id": "platform",
@@ -255,7 +255,7 @@
       "type": "security",
       "icon": "failure",
       "label": "Job 失敗",
-      "sublabel": "status 後 retry"
+      "sublabel": "recover 找原因重跑"
     },
     {
       "id": "stale",
@@ -303,7 +303,7 @@
       "id": "e_produce",
       "from": "pick",
       "to": "pipeline",
-      "label": "/produce",
+      "label": "produce-topic",
       "variant": "emphasis"
     },
     {
@@ -416,8 +416,8 @@
       "dot": "cyan",
       "title": "補救方式",
       "items": [
-        "素材缺口：補進 media/raw 後重跑 /produce",
-        "Job 失敗：newsroom status 看原因，再 retry",
+        "素材缺口：補進 media/raw 後請 agent 繼續",
+        "Job 失敗：問 agent 為什麼，recover skill 看原因並重跑",
         "成品失效：回到審稿，改完重新製作"
       ]
     },
@@ -425,9 +425,18 @@
       "dot": "violet",
       "title": "分期",
       "items": [
-        "R1–R5：人在平台設原生排程，再 mark-published",
+        "R1–R5：人在平台設原生排程，再把網址告訴 agent",
         "R4 起成效自動回收；R6 起自動發布",
         "讀完週報回到選題，開始下一輪"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "怎麼操作",
+      "items": [
+        "在工作區開 Claude Code，用口語說要做什麼",
+        "agent 依 skill 決定步驟；選題、選稿、確認一定由人決定",
+        "每天的收集與早報由排程自動跑"
       ]
     }
   ]

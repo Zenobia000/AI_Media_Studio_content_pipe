@@ -47,6 +47,9 @@ Reel：節奏表轉成 shots.js…
 2 點", fillcolor="#fdf0dc", style="rounded,filled", penwidth=2.5, color="#c0392b"];
 }
 subgraph "cluster_楊舒媁" { label="楊舒媁（10 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
+"T-049" [label="T-049
+心跳與健康檢查
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-052" [label="T-052
 每步耗時統計
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
@@ -63,8 +66,8 @@ subgraph "cluster_楊舒媁" { label="楊舒媁（10 點）"; style="rounded,fil
 通知 adapter（ntfy）
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-080" [label="T-080
-早報
-2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+morning-brief skill…
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-081" [label="T-081
 SPK-FB-1 成效回收實測
 1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
@@ -73,8 +76,6 @@ SPK-FB-1 成效回收實測
 楊舒媁｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-010" [label="T-010
 Albert Chiang｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
-"T-015" [label="T-015
-周長曉｜S1", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-019" [label="T-019
 楊舒媁｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-021" [label="T-021
@@ -105,6 +106,7 @@ Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", 
 楊舒媁｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", fontsize=10];
 "T-037" -> "T-040";
 "T-043" -> "T-044";
+"T-048" -> "T-049";
 "T-051" -> "T-052";
 "T-019" -> "T-052";
 "T-038" -> "T-056";
@@ -125,9 +127,10 @@ Albert Chiang｜S3", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", 
 "T-031" -> "T-076";
 "T-047" -> "T-077" [color="#e67e22", penwidth=1.6];
 "T-009" -> "T-078";
-"T-015" -> "T-078" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-078";
 "T-048" -> "T-079";
 "T-079" -> "T-080";
 "T-021" -> "T-080" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-080";
 "T-041" -> "T-081";
 }

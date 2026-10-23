@@ -26,9 +26,9 @@
 
 | 人 | 角色 | 擁有的模組 | 交出去的東西 |
 |---|---|---|---|
-| **Albert Chiang** | 素材收集 | CLI 骨架、workspace；collect（所有收集器、正規化、聚類、熱度、inbox、建題、行事曆）；fetch（原文、L1–L4 補料、素材盤點、前處理、自我測試） | inbox、topic／content、sources/*.md、assets.json、media/proc |
-| **周長曉** | 產出文章、剪輯影片 | draft（事實、寫稿、引用檢查、版本、Threads）；production（Build、輪播、字幕、Reel 模板與渲染、動畫層、TTS）；render/ Node 專案 | drafts/、script／carousel／caption、captions.json、shots.json、builds/ |
-| **楊舒媁** | 自動排程與發布 | config／log、SQLite schema、Job 協調器、狀態機、status；排程器、心跳、通知、預算、早報；review、approve、過期判定、規格檢查、發布包、發布紀錄、自動發布；成效、週報、建議；Meta App 與平台權限 | Job API、approvals、publications、metric_snapshots、reports/ |
+| **Albert Chiang** | 素材收集 | 工具介面骨架、workspace、init；collect（所有收集器、正規化、聚類、熱度、inbox、建題、行事曆）；fetch（原文、L1–L4 補料、素材盤點、前處理、自我測試）；skills：open-topic、gather-assets、triage-inbox | inbox、topic／content、sources/*.md、assets.json、media/proc |
+| **周長曉** | 產出文章、剪輯影片 | skill 框架（SKILL.md 格式、RESOLVER、eval 工具）；draft（facts 驗證、寫稿 skill、引用檢查、版本、Threads）；production（Build、輪播、字幕、Reel 模板與渲染、動畫層、TTS）；render/ Node 專案；skills：draft-content、make-carousel、make-subtitles、make-reel | drafts/、script／carousel／caption、captions.json、shots.json、builds/ |
+| **楊舒媁** | 自動排程與發布 | config／log、SQLite schema、執行紀錄 ledger（run_id、冪等、鎖）、狀態機、工具層關卡、status；排程器與 headless 執行、心跳、通知、預算；skills：produce-topic、review-and-approve、publish、recover、morning-brief、weekly-retro；review、approve、過期判定、規格檢查、發布包、發布紀錄、自動發布；成效、週報、建議；Meta App 與平台權限 | Job API、approvals、publications、metric_snapshots、reports/ |
 
 **為什麼這樣切**
 - 每個人擁有一段完整的流水線：收集 → 製作 → 發布。交棒點剛好是人工決策點（選題、選稿、確認），責任清楚。
@@ -66,17 +66,16 @@
 | S1 ⚡ | T-001 專案骨架（Albert） | → | T-005 config 與日誌（楊舒媁） | repo 結構 |
 | S1 ⚡ | T-007 SQLite schema（楊舒媁） | → | T-010 網址正規化（Albert） | sources 資料表 |
 | S1 ⚡ | T-004 環境確認（楊舒媁） | → | T-014 合成層 Spike（周長曉） | GPU 結論 |
-| S1 ⚡ | T-005 config 與日誌（楊舒媁） | → | T-015 LLM adapter（周長曉） | 設定與日誌介面 |
+| S1 ⚡ | T-015 skill 框架、T-110 eval 工具（周長曉） | → | S2 所有 skill 票（三人） | SKILL.md 格式、IF-020、`newsroom eval` |
 | S2 | T-005、T-007（楊舒媁） | → | T-008 init／doctor（Albert） | config、migration |
 | S2 ⚡ | T-019 狀態機（楊舒媁） | → | T-022 建題（Albert） | Content 狀態 |
 | S2 | T-006 workspace（Albert） | → | T-026 草稿版本（周長曉） | 受管區塊、原子寫入 |
-| S2 ⚡ | T-022、T-023、T-024（Albert）；T-017（周長曉） | → | T-029 produce 管線（楊舒媁） | 建題、原文、素材、草稿 |
+| S2 ⚡ | T-022、T-023、T-024（Albert）；T-017（周長曉） | → | T-029 produce-topic skill（楊舒媁） | open-topic、gather-assets、draft-content skill 與工具 |
 | S2 ⚡ | T-025 引用檢查（周長曉） | → | T-030 review（楊舒媁） | citations.json |
 | S3 | T-004（楊舒媁） | → | T-046 字幕 Spike（周長曉） | GPU 結論 |
-| S3 | T-015 LLM adapter（周長曉） | → | T-051 週報（楊舒媁） | LLM 介面 |
+| S3 | T-015 skill 框架（周長曉） | → | T-051 weekly-retro skill（楊舒媁） | SKILL.md 格式 |
 | S4 ⚡ | T-057 素材前處理（Albert） | → | T-062 對齊、T-066 shots（周長曉） | media/proc、旁白 wav |
 | S4 | T-047 Build（周長曉） | → | T-076 過期判定、T-077 規格檢查（楊舒媁） | manifest.json |
-| S4 | T-015（周長曉） | → | T-078 預算（楊舒媁） | cost 回報 |
 | S4 | T-021 inbox（Albert） | → | T-080 早報（楊舒媁） | 候選查詢 |
 | S5 | T-077 規格檢查（楊舒媁） | → | T-071 平台壓縮 Spike（周長曉） | 檢查器 |
 | S5 | T-078 預算（楊舒媁） | → | T-072 X 收集器（Albert） | 預算控管 |
@@ -122,9 +121,9 @@
 
 | Sprint | 週 | Sprint 目標 | Release | Albert | 周長曉 | 楊舒媁 |
 |---|---|---|---|---|---|---|
-| S1 | 1–2 | 契約與 fixtures 定稿；骨架、workspace、資料庫、Job 協調器；手動加候選；合成層與擷取 Spike；事實抽取 | — | 10 | 9 | 10 |
-| S2 | 3–4 | inbox → 建題 → 擷取 → 草稿 → review → 確認 → 發布紀錄，一則真實 Threads 走完 | **R1** | 10 | 10 | 10 |
-| S3 | 5–6 | RSS、GitHub、HN、HF、電子報；L2／L3 補料；輪播；排程器；手填成效與週報；字幕 Spike；Meta App 送審 | **R2** | 10 | 10 | 10 |
+| S1 | 1–2 | 契約與 fixtures 定稿；骨架、workspace、資料庫、執行紀錄 ledger；skill 框架與 eval 工具；手動加候選；合成層與擷取 Spike；facts 驗證 | — | 10 | 10 | 10 |
+| S2 | 3–4 | 用口語對 agent 下需求：inbox → produce-topic（建題、擷取、草稿）→ review → 確認 → 發布紀錄，一則真實 Threads 走完 | **R1** | 10 | 10 | 10 |
+| S3 | 5–6 | RSS、GitHub、HN、HF、電子報；L2／L3 補料；輪播；排程器與 headless skill 執行；手填成效與 weekly-retro；字幕 Spike；Meta App 送審 | **R2** | 10 | 10 | 10 |
 | S4 | 7–8 | 字幕全流程；shots 轉換；過期判定與規格檢查；預算、通知、早報；X、聚類 Spike | — | 10 | 10 | 10 |
 | S5 | 9–10 | Reel 模板與渲染；X 收集、聚類、熱度分級；自動成效回收；發布 Spike | **R3＋R4** | 10 | 9 | 9 |
 | S6 | 11–12 | 動畫層（2D、Demo 包裝、程式碼）；變動監測；行事曆、S 級通知；連發；IG／Threads 發布 adapter | **R5** | 8 | 10 | 7 |

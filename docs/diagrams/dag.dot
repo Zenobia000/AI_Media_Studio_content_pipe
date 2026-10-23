@@ -25,10 +25,10 @@ workspace 模組：路徑、受管區…
 SQLite schema 與 mig…
 2 點", fillcolor="#e8e4f6", style="rounded,filled", penwidth=2.5, color="#c0392b"];
 "T-008" [label="T-008
-newsroom init 與 doc…
+init 與 doctor（含工作區 …
 1 點", fillcolor="#e3f0e1", style="rounded,filled"];
 "T-009" [label="T-009
-Step 介面與 Job 協調器（指紋…
+執行紀錄 ledger：run_id、…
 3 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-010" [label="T-010
 網址正規化與去重
@@ -46,13 +46,13 @@ render/ Node 專案骨架與 …
 SPK-PRD-1 合成層驗證：Rem…
 2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
 "T-015" [label="T-015
-LLM adapter 與成本紀錄
-1 點", fillcolor="#fdf0dc", style="rounded,filled"];
-"T-016" [label="T-016
-事實抽取（facts.json）
+Skill 框架：SKILL.md 格…
 2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-016" [label="T-016
+facts-verify 工具與抽事實…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-017" [label="T-017
-節目模板與依素材生成草稿
+draft-content skill…
 3 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-018" [label="T-018
 中斷復原與單步重跑
@@ -61,13 +61,13 @@ LLM adapter 與成本紀錄
 Content 狀態機
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-020" [label="T-020
-status 指令與狀態摘要
+status 工具與 recover …
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-021" [label="T-021
 inbox 產生與跨日規則
 2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
 "T-022" [label="T-022
-建題：依勾選建立 topic 與 co…
+open-topic 工具與 skil…
 2 點", fillcolor="#e3f0e1", style="rounded,filled", penwidth=2.5, color="#c0392b"];
 "T-023" [label="T-023
 原文擷取與官方原文補充
@@ -88,7 +88,7 @@ Threads 文字輸出（串文拆段）
 SPK-DRF-1／2／3：引用準確度…
 1 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
 "T-029" [label="T-029
-produce 管線串接
+produce-topic skill…
 2 點", fillcolor="#e8e4f6", style="rounded,filled,bold"];
 "T-030" [label="T-030
 review 預覽與待確認項處理
@@ -100,7 +100,7 @@ approve 與 unapprove
 mark-published 與排程紀錄
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-033" [label="T-033
-Claude Code slash c…
+RESOLVER 口語案例與 R1 s…
 1 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-034" [label="T-034
 S2 整合驗收：一則真實 Thread…
@@ -142,8 +142,8 @@ SPK-SUB-1～4：ASR、對齊、…
 Build 建立與 manifest（…
 1 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-048" [label="T-048
-排程器：安裝與收集排程
-2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+排程器：收集排程與 headless …
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-049" [label="T-049
 心跳與健康檢查
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
@@ -151,7 +151,7 @@ Build 建立與 manifest（…
 手填成效
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-051" [label="T-051
-週報 retro
+weekly-retro skill …
 2 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-052" [label="T-052
 每步耗時統計
@@ -235,8 +235,8 @@ X 收集器：List 與書籤
 通知 adapter（ntfy）
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-080" [label="T-080
-早報
-2 點", fillcolor="#e8e4f6", style="rounded,filled"];
+morning-brief skill…
+1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-081" [label="T-081
 SPK-FB-1 成效回收實測
 1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
@@ -298,7 +298,7 @@ AI 影片段落
 TTS 旁白（含 SPK-TTS-1）
 3 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-101" [label="T-101
-候選標題翻譯
+triage-inbox skill：…
 1 點", fillcolor="#e3f0e1", style="rounded,filled"];
 "T-102" [label="T-102
 發表會行事曆
@@ -324,6 +324,9 @@ S6 整合驗收（R5）
 "T-109" [label="T-109
 S7 整合驗收（R6）與交接
 1 點", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2.5, color="#c0392b"];
+"T-110" [label="T-110
+Skill eval 工具（newsr…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
 "T-001" -> "T-002" [color="#c0392b", penwidth=2.5];
 "T-002" -> "T-003";
 "T-001" -> "T-005" [color="#e67e22", penwidth=1.6];
@@ -340,10 +343,11 @@ S7 整合驗收（R6）與交接
 "T-002" -> "T-013";
 "T-004" -> "T-014" [color="#e67e22", penwidth=1.6];
 "T-013" -> "T-014";
-"T-005" -> "T-015" [color="#e67e22", penwidth=1.6];
+"T-002" -> "T-015";
 "T-015" -> "T-016";
 "T-003" -> "T-016";
 "T-016" -> "T-017";
+"T-110" -> "T-017";
 "T-009" -> "T-018";
 "T-007" -> "T-019";
 "T-009" -> "T-020";
@@ -365,11 +369,14 @@ S7 整合驗收（R6）與交接
 "T-023" -> "T-029" [color="#e67e22", penwidth=1.6];
 "T-024" -> "T-029" [color="#e67e22", penwidth=1.6];
 "T-017" -> "T-029" [color="#e67e22", penwidth=1.6];
+"T-110" -> "T-029" [color="#e67e22", penwidth=1.6];
 "T-019" -> "T-030";
 "T-025" -> "T-030" [color="#e67e22", penwidth=1.6];
 "T-030" -> "T-031";
 "T-031" -> "T-032";
 "T-026" -> "T-033";
+"T-015" -> "T-033";
+"T-110" -> "T-033";
 "T-029" -> "T-034";
 "T-027" -> "T-034";
 "T-032" -> "T-034";
@@ -437,10 +444,11 @@ S7 整合驗收（R6）與交接
 "T-031" -> "T-076";
 "T-047" -> "T-077" [color="#e67e22", penwidth=1.6];
 "T-009" -> "T-078";
-"T-015" -> "T-078" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-078";
 "T-048" -> "T-079";
 "T-079" -> "T-080";
 "T-021" -> "T-080" [color="#e67e22", penwidth=1.6];
+"T-048" -> "T-080";
 "T-041" -> "T-081";
 "T-056" -> "T-082" [color="#e67e22", penwidth=1.6];
 "T-048" -> "T-082";
@@ -475,7 +483,6 @@ S7 整合驗收（R6）與交接
 "T-064" -> "T-100";
 "T-021" -> "T-101";
 "T-015" -> "T-101" [color="#e67e22", penwidth=1.6];
-"T-078" -> "T-101" [color="#e67e22", penwidth=1.6];
 "T-075" -> "T-102";
 "T-075" -> "T-103";
 "T-079" -> "T-103" [color="#e67e22", penwidth=1.6];
@@ -505,4 +512,6 @@ S7 整合驗收（R6）與交接
 "T-100" -> "T-109";
 "T-104" -> "T-109";
 "T-106" -> "T-109";
+"T-015" -> "T-110";
+"T-003" -> "T-110";
 }

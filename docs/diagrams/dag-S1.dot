@@ -20,7 +20,7 @@ add-source：手動新增候選
 SPK-FET-1 全文擷取方案驗證
 1 點", fillcolor="#e3f0e1", style="rounded,filled,dashed"];
 }
-subgraph "cluster_周長曉" { label="周長曉（6 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
+subgraph "cluster_周長曉" { label="周長曉（7 點）"; style="rounded,filled"; fillcolor="#fdf0dc40"; color="#c7d0d9"; fontsize=15;
 "T-013" [label="T-013
 render/ Node 專案骨架與 …
 1 點", fillcolor="#fdf0dc", style="rounded,filled"];
@@ -28,11 +28,14 @@ render/ Node 專案骨架與 …
 SPK-PRD-1 合成層驗證：Rem…
 2 點", fillcolor="#fdf0dc", style="rounded,filled,dashed"];
 "T-015" [label="T-015
-LLM adapter 與成本紀錄
-1 點", fillcolor="#fdf0dc", style="rounded,filled"];
-"T-016" [label="T-016
-事實抽取（facts.json）
+Skill 框架：SKILL.md 格…
 2 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-016" [label="T-016
+facts-verify 工具與抽事實…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
+"T-110" [label="T-110
+Skill eval 工具（newsr…
+1 點", fillcolor="#fdf0dc", style="rounded,filled"];
 }
 subgraph "cluster_楊舒媁" { label="楊舒媁（7 點）"; style="rounded,filled"; fillcolor="#e8e4f640"; color="#c7d0d9"; fontsize=15;
 "T-004" [label="T-004
@@ -45,7 +48,7 @@ config 載入與日誌（含金鑰遮罩）
 SQLite schema 與 mig…
 2 點", fillcolor="#e8e4f6", style="rounded,filled", penwidth=2.5, color="#c0392b"];
 "T-009" [label="T-009
-Step 介面與 Job 協調器（指紋…
+執行紀錄 ledger：run_id、…
 3 點", fillcolor="#e8e4f6", style="rounded,filled"];
 }
 subgraph "cluster_全體" { label="全體（3 點）"; style="rounded,filled"; fillcolor="#ffffff40"; color="#c7d0d9"; fontsize=15;
@@ -69,7 +72,9 @@ Fixture 假工作區（IF-018）
 "T-002" -> "T-013";
 "T-004" -> "T-014" [color="#e67e22", penwidth=1.6];
 "T-013" -> "T-014";
-"T-005" -> "T-015" [color="#e67e22", penwidth=1.6];
+"T-002" -> "T-015";
 "T-015" -> "T-016";
 "T-003" -> "T-016";
+"T-015" -> "T-110";
+"T-003" -> "T-110";
 }

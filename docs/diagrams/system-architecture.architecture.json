@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "系統架構｜單機模組化單體與外部服務",
+    "title": "系統架構｜Skills 編排與確定性工具",
     "locale": "zh-TW",
     "quality_profile": "showcase",
     "output": "docs/diagrams/system-architecture.html",
@@ -14,11 +14,14 @@
         "frontend": {
           "label": "操作介面"
         },
+        "security": {
+          "label": "AI 編排"
+        },
         "messagebus": {
-          "label": "自動觸發"
+          "label": "排程觸發"
         },
         "backend": {
-          "label": "本機程式"
+          "label": "確定性工具"
         },
         "database": {
           "label": "工作區資料"
@@ -33,30 +36,30 @@
     {
       "id": "creator",
       "type": "external",
-      "icon": "person",
       "label": "創作者",
       "sublabel": "唯一使用者",
       "pos": [
         40,
-        325
+        360
       ],
       "size": [
         120,
         60
-      ]
+      ],
+      "icon": "person"
     },
     {
-      "id": "claude_code",
-      "type": "frontend",
-      "label": "Claude Code",
-      "sublabel": "slash command",
+      "id": "model",
+      "type": "cloud",
+      "label": "Claude 模型",
+      "sublabel": "訂閱或 API",
       "pos": [
-        230,
-        325
+        40,
+        160
       ],
       "size": [
-        140,
-        60
+        150,
+        56
       ]
     },
     {
@@ -66,56 +69,71 @@
       "sublabel": "經 \\\\wsl$\\ 開工作區",
       "pos": [
         230,
-        660
+        710
       ],
       "size": [
         140,
+        64
+      ]
+    },
+    {
+      "id": "claude_code",
+      "type": "security",
+      "label": "Claude Code",
+      "sublabel": "互動，或 claude -p",
+      "pos": [
+        430,
+        350
+      ],
+      "size": [
+        150,
+        80
+      ],
+      "tag": "agent harness"
+    },
+    {
+      "id": "skills",
+      "type": "security",
+      "label": "skills＋CLAUDE.md",
+      "sublabel": "流程與判斷標準",
+      "pos": [
+        430,
+        550
+      ],
+      "size": [
+        150,
         64
       ]
     },
     {
       "id": "timer",
       "type": "messagebus",
-      "icon": "clock",
       "label": "systemd timer",
-      "sublabel": "收集、早報、成效回收",
+      "sublabel": "收集、早報、週報",
       "pos": [
-        430,
-        40
-      ],
-      "size": [
-        140,
-        64
-      ]
-    },
-    {
-      "id": "changedetect",
-      "type": "messagebus",
-      "label": "changedetection.io",
-      "sublabel": "Docker，R5 起",
-      "pos": [
-        430,
-        480
+        720,
+        170
       ],
       "size": [
         150,
         64
-      ]
+      ],
+      "icon": "clock"
     },
     {
-      "id": "cli",
+      "id": "tools",
       "type": "backend",
-      "label": "newsroom CLI",
-      "sublabel": "Python 3.11＋poetry",
+      "label": "newsroom 工具",
+      "sublabel": "JSON 進出、不呼叫 LLM",
       "pos": [
-        650,
-        300
+        720,
+        330
       ],
       "size": [
         150,
-        110
+        120
       ],
-      "tag": "協調器與領域模組"
+      "tag": "冪等、鎖、關卡"
     },
     {
       "id": "workspace",
@@ -123,8 +141,8 @@
       "label": "newsroom/ 工作區",
       "sublabel": "Markdown、media、SQLite",
       "pos": [
-        650,
-        660
+        720,
+        710
       ],
       "size": [
         150,
@@ -137,12 +155,12 @@
       "label": "render/",
       "sublabel": "Node＋Remotion",
       "pos": [
-        880,
-        30
+        950,
+        50
       ],
       "size": [
         150,
-        64
+        60
       ],
       "tag": "Reel、輪播"
     },
@@ -152,12 +170,12 @@
       "label": "adapter 層",
       "sublabel": "外部工具一律經過這裡",
       "pos": [
-        880,
-        130
+        950,
+        180
       ],
       "size": [
         150,
-        480
+        440
       ]
     },
     {
@@ -166,8 +184,8 @@
       "label": "本機工具與模型",
       "sublabel": "ffmpeg、yt-dlp、Playwright、ASR",
       "pos": [
-        880,
-        660
+        950,
+        710
       ],
       "size": [
         150,
@@ -180,8 +198,8 @@
       "label": "資訊來源",
       "sublabel": "RSS、GitHub、HN、電子報",
       "pos": [
-        1180,
-        134
+        1240,
+        199
       ],
       "size": [
         170,
@@ -194,8 +212,8 @@
       "label": "X API",
       "sublabel": "List、書籤，R4 起",
       "pos": [
-        1180,
-        204
+        1240,
+        269
       ],
       "size": [
         170,
@@ -208,22 +226,8 @@
       "label": "網站與影片平台",
       "sublabel": "原文與素材",
       "pos": [
-        1180,
-        274
-      ],
-      "size": [
-        170,
-        52
-      ]
-    },
-    {
-      "id": "llm",
-      "type": "cloud",
-      "label": "Claude API",
-      "sublabel": "抽事實、寫稿、週報",
-      "pos": [
-        1180,
-        344
+        1240,
+        339
       ],
       "size": [
         170,
@@ -236,8 +240,8 @@
       "label": "Meta Graph API",
       "sublabel": "IG、Threads",
       "pos": [
-        1180,
-        414
+        1240,
+        409
       ],
       "size": [
         170,
@@ -250,8 +254,8 @@
       "label": "聚合發布服務",
       "sublabel": "R6 自動發布",
       "pos": [
-        1180,
-        484
+        1240,
+        479
       ],
       "size": [
         170,
@@ -264,8 +268,8 @@
       "label": "ntfy",
       "sublabel": "S 級事件推播，R4 起",
       "pos": [
-        1180,
-        554
+        1240,
+        549
       ],
       "size": [
         170,
@@ -278,11 +282,11 @@
       "kind": "region",
       "label": "創作者的電腦（Windows 11）",
       "wraps": [
-        "claude_code",
         "obsidian",
+        "claude_code",
+        "skills",
         "timer",
-        "changedetect",
-        "cli",
+        "tools",
         "workspace",
         "render",
         "adapters",
@@ -294,9 +298,10 @@
       "kind": "security-group",
       "label": "WSL2（Ubuntu，開啟 systemd）",
       "wraps": [
+        "claude_code",
+        "skills",
         "timer",
-        "changedetect",
-        "cli",
+        "tools",
         "workspace",
         "render",
         "adapters",
@@ -307,10 +312,10 @@
   ],
   "connections": [
     {
-      "id": "c_command",
+      "id": "c_ask",
       "from": "creator",
       "to": "claude_code",
-      "label": "下指令",
+      "label": "用口語下需求",
       "variant": "emphasis"
     },
     {
@@ -322,31 +327,44 @@
       "toSide": "left"
     },
     {
-      "id": "c_invoke",
+      "id": "c_model",
       "from": "claude_code",
-      "to": "cli",
-      "label": "呼叫 CLI",
-      "variant": "emphasis"
-    },
-    {
-      "id": "c_timer",
-      "from": "timer",
-      "to": "cli",
-      "label": "定時執行",
-      "variant": "dashed",
-      "fromSide": "right",
-      "toSide": "top"
-    },
-    {
-      "id": "c_webhook",
-      "from": "changedetect",
-      "to": "cli",
-      "label": "webhook",
+      "to": "model",
+      "label": "模型推論",
       "variant": "dashed"
     },
     {
+      "id": "c_skill",
+      "from": "claude_code",
+      "to": "skills",
+      "label": "讀 skill"
+    },
+    {
+      "id": "c_call",
+      "from": "claude_code",
+      "to": "tools",
+      "label": "呼叫工具 --json",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c_collect",
+      "from": "timer",
+      "to": "tools",
+      "label": "定時收集",
+      "variant": "dashed"
+    },
+    {
+      "id": "c_headless",
+      "from": "timer",
+      "to": "claude_code",
+      "label": "claude -p 跑 skill",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "top"
+    },
+    {
       "id": "c_rw",
-      "from": "cli",
+      "from": "tools",
       "to": "workspace",
       "label": "讀寫",
       "variant": "emphasis"
@@ -358,16 +376,16 @@
       "label": "讀寫 Markdown"
     },
     {
-      "id": "c_render",
-      "from": "cli",
-      "to": "render",
-      "label": "subprocess＋JSON"
-    },
-    {
       "id": "c_adapter",
-      "from": "cli",
+      "from": "tools",
       "to": "adapters",
       "variant": "emphasis"
+    },
+    {
+      "id": "c_render",
+      "from": "adapters",
+      "to": "render",
+      "label": "subprocess＋JSON"
     },
     {
       "id": "c_local",
@@ -380,14 +398,16 @@
       "from": "adapters",
       "to": "feeds",
       "label": "抓取",
+      "variant": "default",
       "route": "orthogonal-h",
       "labelSegment": 2
     },
     {
-      "id": "c_x",
+      "id": "c_x_api",
       "from": "adapters",
       "to": "x_api",
       "label": "抓取",
+      "variant": "default",
       "route": "orthogonal-h",
       "labelSegment": 2
     },
@@ -396,16 +416,9 @@
       "from": "adapters",
       "to": "web",
       "label": "補料",
+      "variant": "default",
       "route": "orthogonal-h",
       "labelSegment": 2
-    },
-    {
-      "id": "c_llm",
-      "from": "adapters",
-      "to": "llm",
-      "label": "API",
-      "variant": "emphasis",
-      "route": "orthogonal-h"
     },
     {
       "id": "c_meta",
@@ -417,7 +430,7 @@
       "labelSegment": 2
     },
     {
-      "id": "c_agg",
+      "id": "c_aggregator",
       "from": "adapters",
       "to": "aggregator",
       "label": "上傳",
@@ -438,29 +451,29 @@
   "cards": [
     {
       "dot": "cyan",
-      "title": "依賴規則",
+      "title": "分層原則",
       "items": [
-        "模組化單體：不拆服務、不用訊息佇列",
-        "領域模組之間只透過檔案與 SQLite 交接",
-        "外部工具一律經過 adapter，每個都能單獨停用"
+        "skill 寫判斷與流程，agent 依 skill 決定呼叫哪些工具",
+        "工具 JSON 進出、不呼叫 LLM，可以重跑",
+        "發布確認、冪等、預算寫死在工具裡，skill 繞不過"
       ]
     },
     {
       "dot": "amber",
-      "title": "部署注意",
+      "title": "排程",
       "items": [
-        "WSL 開啟 systemd，並關閉 Windows 自動睡眠",
-        "Obsidian 從 Windows 端開 WSL 內的工作區",
-        "金鑰放環境變數或 keyring，不進工作區"
+        "收集每 15 分鐘直接執行工具，不經過 agent",
+        "早報、週報用 claude -p 跑 skill，有回合與花費上限",
+        "R5 起 changedetection.io（Docker）以 webhook 觸發收集"
       ]
     },
     {
       "dot": "violet",
-      "title": "分期上線",
+      "title": "部署注意",
       "items": [
-        "R4 起接 X API、ntfy 推播、成效自動回收",
-        "R5 起加 changedetection.io（Docker）",
-        "R6 起經聚合服務自動發布，另需物件儲存提供暫存公開網址"
+        "WSL 開啟 systemd，並關閉 Windows 自動睡眠",
+        "Claude Code 在工作區目錄啟動，skills 由 init 連結進來",
+        "金鑰放環境變數或 keyring，不進工作區"
       ]
     }
   ]

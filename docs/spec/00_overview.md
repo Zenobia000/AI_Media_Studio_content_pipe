@@ -3,7 +3,7 @@
 | 項目 | 內容 |
 |---|---|
 | 文件類型 | 軟體需求規格（SA 視角） |
-| 版本 | v1.0｜2026-10-23 |
+| 版本 | v1.1｜2026-10-24（編排改為 Skills＋AI agent） |
 | 上游 | [PRD](../product/PRD.md) |
 | 章節 | 00 總覽（本文）、[01 核心](01_core.md)、[02 收集](02_collect.md)、[03 補料](03_fetch_assets.md)、[04 草稿](04_draft.md)、[05 製作](05_production.md)、[06 發布與回饋](06_publish_feedback.md)、[07 介面契約](07_interfaces.md) |
 
@@ -15,7 +15,8 @@
 
 系統是一個單機、單使用者的內容產線，由以下部分組成：
 
-- **Python 套件 `newsroom`**：CLI、流程協調、收集、補料、草稿、發布紀錄、成效。
+- **Skills `skills/`**：Markdown 寫的流程與判斷標準，由 Claude Code（互動）或 `claude -p`（排程）執行，決定要呼叫哪些工具（架構 ADR-09）。
+- **Python 套件 `newsroom`**：確定性工具：收集、補料、驗證草稿、狀態與執行紀錄、發布紀錄、成效。工具本身不呼叫 LLM。
 - **Node 專案 `render/`**：Remotion 影片合成、輪播出圖、規格檢查。由 Python 以 subprocess 呼叫。
 - **工作區 `newsroom/`**：使用者的 Markdown 與素材，以及 SQLite 資料庫。用 Obsidian 開同一個資料夾閱讀和編輯。
 - **常駐服務**：排程器（systemd timer 或 cron）、選用的 Docker 服務（changedetection.io、ntfy）。
@@ -34,7 +35,9 @@
 | Approval | 人對某個 Build（或文字版本）的確認 |
 | Publication | 一則作品在某一個平台的發布紀錄 |
 | MetricSnapshot | 某個 Publication 在某個時間點的成效數據 |
-| Job | 系統執行的一個步驟（例如補料、草稿、渲染），有自己的狀態與重試紀錄 |
+| Job | 一次工具呼叫（例如補料、存草稿、渲染），有自己的狀態與重試紀錄 |
+| Skill | 一份 Markdown 流程，告訴 agent 某個環節怎麼做、呼叫哪些工具 |
+| Run | agent 執行一個 skill 的一次任務，以 run_id 串起它呼叫的所有 Job |
 | Program | 節目類型：`ai-today`、`tool-review`、`ai-engineering` |
 | Format | 內容格式：`threads`、`carousel`、`reel` |
 | Tier | 熱度等級：`S`、`A`、`B`、`evergreen` |
@@ -49,17 +52,18 @@ ID 一經建立就不再改變。改標題不會改 ID。
 | candidate_id | `cand_` + 第一個 source_id 的雜湊前 12 碼 | `cand_3f9a1c0b7e22` | 決定性 |
 | topic_id | `YYYY-MM-DD-<slug>`；slug 為 ASCII、小寫、`-` 連接、≤ 40 字元；重複時加 `-2` | `2026-10-17-roadster` | 建立時決定 |
 | content_id | `<format>-<nn>`，在 topic 內唯一 | `reel-01` | 建立時決定 |
-| 全域內容參照 | `<topic_id>/<content_id>` | `2026-10-17-roadster/reel-01` | CLI 參數使用 |
+| 全域內容參照 | `<topic_id>/<content_id>` | `2026-10-17-roadster/reel-01` | 工具參數使用 |
 | asset_id | `ast_` + 檔案內容 SHA-256 的前 12 碼 | `ast_a1b2c3d4e5f6` | 決定性：同檔案同 ID |
 | revision | `r<nnn>`，在 content 內遞增 | `r003` | 每次生成草稿＋1 |
 | build_id | `b<YYYYMMDD-HHMMSS>` | `b20261017-143012` | 製作開始時間 |
-| job_id、publication_id、approval_id | ULID | `01JBX…` | 程式產生 |
+| run_id、job_id、publication_id、approval_id | ULID | `01JBX…` | 程式產生 |
 
 ## 4. 需求編號
 
 | 前綴 | 模組 | 章節 |
 |---|---|---|
-| `CORE-FR-nnn` | 核心：CLI、工作區、資料庫、Job、設定 | 01 |
+| `CORE-FR-nnn` | 核心：工具介面、工作區、資料庫、執行紀錄、設定 | 01 |
+| `AGT-FR-nnn` | Skills 編排：skill 格式、路由、工具契約、run_id、關卡、headless、eval | 01 |
 | `OPS-FR-nnn` | 排程、通知、預算控管 | 01 |
 | `COL-FR-nnn` | 情報收集與 inbox | 02 |
 | `FET-FR-nnn` | 原文擷取、補料、素材盤點 | 03 |
@@ -134,10 +138,11 @@ newsroom/
 
 `topic.md`、`content.md`、`sources/*.md` 使用 YAML front-matter，欄位定義見 [07 介面契約](07_interfaces.md)。未知欄位要保留，不能刪除。
 
-### 5.4 CLI 慣例
+### 5.4 工具慣例
 
-- 指令名稱：`newsroom <command> [args]`；Claude Code slash command 只是呼叫 CLI 的入口。
-- 每個指令都支援 `--workspace <path>`（預設讀環境變數 `NEWSROOM_HOME`）、`--json`（輸出機器可讀的結果）、`--dry-run`（會寫檔或花錢的指令要支援）。
+- 工具名稱：`newsroom <tool> [args]`。主要呼叫者是 agent（依 skill），人也可以直接執行來除錯。
+- 每個工具的 `--json` 輸出依 IF-020；agent 呼叫時一律帶 `--json`。
+- 每個工具都支援 `--workspace <path>`（預設讀環境變數 `NEWSROOM_HOME`）、`--json`（輸出機器可讀的結果）、`--dry-run`（會寫檔或花錢的指令要支援）。
 - 結束碼：`0` 成功；`1` 一般錯誤；`2` 參數錯誤；`3` 被阻擋（blocked，需要人補資料）；`4` 外部服務錯誤；`5` 預算上限。
 
 ### 5.5 錯誤碼
@@ -187,13 +192,13 @@ Content、Job、Publication 的狀態與轉換以 [07 狀態圖](08_state_machin
 |---|---|---|---|
 | NFR-001 | 可靠 | 任一 Job 失敗不影響其他 Job；已成功的輸出保留 | 故意讓渲染失敗，草稿與素材檔案完好 |
 | NFR-002 | 可靠 | 程式中斷（kill、斷電）後重啟，`running` 的 Job 標為可重跑，不會卡死 | kill -9 後重啟，`newsroom status` 顯示可重跑 |
-| NFR-003 | 冪等 | 同樣的指令重複執行，結果相同、不重複建立物件、不重複呼叫付費 API | 連續執行兩次 produce，資料庫筆數不變、LLM 只呼叫一次 |
+| NFR-003 | 冪等 | 同樣的工具呼叫重複執行，結果相同、不重複建立物件、不重複呼叫付費 API | 連續執行兩次 `produce-topic`，資料庫筆數不變、付費 API 只呼叫一次 |
 | NFR-004 | 資料安全 | 人工修改的內容不被覆蓋 | 修改 script.md 後執行 redraft，script.md 的內容不變，新稿出現在 drafts/ |
 | NFR-005 | 可追溯 | 每個 Build 能回查到稿件版本、素材 asset_id、來源 source_id | 從 manifest.json 能追到每個 source 的網址 |
 | NFR-006 | 成本 | 每個付費整合都有每日與每月上限；達到 80% 時警告，100% 時停止 | 把上限設成 0.01 美元，下一次呼叫被擋下並發出通知 |
 | NFR-007 | 效能 | 收集一輪（所有來源）≤ 2 分鐘；inbox 產生 ≤ 5 秒 | 以 100 個來源量測 |
 | NFR-008 | 效能 | 60 秒 Reel 在 CPU 上渲染 ≤ 10 分鐘（不含 3D 與 AI 段落） | S3 Spike 實測 |
-| NFR-009 | 可替換 | 外部工具（LLM、ASR、下載器、發布服務）都經過 adapter 介面呼叫 | 換一個 LLM adapter，只需要改設定，不改流程程式 |
+| NFR-009 | 可替換 | 外部工具（ASR、下載器、發布服務）都經過 adapter 介面呼叫；LLM 由 harness 提供，不寫在工具裡 | 換一個下載器 adapter，只需要改設定，不改 skill |
 | NFR-010 | 可觀察 | `newsroom status` 能列出所有進行中、阻擋、失敗的工作，並附原因與重跑指令 | 人工製造各種狀態後檢查輸出 |
 | NFR-011 | 安全 | 金鑰不進檔案、不進日誌、不進 git | 用 grep 掃描工作區與日誌，找不到金鑰 |
 | NFR-012 | 環境 | Python 3.11+ 用 poetry 管理；Node 用 nvm；外部服務用 Docker；不在系統層安裝套件 | 在乾淨的 WSL 依 README 建置成功 |
@@ -205,8 +210,10 @@ Content、Job、Publication 的狀態與轉換以 [07 狀態圖](08_state_machin
 
 | 模組 | SRS 章節 | 擁有者 | 主要介面 |
 |---|---|---|---|
-| core（CLI、工作區、資料庫） | 01 | Albert Chiang | `newsroom` CLI、SQLite schema |
-| core（Job 協調、排程、通知、預算） | 01 | 楊舒媁 | Job API、排程設定 |
+| core（工具介面、工作區、資料庫） | 01 | Albert Chiang | `newsroom` 工具、SQLite schema |
+| core（執行紀錄、關卡、排程、通知、預算） | 01 | 楊舒媁 | ledger、`newsroom run`、排程設定 |
+| skills 框架（格式、RESOLVER、eval） | 01 | 周長曉 | IF-019、IF-020、`newsroom eval` |
+| 各環節 skill | 01 §2 | 各模組擁有者 | `skills/<name>/SKILL.md` |
 | collect | 02 | Albert Chiang | Source、Candidate、inbox |
 | fetch／assets | 03 | Albert Chiang | sources/*.md、assets.json |
 | draft | 04 | 周長曉 | drafts/、script.md、carousel.md、caption.md |

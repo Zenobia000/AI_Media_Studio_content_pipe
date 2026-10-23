@@ -45,16 +45,13 @@ subgraph "cluster_楊舒媁" { label="楊舒媁（9 點）"; style="rounded,fill
 SPK-COL-2（一）Meta Ap…
 1 點", fillcolor="#e8e4f6", style="rounded,filled,dashed"];
 "T-048" [label="T-048
-排程器：安裝與收集排程
-2 點", fillcolor="#e8e4f6", style="rounded,filled"];
-"T-049" [label="T-049
-心跳與健康檢查
-1 點", fillcolor="#e8e4f6", style="rounded,filled"];
+排程器：收集排程與 headless …
+3 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-050" [label="T-050
 手填成效
 1 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-051" [label="T-051
-週報 retro
+weekly-retro skill …
 2 點", fillcolor="#e8e4f6", style="rounded,filled"];
 "T-053" [label="T-053
 發布包
@@ -105,7 +102,6 @@ Albert Chiang｜S2", fillcolor="#f2f2f2", color="#b0b0b0", fontcolor="#777777", 
 "T-002" -> "T-047";
 "T-013" -> "T-047";
 "T-009" -> "T-048";
-"T-048" -> "T-049";
 "T-032" -> "T-050";
 "T-050" -> "T-051";
 "T-015" -> "T-051" [color="#e67e22", penwidth=1.6];

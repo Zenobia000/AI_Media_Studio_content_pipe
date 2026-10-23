@@ -171,7 +171,7 @@
 |---|---|---|---|---|---|---|
 | Anthropic Python SDK | 事實抽取（Citations）、結構化草稿（structured output）、prompt caching、Batches | [anthropics/anthropic-sdk-python](https://github.com/anthropics/anthropic-sdk-python) | Apache-2.0 | 2026-10-22 | 4k★ | **採用** |
 | Pydantic | 定義草稿、節奏表、圖卡、caption 的 schema | [pydantic/pydantic](https://github.com/pydantic/pydantic) | MIT | — | 大 | **採用** |
-| Claude Code／Claude Agent SDK | slash command 入口、互動式改稿 | [anthropics/claude-agent-sdk-python](https://github.com/anthropics/claude-agent-sdk-python) | MIT | 2026-10-22 | 8.3k★ | **採用** |
+| Claude Code／Claude Agent SDK | agent harness：依 skill 編排工具（互動與 `claude -p` headless），見架構 ADR-09 | [anthropics/claude-agent-sdk-python](https://github.com/anthropics/claude-agent-sdk-python) | MIT | 2026-10-22 | 8.3k★ | **採用** |
 | zhtw-mcp | 檢查台灣用語與標點（例如「軟件」改成「軟體」） | [sysprog21/zhtw-mcp](https://github.com/sysprog21/zhtw-mcp) | MIT | 2026-10-11 | 494★ | **需 Spike** |
 | Instructor | 換 LLM 供應商時的統一結構化輸出層 | [567-labs/instructor](https://github.com/567-labs/instructor) | MIT | 2026-10-20 | 14k★ | 備援 |
 | Pydantic AI | 日後真的需要多步驟 agent 時 | [pydantic/pydantic-ai](https://github.com/pydantic/pydantic-ai) | MIT | 2026-10-23 | 20.8k★ | 備選 |
@@ -371,7 +371,7 @@ Breeze 在台灣口音的錄音上表現較好。
 | 工具 | 角色 | 連結 | 授權 | 標記 |
 |---|---|---|---|---|
 | Python 3.11+＋poetry | 主程式 | — | — | **採用** |
-| Typer | CLI 框架 | [fastapi/typer](https://github.com/fastapi/typer) | MIT | **採用** |
+| Typer | 工具介面框架（agent 呼叫的 `newsroom <tool> --json`） | [fastapi/typer](https://github.com/fastapi/typer) | MIT | **採用** |
 | SQLite（WAL）＋自寫 migration | 執行紀錄的主資料 | — | — | **採用** |
 | Pydantic | 設定與 schema 驗證 | — | MIT | **採用** |
 | jsonschema | 07 介面契約的驗證 | [python-jsonschema/jsonschema](https://github.com/python-jsonschema/jsonschema) | MIT | **採用** |

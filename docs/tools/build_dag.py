@@ -1,7 +1,7 @@
 """Build the ticket DAG from ticket front-matter, validate it, and render outputs.
 
 Single source of truth: docs/tickets/T-*.md front-matter.
-Outputs: diagrams/dag.{dot,png,svg}, tickets/README.md.
+Outputs: diagrams/dag.{dot,png,svg}, tickets/README.md, epic ticket tables in tickets/E*.md.
 Exit code 1 when validation fails (unknown deps, cycles, sprint order, uncovered FRs).
 """
 from __future__ import annotations
@@ -226,6 +226,20 @@ def render_readme(t: dict[str, dict], load: dict, crit_len: int, crit: list[str]
     (TICKETS / 'README.md').write_text('\n'.join(out), encoding='utf-8')
 
 
+def render_epics(t: dict[str, dict]) -> None:
+    """Rewrite each epic file's ticket table from ticket front-matter."""
+    for path in sorted(TICKETS.glob('E*.md')):
+        text = path.read_text(encoding='utf-8')
+        head, sep, _ = text.partition('| 票 | 標題 |')
+        if not sep:
+            continue
+        rows = sorted((v for v in t.values() if v['epic'] == path.stem), key=lambda v: (sprint_no(v['sprint']), v['id']))
+        table = ['| 票 | 標題 | 負責人 | Sprint | 估點 |', '|---|---|---|---|---|']
+        table += [f"| [{v['id']}]({v['id']}.md) | {v['title']} | {v['owner']} | {v['sprint']} | {v['points']} |" for v in rows]
+        table += ['', f"共 {len(rows)} 張、{sum(v['points'] for v in rows)} 點。", '']
+        path.write_text(head + NL.join(table), encoding='utf-8')
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
     t = load()
@@ -237,6 +251,7 @@ def main() -> int:
         for s in sorted({x['sprint'] for x in t.values()}, key=sprint_no):
             render_sprint(t, s, crit)
         render_readme(t, load_map, crit_len, crit)
+        render_epics(t)
     print(f'tickets: {len(t)}  points: {sum(x["points"] for x in t.values())}')
     sprints = sorted({x['sprint'] for x in t.values()}, key=sprint_no)
     for p in PEOPLE:

@@ -1,0 +1,404 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "軟體架構｜分層與模組歸屬（依賴由上往下）",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "output": "docs/diagrams/software-architecture.html",
+    "legend": {
+      "entries": {
+        "security": {
+          "label": "AI 編排（skills 與 harness）"
+        },
+        "frontend": {
+          "label": "工具介面"
+        },
+        "backend": {
+          "label": "領域模組與渲染"
+        },
+        "database": {
+          "label": "共用核心與執行紀錄"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "sk_shuwei",
+      "type": "security",
+      "label": "楊舒媁 skills",
+      "sublabel": "produce-topic、review、publish、recover、早報、週報",
+      "pos": [
+        40,
+        30
+      ],
+      "size": [
+        320,
+        64
+      ]
+    },
+    {
+      "id": "sk_albert",
+      "type": "security",
+      "label": "Albert skills",
+      "sublabel": "open-topic、gather-assets、triage-inbox",
+      "pos": [
+        400,
+        30
+      ],
+      "size": [
+        320,
+        64
+      ]
+    },
+    {
+      "id": "sk_changxiao",
+      "type": "security",
+      "label": "周長曉 skills",
+      "sublabel": "draft-content、make-carousel／subtitles／reel",
+      "pos": [
+        760,
+        30
+      ],
+      "size": [
+        320,
+        64
+      ]
+    },
+    {
+      "id": "resolver",
+      "type": "security",
+      "label": "RESOLVER＋CLAUDE.md",
+      "sublabel": "口語需求 → skill",
+      "pos": [
+        1180,
+        30
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "harness",
+      "type": "security",
+      "label": "Claude Code",
+      "sublabel": "互動，或 newsroom run（claude -p）",
+      "pos": [
+        460,
+        190
+      ],
+      "size": [
+        200,
+        64
+      ],
+      "tag": "harness"
+    },
+    {
+      "id": "tools",
+      "type": "frontend",
+      "label": "newsroom 工具介面",
+      "sublabel": "cli.py＋toolkit，IF-020",
+      "pos": [
+        460,
+        340
+      ],
+      "size": [
+        200,
+        70
+      ],
+      "tag": "周長曉／Albert"
+    },
+    {
+      "id": "publish",
+      "type": "backend",
+      "label": "publish",
+      "sublabel": "review、approve、發布",
+      "pos": [
+        40,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "楊舒媁"
+    },
+    {
+      "id": "feedback",
+      "type": "backend",
+      "label": "feedback",
+      "sublabel": "成效、retro-data",
+      "pos": [
+        220,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "楊舒媁"
+    },
+    {
+      "id": "collect",
+      "type": "backend",
+      "label": "collect",
+      "sublabel": "收集、inbox、建題",
+      "pos": [
+        400,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "Albert"
+    },
+    {
+      "id": "fetch",
+      "type": "backend",
+      "label": "fetch",
+      "sublabel": "原文、補料、素材盤點",
+      "pos": [
+        580,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "Albert"
+    },
+    {
+      "id": "draft",
+      "type": "backend",
+      "label": "draft",
+      "sublabel": "facts-verify、draft-save",
+      "pos": [
+        760,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "周長曉"
+    },
+    {
+      "id": "production",
+      "type": "backend",
+      "label": "production",
+      "sublabel": "輪播、字幕、Build",
+      "pos": [
+        940,
+        500
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "周長曉"
+    },
+    {
+      "id": "render",
+      "type": "backend",
+      "label": "render/",
+      "sublabel": "Node＋Remotion",
+      "pos": [
+        1180,
+        500
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "tag": "周長曉"
+    },
+    {
+      "id": "core",
+      "type": "database",
+      "label": "core＋ledger",
+      "sublabel": "workspace、db、config、schemas｜run_id、冪等、鎖、狀態機、預算",
+      "pos": [
+        40,
+        660
+      ],
+      "size": [
+        1040,
+        64
+      ],
+      "tag": "Albert／楊舒媁"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Skills（Markdown，fat）",
+      "wraps": [
+        "sk_shuwei",
+        "sk_albert",
+        "sk_changxiao",
+        "resolver"
+      ],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "工具（確定性，thin 之下）",
+      "wraps": [
+        "tools",
+        "publish",
+        "feedback",
+        "collect",
+        "fetch",
+        "draft",
+        "production",
+        "render",
+        "core"
+      ],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    {
+      "id": "load_resolver",
+      "from": "harness",
+      "to": "resolver",
+      "label": "先查路由",
+      "variant": "dashed"
+    },
+    {
+      "id": "load_shuwei",
+      "from": "harness",
+      "to": "sk_shuwei",
+      "label": "載入"
+    },
+    {
+      "id": "load_albert",
+      "from": "harness",
+      "to": "sk_albert",
+      "label": "載入"
+    },
+    {
+      "id": "load_changxiao",
+      "from": "harness",
+      "to": "sk_changxiao",
+      "label": "載入"
+    },
+    {
+      "id": "call_tools",
+      "from": "harness",
+      "to": "tools",
+      "label": "呼叫 --json",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tool_publish",
+      "from": "tools",
+      "to": "publish",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tool_feedback",
+      "from": "tools",
+      "to": "feedback",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tool_collect",
+      "from": "tools",
+      "to": "collect",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tool_fetch",
+      "from": "tools",
+      "to": "fetch",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tool_draft",
+      "from": "tools",
+      "to": "draft",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "tool_production",
+      "from": "tools",
+      "to": "production",
+      "variant": "emphasis",
+      "route": "orthogonal-v"
+    },
+    {
+      "id": "dep_publish",
+      "from": "publish",
+      "to": "core"
+    },
+    {
+      "id": "dep_feedback",
+      "from": "feedback",
+      "to": "core"
+    },
+    {
+      "id": "dep_collect",
+      "from": "collect",
+      "to": "core"
+    },
+    {
+      "id": "dep_fetch",
+      "from": "fetch",
+      "to": "core"
+    },
+    {
+      "id": "dep_draft",
+      "from": "draft",
+      "to": "core"
+    },
+    {
+      "id": "dep_production",
+      "from": "production",
+      "to": "core"
+    },
+    {
+      "id": "render_call",
+      "from": "production",
+      "to": "render",
+      "label": "subprocess"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "依賴規則",
+      "items": [
+        "依賴由上往下：skills → 工具介面 → 領域模組 → core／ledger",
+        "領域模組之間不能 import，只透過檔案（07 介面契約）與 SQLite 交接",
+        "外部工具一律經過領域模組內的 adapter"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "不交給 AI 的事",
+      "items": [
+        "approve 需要人的確認原文；headless 執行不能 approve、schedule",
+        "狀態轉換、冪等、鎖、預算都在 ledger，skill 繞不過",
+        "工具不呼叫 LLM；skill 的產出由工具驗證"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "誰寫什麼",
+      "items": [
+        "skill 和它呼叫的工具由同一人負責（tag 標示負責人）",
+        "每個 skill 附 evals，改 SKILL.md 要附改前改後結果",
+        "schemas/ 介面契約三人共同，改動要三人核准"
+      ]
+    }
+  ]
+}
