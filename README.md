@@ -75,6 +75,30 @@
 
 ---
 
+## 開發環境建置（WSL）
+
+```bash
+# 0. 系統套件（pyenv 編譯 Python 需要；pipx 用來裝 poetry）
+sudo apt update && sudo apt install -y build-essential libssl-dev zlib1g-dev   libbz2-dev libreadline-dev libsqlite3-dev libffi-dev liblzma-dev pipx
+
+# 1. 安裝 Python 3.12（pyenv）與 poetry
+# 不要用系統內建的 Python：新版 Ubuntu 內建 3.14，超出專案支援範圍（>=3.11,<3.14）
+curl https://pyenv.run | bash          # 依提示把 pyenv 加進 shell 設定，然後重開終端機
+pyenv install 3.12 && pyenv local 3.12
+pipx install poetry
+
+# 2. 安裝依賴並確認
+poetry install
+poetry run newsroom --version
+
+# 3. 檢查（CI 跑的就是這三個，不需要網路）
+poetry run ruff check .
+poetry run mypy
+poetry run pytest
+```
+
+---
+
 ## 資料夾
 
 ```
