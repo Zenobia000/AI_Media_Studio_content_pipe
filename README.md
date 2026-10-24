@@ -75,6 +75,26 @@
 
 ---
 
+## 開發環境建置（WSL）
+
+```bash
+# 1. 安裝 Python 3.11+（pyenv）與 poetry
+curl https://pyenv.run | bash          # 依提示把 pyenv 加進 shell 設定
+pyenv install 3.12 && pyenv local 3.12
+pipx install poetry                    # 或 pip install --user poetry
+
+# 2. 安裝依賴並確認
+poetry install
+poetry run newsroom --version
+
+# 3. 檢查（CI 跑的就是這三個，不需要網路）
+poetry run ruff check .
+poetry run mypy
+poetry run pytest
+```
+
+---
+
 ## 資料夾
 
 ```
