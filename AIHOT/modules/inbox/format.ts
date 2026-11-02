@@ -15,6 +15,8 @@ export interface Candidate {
   suggestedFormats: string[];
   /** Added by hand (add-source): listed first, under its own heading, with what the person asked for already filled in. */
   manual?: { note: string; program: string; formats: string };
+  /** Brought from an earlier day: not ticked yet and still within 48 hours ("昨日"), or ticked and not opened as a topic yet. */
+  carried?: "昨日" | "已勾選";
 }
 
 export interface Annotation {
@@ -77,7 +79,7 @@ export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap
       const sources = c.sourceNames.slice(0, 3).join("、");
       lines.push(
         `- [${kept?.checked ? "x" : " "}] **${c.title}** \`${c.id}\``,
-        `  - 共振 ${c.participantCount} 源｜${sources}｜首次出現 ${c.firstSeen}`,
+        `  - 共振 ${c.participantCount} 源｜${sources}｜首次出現 ${c.firstSeen}${c.carried ? `｜${c.carried}` : ""}`,
         `  - 建議：${c.suggestedProgram}｜${c.suggestedFormats.join(", ")}`,
         `  - 節目：${kept?.program || c.manual?.program || ""}`,
         `  - 格式：${kept?.formats || c.manual?.formats || ""}`,
@@ -90,8 +92,9 @@ export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap
 }
 
 /** A new file, or the existing one with only its managed block replaced. Throws ManagedBlockError when the block is damaged. */
-export function renderFile(date: string, candidates: readonly Candidate[], existing: string | null): string {
-  const notes = existing ? parseAnnotations(existing) : new Map<string, Annotation>();
+export function renderFile(date: string, candidates: readonly Candidate[], existing: string | null, earlier: ReadonlyMap<string, Annotation> = new Map()): string {
+  // What the person wrote on earlier days travels with a carried candidate; today's file overrides it.
+  const notes = new Map([...earlier, ...(existing ? parseAnnotations(existing) : [])]);
   const block = renderBlock(candidates, notes);
   if (existing === null) return `# ${date} 候選\n\n${block}\n`;
   const start = existing.indexOf(BEGIN);

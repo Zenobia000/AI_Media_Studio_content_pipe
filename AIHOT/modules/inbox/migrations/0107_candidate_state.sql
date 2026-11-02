@@ -1,0 +1,2 @@
+-- Where each inbox candidate stands across days: first listed, ticked (picked), opened as a topic, or skipped after 48 hours.
+CREATE TABLE candidate_state (candidate_id text PRIMARY KEY, status text NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'picked', 'opened', 'skipped')), first_listed_at timestamptz NOT NULL DEFAULT now(), snapshot jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())
