@@ -125,8 +125,8 @@ async function newTopicId(title: string, created: Date): Promise<string> {
 }
 
 const statusText = (candidates: readonly string[], sources: readonly string[]) => `候選：${candidates.join("、")}\n來源：${sources.join("、") || "（尚無）"}`;
-const block = (name: string, body: string) => `<!-- newsroom:begin ${name} -->\n${body}\n<!-- newsroom:end ${name} -->`;
-const replaceBlock = (text: string, name: string, body: string) => {
+export const block = (name: string, body: string) => `<!-- newsroom:begin ${name} -->\n${body}\n<!-- newsroom:end ${name} -->`;
+export const replaceBlock = (text: string, name: string, body: string) => {
   const begin = `<!-- newsroom:begin ${name} -->`;
   const end = `<!-- newsroom:end ${name} -->`;
   const a = text.indexOf(begin);

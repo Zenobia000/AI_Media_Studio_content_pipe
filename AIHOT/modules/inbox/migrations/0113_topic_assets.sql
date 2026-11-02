@@ -1,0 +1,1 @@
+CREATE TABLE topic_assets (topic_id text NOT NULL REFERENCES topics (topic_id) ON DELETE CASCADE, asset_id text NOT NULL, path text NOT NULL, type text NOT NULL, origin text NOT NULL, source_id text, source_url text, fetch_layer integer, fetch_method text, sha256 text NOT NULL, deleted_at timestamptz, PRIMARY KEY (topic_id, asset_id))

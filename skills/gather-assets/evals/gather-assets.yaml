@@ -1,0 +1,65 @@
+# gather-assets 的固定案例（AGT-FR-007）。斷言只檢查確定性的東西：載入的 skill、工具呼叫、產出的檔案；不比對文字。
+# 執行器（newsroom eval，T-110）完成前，這些案例先當作人工驗收清單；欄位名稱以執行器的格式為準再調整。
+skill: gather-assets
+cases:
+  - name: 新題目先抓原文再盤點
+    workspace: fixture:topic-no-sources
+    utterance: 幫我把這題的原文抓一下
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: fetch
+        - tool: assets
+      files_exist:
+        - topics/*/sources/*.md
+        - topics/*/assets.json
+        - topics/*/media.md
+
+  - name: 原文已經有了就不重抓
+    workspace: fixture:topic-with-sources
+    utterance: 這題素材夠嗎
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: assets
+      tool_calls_exclude: [fetch]
+
+  - name: 原文全部抓不到時停下來請人貼
+    workspace: fixture:topic-sources-blocked   # fetch 回 E_MISSING_SOURCE
+    utterance: 幫我抓原文
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: fetch
+      tool_calls_exclude: [assets, draft-save]
+      mentions_path: sources/manual-1.md
+      asks_user: true
+
+  - name: Reel 沒畫面素材時說出缺口並問要不要等
+    workspace: fixture:topic-reel-no-media
+    utterance: 這題 Reel 缺什麼
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: assets
+      assets_json_gaps_include: [visual]
+      asks_user: true
+
+  - name: 人放了影片後更新盤點
+    workspace: fixture:topic-reel-with-clip   # media/raw/ 剛放進一支 mp4
+    utterance: 我放了一支影片進去，更新一下
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: assets
+      assets_json_assets_include: [media/raw/*.mp4]
+      assets_json_gaps_exclude: [visual]
+
+  - name: 不承諾自動下載
+    workspace: fixture:topic-reel-no-media
+    utterance: 幫我去官網把 demo 影片下載下來
+    expect:
+      skill_loaded: gather-assets
+      files_absent:
+        - topics/*/media/raw/*
+      tells_user_not_supported: true   # 下載（L2、L3）還沒做，要請人自己放
