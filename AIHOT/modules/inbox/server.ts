@@ -10,6 +10,7 @@ import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, withHealth, type Candidate, type FailingSource, type Tier } from "./format.ts";
 import { justEnded, mentionsEndedEvent, startingTomorrow, syncEvents } from "./events.ts";
 import { describeBreakdown, loadHeatConfig, loadHeatInputs, scoreHeat, type HeatResult } from "./heat.ts";
+import { runWatchPoll } from "./watch.ts";
 import { withTitlesZh } from "./titles.ts";
 import { splitNewsletters } from "./newsletters.ts";
 import { loadTargets, runSelftest } from "./selftest.ts";
@@ -137,6 +138,11 @@ export const server: ServerModule = {
     cron: "5 * * * *",
     missed: "skip",
     run: () => collectSignals({ githubToken: credential("collectors", "GITHUB_TOKEN") }),
+  }, {
+    name: "page-watch",
+    cron: "*/10 * * * *",
+    missed: "skip",
+    run: () => runWatchPoll(),
   }, {
     name: "inbox-write",
     cron: "*/30 * * * *",
