@@ -2,7 +2,7 @@
 
 AI Media Studio 內容產線的**素材收集**部分：每天從一批 AI 與科技信源收資料，聚成事件、排出熱度，整理成每日 inbox；創作者勾選題目後，自動建題、擷取原文、盤點素材，交給後面的寫稿與製作。
 
-這是 Albert Chiang 負責的模組。整個專案的需求、介面契約與分工見外層的 [../README.md](../README.md) 與 [../docs/](../docs/)。
+這是 Albert Chiang 負責的模組。**目前做到哪、哪些沒驗證、跟規格差在哪：看 [PROGRESS.md](PROGRESS.md)。** 整個專案的需求、介面契約與分工見外層的 [../README.md](../README.md) 與 [../docs/](../docs/)。
 
 ## 基於 AIHOT
 
