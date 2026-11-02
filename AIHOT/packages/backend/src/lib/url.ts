@@ -50,12 +50,47 @@ export function tweetIdFromUrl(url: string): string | null {
 }
 
 /**
+ * Sites with one address per thing: an arXiv paper whatever its version or abs/pdf/html form, a YouTube video
+ * whatever the share form (watch, youtu.be, shorts, embed, live), a GitHub repository itself (its releases and
+ * commits are their own material). Null for anything else.
+ */
+export function siteIdentityForUrl(input: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(input.trim());
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  const host = u.hostname.toLowerCase().replace(/^(?:www|m)\./, "");
+  if (host === "arxiv.org") {
+    const m = /^\/(?:abs|pdf|html)\/(\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z]{2})?\/\d{7})(?:v\d+)?(?:\.pdf)?\/?$/.exec(u.pathname);
+    return m ? `arxiv:${m[1]}` : null;
+  }
+  if (host === "youtu.be") {
+    const m = /^\/([\w-]{11})\/?$/.exec(u.pathname);
+    return m ? `youtube:${m[1]}` : null;
+  }
+  if (host === "youtube.com") {
+    const id = u.pathname === "/watch" ? u.searchParams.get("v") : /^\/(?:shorts|embed|live)\/([\w-]{11})\/?$/.exec(u.pathname)?.[1];
+    return id && /^[\w-]{11}$/.test(id) ? `youtube:${id}` : null;
+  }
+  if (host === "github.com") {
+    const m = /^\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/.exec(u.pathname);
+    return m ? `github:${m[1]!.toLowerCase()}/${m[2]!.toLowerCase()}` : null;
+  }
+  return null;
+}
+
+/**
  * Identity of material at an address. `keepFragment` is for sources whose entries are sections of one
  * page (release notes: overview#september-24-2026): without it every section is the same article.
  */
 export function identityKeyForUrl(url: string, opts: { keepFragment?: boolean } = {}): string | null {
   const tweet = tweetIdFromUrl(url);
   if (tweet) return `x:${tweet}`;
+  const site = siteIdentityForUrl(url);
+  if (site) return site;
   const normalized = normalizeUrl(url);
   if (!normalized) return null;
   const fragment = opts.keepFragment ? new URL(url.trim()).hash : "";

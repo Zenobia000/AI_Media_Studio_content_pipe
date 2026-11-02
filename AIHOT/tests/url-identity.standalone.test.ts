@@ -47,3 +47,19 @@ test("invalid and non-HTTP URLs cannot acquire a tweet identity", () => {
     assert.equal(identityKeyForUrl(url), null, url);
   }
 });
+
+test("arXiv, YouTube and GitHub repository URLs keep one identity across their forms", () => {
+  const same: Record<string, string[]> = {
+    "arxiv:2410.12345": ["https://arxiv.org/abs/2410.12345", "https://arxiv.org/abs/2410.12345v3", "http://www.arxiv.org/pdf/2410.12345v2.pdf", "https://arxiv.org/html/2410.12345v1/", "https://arxiv.org/abs/2410.12345?utm_source=x"],
+    "arxiv:hep-th/9901001": ["https://arxiv.org/abs/hep-th/9901001", "https://arxiv.org/pdf/hep-th/9901001v2"],
+    "youtube:dQw4w9WgXcQ": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://youtu.be/dQw4w9WgXcQ?si=abc", "https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=42s", "https://www.youtube.com/shorts/dQw4w9WgXcQ", "https://www.youtube.com/embed/dQw4w9WgXcQ"],
+    "github:ollama/ollama": ["https://github.com/ollama/ollama", "https://github.com/Ollama/Ollama/", "https://github.com/ollama/ollama.git", "https://www.github.com/ollama/ollama?tab=readme-ov-file"],
+  };
+  for (const [key, urls] of Object.entries(same)) for (const url of urls) assert.equal(identityKeyForUrl(url), key, url);
+});
+
+test("GitHub releases and commits, and lookalike hosts, are not the repository's identity", () => {
+  for (const url of ["https://github.com/ollama/ollama/releases/tag/v0.5.0", "https://github.com/ollama/ollama/commit/abc123", "https://github.com/ollama", "https://notgithub.com/ollama/ollama", "https://arxiv.org.example.org/abs/2410.12345", "https://arxiv.org/list/cs.AI/recent", "https://www.youtube.com/watch", "https://www.youtube.com/watch?v=short"]) {
+    assert.equal(identityKeyForUrl(url), `url:${normalizeUrl(url)}`, url);
+  }
+});
