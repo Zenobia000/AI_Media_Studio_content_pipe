@@ -13,6 +13,8 @@ export interface Candidate {
   firstSeen: string;
   suggestedProgram: string;
   suggestedFormats: string[];
+  /** Added by hand (add-source): listed first, under its own heading, with what the person asked for already filled in. */
+  manual?: { note: string; program: string; formats: string };
 }
 
 export interface Annotation {
@@ -63,10 +65,13 @@ export function parseAnnotations(text: string): Map<string, Annotation> {
 
 export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap<string, Annotation>): string {
   const lines = [BEGIN];
-  for (const tier of ["S", "A", "B"] as const) {
-    const group = candidates.filter(c => c.tier === tier);
+  const groups: Array<[string, readonly Candidate[]]> = [
+    ["手動新增", candidates.filter(c => c.manual)],
+    ...(["S", "A", "B"] as const).map((tier): [string, readonly Candidate[]] => [TIER_TITLES[tier], candidates.filter(c => !c.manual && c.tier === tier)]),
+  ];
+  for (const [heading, group] of groups) {
     if (!group.length) continue;
-    lines.push(`## ${TIER_TITLES[tier]}`);
+    lines.push(`## ${heading}`);
     for (const c of group) {
       const kept = notes.get(c.id);
       const sources = c.sourceNames.slice(0, 3).join("、");
@@ -74,9 +79,9 @@ export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap
         `- [${kept?.checked ? "x" : " "}] **${c.title}** \`${c.id}\``,
         `  - 共振 ${c.participantCount} 源｜${sources}｜首次出現 ${c.firstSeen}`,
         `  - 建議：${c.suggestedProgram}｜${c.suggestedFormats.join(", ")}`,
-        `  - 節目：${kept?.program ?? ""}`,
-        `  - 格式：${kept?.formats ?? ""}`,
-        `  - 備註：${kept?.note ?? ""}`,
+        `  - 節目：${kept?.program || c.manual?.program || ""}`,
+        `  - 格式：${kept?.formats || c.manual?.formats || ""}`,
+        `  - 備註：${kept?.note || (c.manual?.note ?? "").replace(/\s*\n\s*/g, "；")}`,
       );
     }
   }
