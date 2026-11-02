@@ -164,8 +164,16 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
         warnings.push(`${rel} 的內容和另一個檔案完全相同，只列一次`);
         continue;
       }
+      let probed: Awaited<ReturnType<typeof probe>>;
+      try {
+        probed = type === "document" ? { duration_ms: null, width: null, height: null, fps: null, has_audio: null } : await probe(file);
+      } catch (error) {
+        // A file ffprobe cannot read (cut short, damaged) is left out and said so; ffprobe itself missing stops everything.
+        if (/找不到 ffprobe/.test((error as Error).message)) throw error;
+        warnings.push(`讀不了這個檔案，沒有列進素材（可能已損壞）：${rel}`);
+        continue;
+      }
       seen.add(id);
-      const probed = type === "document" ? { duration_ms: null, width: null, height: null, fps: null, has_audio: null } : await probe(file);
       // A still picture has no length (ffprobe reports a single frame as a clip of a few milliseconds).
       const media = type === "image" || type === "screenshot" ? { ...probed, duration_ms: null, fps: null } : probed;
       const k = byId.get(id);
@@ -176,7 +184,8 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
         source_id: k?.source_id ?? null, source_url: k?.source_url ?? null, fetch_layer: k?.fetch_layer ?? null, fetch_method: k?.fetch_method ?? null,
         ...media,
         usable_ranges_ms: type === "video" || type === "audio" ? (before?.usable_ranges_ms ?? (media.duration_ms ? [[0, media.duration_ms]] : null)) : null,
-        notes: before?.notes ?? "",
+        // A file the preprocessing made is named after the asset it comes from.
+        notes: before?.notes ?? (folder === "proc" && /^ast_[0-9a-f]{12}\./.test(path.basename(file)) ? `由 ${path.basename(file).split(".")[0]} 前處理而來` : ""),
         usage_note: before?.usage_note ?? (k?.fetch_layer === 2 ? "官方網頁上的檔案，使用時標註來源" : k?.fetch_layer === 3 ? "第三方來源，確認授權後再使用並標註來源" : ""),
       });
       await sql`
