@@ -127,3 +127,10 @@ test("which gaps a format has, and which file types count", () => {
   assert.equal(typeOf("Screenshot 1.png"), "screenshot");
   assert.equal(typeOf("notes.exe"), null);
 });
+
+test("a still picture has no length", { skip: !hasFfmpeg && "ffmpeg is not installed" }, async () => {
+  const t = await topic(["threads"]);
+  await put(t.topicId, "cover.png", "media/raw/cover.png");
+  const picture = (await inventory(t.topicId)).assets[0]!;
+  assert.deepEqual([picture.type, picture.duration_ms, picture.fps, picture.width, picture.height], ["image", null, null, 640, 360]);
+});

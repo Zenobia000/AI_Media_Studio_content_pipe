@@ -1,0 +1,1 @@
+CREATE TABLE topic_fetch_gaps (topic_id text NOT NULL REFERENCES topics (topic_id) ON DELETE CASCADE, layer integer NOT NULL, need text NOT NULL, reason text NOT NULL, suggestion text NOT NULL, PRIMARY KEY (topic_id, layer, reason))

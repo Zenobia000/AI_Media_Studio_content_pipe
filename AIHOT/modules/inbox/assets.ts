@@ -165,7 +165,9 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
         continue;
       }
       seen.add(id);
-      const media = type === "document" ? { duration_ms: null, width: null, height: null, fps: null, has_audio: null } : await probe(file);
+      const probed = type === "document" ? { duration_ms: null, width: null, height: null, fps: null, has_audio: null } : await probe(file);
+      // A still picture has no length (ffprobe reports a single frame as a clip of a few milliseconds).
+      const media = type === "image" || type === "screenshot" ? { ...probed, duration_ms: null, fps: null } : probed;
       const k = byId.get(id);
       const before = written.get(id);
       assets.push({
@@ -187,7 +189,9 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
   const added = assets.map(a => a.asset_id).filter(id => !byId.has(id) || byId.get(id)!.deleted_at);
 
   const formats = (await readdir(path.join(dir, "contents")).catch(() => [] as string[])).map(n => n.split("-")[0]!).filter(f => (FORMATS as readonly string[]).includes(f));
-  const gaps = gapsFor([...new Set(formats)], assets, { voiceover: opts.voiceover });
+  // The format gaps, and the ones a download left (a file too big, a page that forbids robots): both go to the person.
+  const fetchGaps = await sql<Gap[]>`SELECT need, reason, suggestion FROM topic_fetch_gaps WHERE topic_id = ${topicId} ORDER BY layer, reason`;
+  const gaps = [...gapsFor([...new Set(formats)], assets, { voiceover: opts.voiceover }), ...fetchGaps.map(g => ({ need: g.need, reason: g.reason, suggestion: g.suggestion }))];
 
   await writeAtomic(path.join(dir, "assets.json"), `${JSON.stringify({ schema_version: 1, topic_id: topicId, updated_at: taipeiIso(now), assets, gaps }, null, 2)}\n`);
   const mediaFile = path.join(dir, "media.md");
