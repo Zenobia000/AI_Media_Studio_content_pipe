@@ -3,10 +3,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { ServerModule } from "@aihot/backend/modules";
+import { credential } from "@aihot/backend/config";
 import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, tierOf, withHealth, type Candidate, type FailingSource } from "./format.ts";
+import { collectSignals, describeSignals, latestSignals } from "./signals.ts";
 import { clock, dayOf, inboxDir, readAnnotations, writeAtomic } from "./workspace.ts";
 
 const DAY_MS = 24 * 3600_000;
@@ -25,6 +27,8 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
     SELECT m.article_id, a.title, m.notes, m.program, m.formats, m.added_at
     FROM manual_candidates m JOIN articles a ON a.id = m.article_id
     WHERE m.added_at > ${new Date(now.getTime() - CARRY_MS)} ORDER BY m.added_at DESC`;
+  // What people are saying about each (Hacker News points, stars, likes), from the signal snapshots.
+  const signals = await latestSignals({ storyIds: (ranking?.entries ?? []).map(e => e.storyId), articleIds: manual.map(m => m.article_id) });
   const fresh: Candidate[] = [
     ...manual.map((m): Candidate => ({
       id: `cand_${m.article_id}`,
@@ -36,6 +40,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
       suggestedProgram: m.program ?? "ai-today",
       suggestedFormats: m.formats.length ? m.formats : ["threads"],
       manual: { note: m.notes, program: m.program ?? "", formats: m.formats.join(", ") },
+      signals: describeSignals(signals.byArticle.get(m.article_id) ?? {}),
     })),
     ...(ranking?.entries ?? []).map((e): Candidate => ({
       id: `cand_${e.storyPublicId}`,
@@ -46,6 +51,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
       firstSeen: clock(new Date(e.firstReportAt), { hour: "2-digit", minute: "2-digit" }),
       suggestedProgram: "ai-today",
       suggestedFormats: ["threads"],
+      signals: describeSignals(signals.byStory.get(e.storyId) ?? {}),
     })),
   ];
 
@@ -83,6 +89,11 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
 export const server: ServerModule = {
   name: "inbox",
   schedules: [{
+    name: "signals-snapshot",
+    cron: "5 * * * *",
+    missed: "skip",
+    run: () => collectSignals({ githubToken: credential("collectors", "GITHUB_TOKEN") }),
+  }, {
     name: "inbox-write",
     cron: "*/30 * * * *",
     missed: "skip",

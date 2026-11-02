@@ -17,6 +17,8 @@ export interface Candidate {
   manual?: { note: string; program: string; formats: string };
   /** Brought from an earlier day: not ticked yet and still within 48 hours ("昨日"), or ticked and not opened as a topic yet. */
   carried?: "昨日" | "已勾選";
+  /** What people are saying ("HN 412 分、120 則留言"), from the signal snapshots; shown with the sources. */
+  signals?: string;
 }
 
 export interface Annotation {
@@ -76,7 +78,7 @@ export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap
     lines.push(`## ${heading}`);
     for (const c of group) {
       const kept = notes.get(c.id);
-      const sources = c.sourceNames.slice(0, 3).join("、");
+      const sources = [...c.sourceNames.slice(0, 3), ...(c.signals ? [c.signals] : [])].join("、");
       lines.push(
         `- [${kept?.checked ? "x" : " "}] **${c.title}** \`${c.id}\``,
         `  - 共振 ${c.participantCount} 源｜${sources}｜首次出現 ${c.firstSeen}${c.carried ? `｜${c.carried}` : ""}`,
