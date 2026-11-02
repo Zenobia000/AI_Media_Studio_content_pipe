@@ -8,6 +8,7 @@ import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, withHealth, type Candidate, type FailingSource, type Tier } from "./format.ts";
+import { justEnded, mentionsEndedEvent, startingTomorrow, syncEvents } from "./events.ts";
 import { describeBreakdown, loadHeatConfig, loadHeatInputs, scoreHeat, type HeatResult } from "./heat.ts";
 import { splitNewsletters } from "./newsletters.ts";
 import { loadTargets, runSelftest } from "./selftest.ts";
@@ -35,31 +36,48 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
   // How hot each is (heat.config.json): the tier, the score and why, and what to suggest.
   const config = await loadHeatConfig();
   const inputs = await loadHeatInputs({ storyIds: (ranking?.entries ?? []).map(e => e.storyId), articleIds: manual.map(m => m.article_id) }, config, now);
-  const heatOf = (input: ReturnType<typeof inputs.byStory.get>): HeatResult => scoreHeat(input ?? { resonanceSources: 0 }, config);
+  // The launch events in calendar/events.md: a story that names one that has just ended is S (COL-FR-017).
+  const { events } = await syncEvents();
+  const ended = justEnded(events, now);
+  const heatOf = (input: ReturnType<typeof inputs.byStory.get>, title: string): HeatResult =>
+    scoreHeat({ resonanceSources: 0, ...input, eventEnded: mentionsEndedEvent(title, ended) }, config);
   const heat = (h: HeatResult) => ({ tier: h.tier, score: h.score, heat: describeBreakdown(h), heatReason: h.reasons.join("、") });
   const fresh: Candidate[] = [
     ...manual.map((m): Candidate => ({
       id: `cand_${m.article_id}`,
       title: m.title,
-      ...heat(heatOf(inputs.byArticle.get(m.article_id))),
+      ...heat(heatOf(inputs.byArticle.get(m.article_id), m.title)),
       participantCount: 1,
       sourceNames: ["手動"],
       firstSeen: clock(m.added_at, { hour: "2-digit", minute: "2-digit" }),
-      suggestedProgram: m.program ?? heatOf(inputs.byArticle.get(m.article_id)).program,
-      suggestedFormats: m.formats.length ? m.formats : heatOf(inputs.byArticle.get(m.article_id)).formats,
+      suggestedProgram: m.program ?? heatOf(inputs.byArticle.get(m.article_id), m.title).program,
+      suggestedFormats: m.formats.length ? m.formats : heatOf(inputs.byArticle.get(m.article_id), m.title).formats,
       manual: { note: m.notes, program: m.program ?? "", formats: m.formats.join(", ") },
       signals: describeSignals(signals.byArticle.get(m.article_id) ?? {}),
     })),
     ...(ranking?.entries ?? []).map((e): Candidate => ({
       id: `cand_${e.storyPublicId}`,
       title: e.title,
-      ...heat(heatOf(inputs.byStory.get(e.storyId))),
+      ...heat(heatOf(inputs.byStory.get(e.storyId), e.title)),
       participantCount: e.participantCount,
       sourceNames: e.sourceNames,
       firstSeen: clock(new Date(e.firstReportAt), { hour: "2-digit", minute: "2-digit" }),
-      suggestedProgram: heatOf(inputs.byStory.get(e.storyId)).program,
-      suggestedFormats: heatOf(inputs.byStory.get(e.storyId)).formats,
+      suggestedProgram: heatOf(inputs.byStory.get(e.storyId), e.title).program,
+      suggestedFormats: heatOf(inputs.byStory.get(e.storyId), e.title).formats,
       signals: describeSignals(signals.byStory.get(e.storyId) ?? {}),
+    })),
+    // The day before a launch event: a candidate to prepare it (background, the last generation's specs).
+    ...startingTomorrow(events, now).map((e): Candidate => ({
+      id: `cand_${e.id}`,
+      title: `準備：${e.title}`,
+      tier: "A",
+      heatReason: `明天 ${clock(e.startsAt, { hour: "2-digit", minute: "2-digit" })} 發表會`,
+      participantCount: 1,
+      sourceNames: ["發表會行事曆"],
+      firstSeen: clock(now, { hour: "2-digit", minute: "2-digit" }),
+      suggestedProgram: "ai-today",
+      suggestedFormats: ["threads"],
+      manual: { note: [e.url, e.keywords.length ? `關鍵字：${e.keywords.join("、")}` : ""].filter(Boolean).join("　"), program: "", formats: "" },
     })),
   ];
   // The hottest first within a tier.
