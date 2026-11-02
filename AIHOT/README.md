@@ -38,8 +38,16 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 | `assets-topic.ts <topic_id> [--voiceover]` | 盤點 `media/` 的素材，寫 `assets.json` 與 `media.md`，列出缺口；新影片會做場景偵測，寫進 `usable_ranges_ms` | T-024、T-058 |
 | `init-workspace.ts [path]`、`doctor.ts` | 建立工作區（只補缺、不覆蓋）、檢查環境並給修正建議 | T-008 |
 | （排程）`signals-snapshot`、`newsletter-split` | 每小時記 HN 分數、GitHub star、HF likes 的時間序列；把電子報每一期拆成每則連結 | T-036、T-037 |
+| `set-title-zh.ts --list` 或 `<cand_id> "<中文標題>" [--force]` | 列出還是外文標題的候選；替候選存中文標題（只翻一次），inbox 之後改顯示中文，沒有就顯示原文 | T-101 |
+| （排程）`page-watch` | 每 10 分鐘讀自架的 changedetection.io，網頁有變動就在 inbox 加一則「<頁面> 有更新」候選，備註附差異；沒設定就略過，服務停了不影響其他來源 | T-105 |
 
-相關 skill 在外層 [../skills/](../skills/)：`open-topic`、`gather-assets`。
+相關 skill 在外層 [../skills/](../skills/)：`open-topic`、`gather-assets`、`triage-inbox`。
+
+**發表會行事曆**：在工作區的 `calendar/events.md` 填表（日期 `YYYY-MM-DD`、時間 `10:00` 或 `10:00-12:30`、活動、關鍵字用逗號隔開、官方連結，台北時間）。活動前一天 inbox 會多一則「準備：…」候選；活動結束 24 小時內，標題含關鍵字的新聞直接判為 S 級。表格有誤的列會被略過。活動前後把收集頻率改成每 5 分鐘還沒做。
+
+**手動新增的短網址**（t.co、bit.ly 等）會先展開成真正的頁面再去重複；展開失敗就維持原網址。
+
+**前置資訊讀寫**（`modules/inbox/frontmatter.ts`）：改指定欄位，其他欄位與內文原封不動。
 
 **下載的限制**：YouTube 可以下載；Vimeo 與 X 推文目前需要登入（用自己帳號時，匯出 cookies 檔並設定 `YTDLP_COOKIES_FILE`）；網站擋下或 `robots.txt` 不允許的，只會成為素材缺口，不會繞過。需要先裝 `python -m pip install --user yt-dlp gallery-dl`。
 
@@ -78,6 +86,7 @@ node --test-global-setup=tests/databases.ts --import ./tests/databases.ts --test
 | `NEWSROOM_HOME` | 工作區位置（預設 `.data/workspace`） |
 | `INBOX_DIR` | inbox 放哪裡（預設工作區底下的 `inbox`） |
 | `GITHUB_TOKEN`、`JINA_API_KEY` | 選用，擷取 GitHub 與備援讀取時用（引擎原有的憑證機制） |
+| `CHANGEDETECTION_URL`、`CHANGEDETECTION_API_KEY` | 選用，自架 changedetection.io 的位置與金鑰；沒設定就不做網頁變動監測 |
 | `YTDLP_COOKIES_FILE` | 選用，自己帳號的 cookies 檔路徑，給 yt-dlp、gallery-dl 用；不要放進版本控制 |
 
 其餘設定見 [.env.example](.env.example)。
