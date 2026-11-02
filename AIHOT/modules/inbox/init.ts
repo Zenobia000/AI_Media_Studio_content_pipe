@@ -111,6 +111,7 @@ export const CLAUDE_MD = `# 內容產線工作區
 | \`add-source\` | 手動新增候選 |
 | \`open-topic\`、\`merge-candidates\` | 建題、合併候選 |
 | \`fetch-topic\` | 擷取來源原文 |
+| \`fetch-media\` | 下載網頁與影音平台上的媒體 |
 | \`assets-topic\` | 盤點素材與缺口 |
 | \`doctor\` | 檢查環境 |
 `;

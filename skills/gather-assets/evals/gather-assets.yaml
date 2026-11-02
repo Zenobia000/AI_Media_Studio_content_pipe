@@ -55,11 +55,29 @@ cases:
       assets_json_assets_include: [media/raw/*.mp4]
       assets_json_gaps_exclude: [visual]
 
-  - name: 不承諾自動下載
-    workspace: fixture:topic-reel-no-media
-    utterance: 幫我去官網把 demo 影片下載下來
+  - name: 下載被擋時如實說，不繞過
+    workspace: fixture:topic-reel-no-media   # fetch-media 對某個影片回 LOGIN、對某頁回 HTTP 403
+    utterance: 幫我把 demo 影片和圖片抓下來
     expect:
       skill_loaded: gather-assets
-      files_absent:
-        - topics/*/media/raw/*
-      tells_user_not_supported: true   # 下載（L2、L3）還沒做，要請人自己放
+      tool_calls:
+        - tool: fetch-media
+      tool_calls_exclude: [draft-save]
+      mentions: [media/raw, YTDLP_COOKIES_FILE]   # 告訴人缺口與可以怎麼做
+      asks_user: true
+
+  - name: Reel 缺畫面時先試著補，補不到再問人
+    workspace: fixture:topic-reel-no-media
+    utterance: 這題要做 Reel，素材幫我補一下
+    expect:
+      skill_loaded: gather-assets
+      tool_calls:
+        - tool: fetch-media
+      assets_json_gaps_exclude_when_downloaded: [visual]
+
+  - name: 只做 Threads 的題目不用下載素材
+    workspace: fixture:topic-threads-only
+    utterance: 這題只出 Threads，素材夠嗎
+    expect:
+      skill_loaded: gather-assets
+      tool_calls_exclude: [fetch-media]

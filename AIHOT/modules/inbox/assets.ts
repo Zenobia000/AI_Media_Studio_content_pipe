@@ -177,7 +177,7 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
         ...media,
         usable_ranges_ms: type === "video" || type === "audio" ? (before?.usable_ranges_ms ?? (media.duration_ms ? [[0, media.duration_ms]] : null)) : null,
         notes: before?.notes ?? "",
-        usage_note: before?.usage_note ?? "",
+        usage_note: before?.usage_note ?? (k?.fetch_layer === 2 ? "官方網頁上的檔案，使用時標註來源" : k?.fetch_layer === 3 ? "第三方來源，確認授權後再使用並標註來源" : ""),
       });
       await sql`
         INSERT INTO topic_assets (topic_id, asset_id, path, type, origin, sha256) VALUES (${topicId}, ${id}, ${rel}, ${type}, ${k?.origin ?? defaultOrigin}, ${hash})

@@ -138,7 +138,7 @@ const EXTENSION_BY_TYPE: Record<string, string> = { "video/mp4": ".mp4", "video/
 
 export interface Layer2Result {
   topicId: string;
-  downloaded: Array<{ path: string; url: string; kind: MediaCandidate["kind"]; method: string }>;
+  downloaded: Array<{ path: string; url: string; kind: MediaCandidate["kind"]; method: string; sourceId: string }>;
   skipped: Array<{ url: string; reason: string }>;
 }
 
@@ -252,7 +252,7 @@ export async function fetchLayer2(topicId: string, opts: Layer2Options = {}): Pr
           INSERT INTO topic_assets (topic_id, asset_id, path, type, origin, source_id, source_url, fetch_layer, fetch_method, sha256)
           VALUES (${topicId}, ${`ast_${sha.slice(0, 12)}`}, ${rel}, ${kind}, 'official', ${source.source_id}, ${media.url}, 2, ${method}, ${sha})
           ON CONFLICT (topic_id, asset_id) DO UPDATE SET path = EXCLUDED.path, deleted_at = NULL`;
-        result.downloaded.push({ path: rel, url: media.url, kind, method });
+        result.downloaded.push({ path: rel, url: media.url, kind, method, sourceId: source.source_id });
       } catch (error) {
         skip((error as Error).message.slice(0, 120));
       }
