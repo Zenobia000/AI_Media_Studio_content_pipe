@@ -108,3 +108,31 @@ function managedBlock(text: string): string | null {
   const end = text.indexOf(END);
   return start < 0 || end < start ? null : text.slice(start + BEGIN.length, end);
 }
+
+const HEALTH_BEGIN = "<!-- newsroom:begin collect-health -->";
+const HEALTH_END = "<!-- newsroom:end collect-health -->";
+
+/** A source whose last collections kept failing. */
+export interface FailingSource {
+  name: string;
+  failCount: number;
+  lastError: string | null;
+  /** Inbox-style "YYYY-MM-DD HH:mm", or null when it never succeeded. */
+  lastOkAt: string | null;
+}
+
+export function renderHealth(failing: readonly FailingSource[]): string {
+  const body = failing.length
+    ? ["## 收集狀況", ...failing.map(f => `- **${f.name}**：連續失敗 ${f.failCount} 次｜最後成功：${f.lastOkAt ?? "從未成功"}${f.lastError ? `｜${f.lastError.replace(/\s+/g, " ").slice(0, 120)}` : ""}`)].join("\n")
+    : "## 收集狀況\n所有來源最近一次收集都正常。";
+  return `${HEALTH_BEGIN}\n${body}\n${HEALTH_END}`;
+}
+
+/** The inbox with its collection-health block (COL-FR-004), replaced where it is or added at the foot. */
+export function withHealth(text: string, failing: readonly FailingSource[]): string {
+  const block = renderHealth(failing);
+  const start = text.indexOf(HEALTH_BEGIN);
+  const end = text.indexOf(HEALTH_END);
+  if (start >= 0 && end > start) return text.slice(0, start) + block + text.slice(end + HEALTH_END.length);
+  return `${text.trimEnd()}\n\n${block}\n`;
+}

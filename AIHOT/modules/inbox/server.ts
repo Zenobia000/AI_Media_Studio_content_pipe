@@ -6,10 +6,12 @@ import type { ServerModule } from "@aihot/backend/modules";
 import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
-import { ManagedBlockError, parseAnnotations, renderFile, tierOf, type Candidate } from "./format.ts";
+import { ManagedBlockError, parseAnnotations, renderFile, tierOf, withHealth, type Candidate, type FailingSource } from "./format.ts";
 import { clock, dayOf, inboxDir, readAnnotations, writeAtomic } from "./workspace.ts";
 
 const DAY_MS = 24 * 3600_000;
+/** Consecutive failed collections before a source is listed in the inbox. */
+const FAIL_LISTED = 3;
 /** Earlier inbox files read for ticks and notes: a candidate lives 48 hours, a ticked one is read for as long as it is carried. */
 const LOOKBACK_DAYS = 14;
 
@@ -57,9 +59,14 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
     SELECT candidate_id, status, first_listed_at, snapshot FROM candidate_state`)
     .map((r): StateRow => ({ id: r.candidate_id, status: r.status, firstListedAt: r.first_listed_at, snapshot: r.snapshot }));
   const plan = planInbox(fresh, rows, now, date, dayOf);
-  if (!plan.listed.length && !ranking) return null;
 
-  const text = renderFile(date, plan.listed, existing, earlier);
+  // A source that failed its last three collections is listed at the foot (COL-FR-004).
+  const failing = (await sql<{ name: string; fail_count: number; last_error: string | null; last_ok_at: Date | null }[]>`
+    SELECT name, fail_count, last_error, last_ok_at FROM sources WHERE enabled AND fail_count >= ${FAIL_LISTED} ORDER BY fail_count DESC, name`)
+    .map((s): FailingSource => ({ name: s.name, failCount: s.fail_count, lastError: s.last_error, lastOkAt: s.last_ok_at ? `${dayOf(s.last_ok_at)} ${clock(s.last_ok_at, { hour: "2-digit", minute: "2-digit" })}` : null }));
+  // With nothing to list, every source healthy and no inbox yet, there is nothing to write; an existing one is brought up to date.
+  if (!plan.listed.length && !ranking && !failing.length && existing === null) return null;
+  const text = withHealth(renderFile(date, plan.listed, existing, earlier), failing);
   await writeAtomic(file, text);
 
   const freshIds = new Set(fresh.map(c => c.id));
