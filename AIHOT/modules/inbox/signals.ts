@@ -19,7 +19,7 @@ export interface SignalReport {
 }
 
 const HOUR_MS = 3600_000;
-const hourOf = (d: Date) => new Date(Math.floor(d.getTime() / HOUR_MS) * HOUR_MS);
+export const hourOf = (d: Date) => new Date(Math.floor(d.getTime() / HOUR_MS) * HOUR_MS);
 
 async function json<T>(get: Get, url: string, headers: Record<string, string> = {}): Promise<T> {
   const page = await get(url, { accept: "application/json", ...headers });
@@ -73,7 +73,7 @@ export async function githubStars(get: Get, token: string | null): Promise<Point
   return out;
 }
 
-async function store(points: readonly Point[], at: Date): Promise<void> {
+export async function store(points: readonly Point[], at: Date): Promise<void> {
   for (const p of points) {
     await sql`
       INSERT INTO signal_points (identity_key, metric, value, observed_at) VALUES (${p.identityKey}, ${p.metric}, ${p.value}, ${at})
@@ -107,6 +107,7 @@ const LABELS: Array<[string, (v: number) => string]> = [
   ["gh_stars", v => `GitHub ★${v}`],
   ["hf_upvotes", v => `HF ${v} 讚`],
   ["hf_likes", v => `HF ${v} 讚`],
+  ["newsletter_mentions", v => `${v} 份電子報提及`],
 ];
 
 /** "HN 412 分、120 則留言" for the latest values of an item, empty when there are none. */

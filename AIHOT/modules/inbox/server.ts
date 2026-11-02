@@ -8,6 +8,7 @@ import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, tierOf, withHealth, type Candidate, type FailingSource } from "./format.ts";
+import { splitNewsletters } from "./newsletters.ts";
 import { collectSignals, describeSignals, latestSignals } from "./signals.ts";
 import { clock, dayOf, inboxDir, readAnnotations, writeAtomic } from "./workspace.ts";
 
@@ -89,6 +90,11 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
 export const server: ServerModule = {
   name: "inbox",
   schedules: [{
+    name: "newsletter-split",
+    cron: "20,50 * * * *",
+    missed: "skip",
+    run: () => splitNewsletters(),
+  }, {
     name: "signals-snapshot",
     cron: "5 * * * *",
     missed: "skip",
