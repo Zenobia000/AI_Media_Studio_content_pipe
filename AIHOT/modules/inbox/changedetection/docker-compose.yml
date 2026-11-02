@@ -1,0 +1,16 @@
+# Self-hosted page change monitoring (COL-FR-010). Local use only: docker compose up -d, open http://localhost:5000,
+# add the pages to watch, then put the API key (Settings > API) in CHANGEDETECTION_API_KEY.
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    container_name: mediahot-changedetection
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - changedetection-data:/datastore
+    environment:
+      # Check every 5 minutes at most; a page that needs JavaScript needs the browser container, not set up here.
+      - MINIMUM_SECONDS_RECHECK_TIME=60
+    restart: unless-stopped
+volumes:
+  changedetection-data:
