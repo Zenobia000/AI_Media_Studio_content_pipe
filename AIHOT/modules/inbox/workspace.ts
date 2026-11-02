@@ -3,11 +3,13 @@ import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { config } from "@aihot/backend/config";
 import { parseAnnotations, type Annotation } from "./format.ts";
+import { findWorkspace } from "./init.ts";
 
 const TIME_ZONE = "Asia/Taipei";
 const OFFSET = "+08:00";
 
-export const workspaceDir = () => process.env.NEWSROOM_HOME ?? path.join(config.dataDir, "workspace");
+/** NEWSROOM_HOME, else the workspace found going up from the current folder, else .data/workspace (CORE-FR-003). */
+export const workspaceDir = () => findWorkspace(process.cwd()) ?? path.join(config.dataDir, "workspace");
 export const inboxDir = () => process.env.INBOX_DIR ?? path.join(workspaceDir(), "inbox");
 
 export const clock = (d: Date, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("sv-SE", { timeZone: TIME_ZONE, ...opts }).format(d);
