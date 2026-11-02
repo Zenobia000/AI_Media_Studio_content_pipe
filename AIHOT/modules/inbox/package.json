@@ -1,0 +1,12 @@
+{
+  "name": "@aihot/inbox",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@aihot/backend": "*"
+  }
+}
