@@ -89,14 +89,19 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
 
   const existing = await readFile(file, "utf8").catch(() => null);
   const earlier = await readAnnotations(dir, dayOf(new Date(now.getTime() - LOOKBACK_DAYS * DAY_MS)), date);
-  // A tick in any file is a pick; a candidate stays picked once picked.
-  const ticked = [...earlier, ...(existing ? parseAnnotations(existing) : [])].filter(([, a]) => a.checked).map(([id]) => id);
+  // The latest word of the person wins: a tick picks a candidate, taking the tick away puts it back to new.
+  const marks = new Map([...earlier, ...(existing ? parseAnnotations(existing) : [])]);
+  const ticked = [...marks].filter(([, a]) => a.checked).map(([id]) => id);
+  const unticked = [...marks].filter(([, a]) => !a.checked).map(([id]) => id);
   if (ticked.length) await sql`UPDATE candidate_state SET status = 'picked', updated_at = now() WHERE candidate_id = ANY(${ticked}) AND status = 'new'`;
+  if (unticked.length) await sql`UPDATE candidate_state SET status = 'new', updated_at = now() WHERE candidate_id = ANY(${unticked}) AND status = 'picked'`;
 
   const rows = (await sql<{ candidate_id: string; status: StateRow["status"]; first_listed_at: Date; snapshot: Candidate }[]>`
     SELECT candidate_id, status, first_listed_at, snapshot FROM candidate_state`)
     .map((r): StateRow => ({ id: r.candidate_id, status: r.status, firstListedAt: r.first_listed_at, snapshot: r.snapshot }));
-  const plan = planInbox(fresh, rows, now, date, dayOf);
+  const planned = planInbox(fresh, rows, now, date, dayOf);
+  // Carried candidates show the Chinese title given after they were listed.
+  const plan = { ...planned, listed: await withTitlesZh(planned.listed) };
 
   // A source that failed its last three collections is listed at the foot (COL-FR-004).
   const failing = (await sql<{ name: string; fail_count: number; last_error: string | null; last_ok_at: Date | null }[]>`

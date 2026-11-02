@@ -4,6 +4,8 @@ import { upsertMaterial } from "@aihot/backend/content/materials";
 import { sql } from "@aihot/backend/db";
 import { queueProcessing } from "@aihot/backend/jobs/content";
 import { normalizeUrl } from "@aihot/backend/lib/url";
+import { expandShortUrl } from "./shorturl.ts";
+import type { Get } from "./source-extract.ts";
 
 export const MANUAL_SOURCE = "manual";
 const TIME_ZONE = "Asia/Taipei";
@@ -22,6 +24,8 @@ export interface AddSourceOptions {
   title?: string;
   /** Queue the article for analysis (default). Off only where no queue runs. */
   queue?: boolean;
+  /** How a short link is followed (default: the guarded fetch); for tests. */
+  get?: Get;
 }
 
 export interface AddSourceResult {
@@ -36,7 +40,7 @@ export interface AddSourceResult {
 }
 
 export async function addSource(input: string, opts: AddSourceOptions = {}): Promise<AddSourceResult> {
-  const url = normalizeUrl(input);
+  const url = normalizeUrl(await expandShortUrl(input, opts.get));
   if (!url) throw new InvalidUrlError(input);
   await sql`
     INSERT INTO sources (id, name, kind, config, tier, participation_mode, interval_minutes, enabled, health, tags)
