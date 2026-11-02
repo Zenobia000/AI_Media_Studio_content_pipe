@@ -1,34 +1,18 @@
 // Writes today's inbox/YYYY-MM-DD.md (IF-001) from the public hot ranking, twice an hour: the hot stories, the
 // links added by hand, and what the days before left (cross-day.ts).
-import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { ServerModule } from "@aihot/backend/modules";
-import { config } from "@aihot/backend/config";
 import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
-import { ManagedBlockError, parseAnnotations, renderFile, tierOf, type Annotation, type Candidate } from "./format.ts";
+import { ManagedBlockError, parseAnnotations, renderFile, tierOf, type Candidate } from "./format.ts";
+import { clock, dayOf, inboxDir, readAnnotations, writeAtomic } from "./workspace.ts";
 
-const TIME_ZONE = "Asia/Taipei";
 const DAY_MS = 24 * 3600_000;
 /** Earlier inbox files read for ticks and notes: a candidate lives 48 hours, a ticked one is read for as long as it is carried. */
 const LOOKBACK_DAYS = 14;
-const inboxDir = () => process.env.INBOX_DIR ?? path.join(config.dataDir, "workspace", "inbox");
-const clock = (d: Date, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("sv-SE", { timeZone: TIME_ZONE, ...opts }).format(d);
-const dayOf = (d: Date) => clock(d, { dateStyle: "short" });
 
-/** What the person wrote in the inbox files of the last days, oldest first so a later day overrides an earlier one. */
-async function readEarlier(dir: string, today: string, now: Date): Promise<Map<string, Annotation>> {
-  const from = dayOf(new Date(now.getTime() - LOOKBACK_DAYS * DAY_MS));
-  const names = (await readdir(dir).catch(() => [] as string[])).filter(n => /^\d{4}-\d{2}-\d{2}\.md$/.test(n)).sort();
-  const notes = new Map<string, Annotation>();
-  for (const name of names) {
-    const day = name.slice(0, 10);
-    if (day < from || day >= today) continue;
-    for (const [id, a] of parseAnnotations(await readFile(path.join(dir, name), "utf8"))) notes.set(id, a);
-  }
-  return notes;
-}
 
 export async function writeInbox(now = new Date()): Promise<{ file: string; candidates: number } | null> {
   const dir = inboxDir();
@@ -64,7 +48,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
   ];
 
   const existing = await readFile(file, "utf8").catch(() => null);
-  const earlier = await readEarlier(dir, date, now);
+  const earlier = await readAnnotations(dir, dayOf(new Date(now.getTime() - LOOKBACK_DAYS * DAY_MS)), date);
   // A tick in any file is a pick; a candidate stays picked once picked.
   const ticked = [...earlier, ...(existing ? parseAnnotations(existing) : [])].filter(([, a]) => a.checked).map(([id]) => id);
   if (ticked.length) await sql`UPDATE candidate_state SET status = 'picked', updated_at = now() WHERE candidate_id = ANY(${ticked}) AND status = 'new'`;
@@ -76,10 +60,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
   if (!plan.listed.length && !ranking) return null;
 
   const text = renderFile(date, plan.listed, existing, earlier);
-  await mkdir(dir, { recursive: true });
-  const tmp = `${file}.tmp`;
-  await writeFile(tmp, text, "utf8");
-  await rename(tmp, file);
+  await writeAtomic(file, text);
 
   const freshIds = new Set(fresh.map(c => c.id));
   for (const c of plan.listed.filter(c => freshIds.has(c.id))) {

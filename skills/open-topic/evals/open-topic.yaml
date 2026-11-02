@@ -1,0 +1,60 @@
+# open-topic 的固定案例（AGT-FR-007）。斷言只檢查確定性的東西：載入的 skill、工具呼叫、產出的檔案；不比對文字。
+# 執行器（newsroom eval，T-110）完成前，這些案例先當作人工驗收清單；欄位名稱以執行器的格式為準再調整。
+skill: open-topic
+cases:
+  - name: 第 3 題做 Threads
+    workspace: fixture:inbox-three-candidates   # inbox 有三題，第 3 題的編號是 cand_c3
+    utterance: 第 3 題做 Threads
+    expect:
+      skill_loaded: open-topic
+      tool_calls:
+        - tool: open-topic
+          args: { candidate_ids: [cand_c3], formats: [threads] }
+      files_exist:
+        - topics/*/contents/threads-01/content.md
+      files_absent:
+        - topics/*/contents/reel-01
+        - topics/*/contents/carousel-01
+
+  - name: 把勾選的開成題，節目與格式用 inbox 裡填的
+    workspace: fixture:inbox-ticked-with-program   # 勾選 cand_a，節目 tool-review，格式 threads, carousel
+    utterance: 把勾選的建題
+    expect:
+      skill_loaded: open-topic
+      tool_calls:
+        - tool: open-topic
+          args: { candidate_ids: [cand_a] }       # 沒有人另外指定時，不自己帶節目與格式
+      files_exist:
+        - topics/*/contents/threads-01/content.md
+        - topics/*/contents/carousel-01/content.md
+
+  - name: 再加一個 Reel 不重建已有的
+    workspace: fixture:topic-with-threads   # cand_a 已經開成題，只有 threads-01
+    utterance: 這題也出 Reel
+    expect:
+      skill_loaded: open-topic
+      tool_calls:
+        - tool: open-topic
+          args: { candidate_ids: [cand_a], formats: [threads, reel] }
+      files_exist:
+        - topics/*/contents/reel-01/content.md
+      unchanged:
+        - topics/*/contents/threads-01/content.md
+
+  - name: 兩題合成一題
+    workspace: fixture:inbox-two-candidates
+    utterance: 第 1 題和第 2 題其實是同一件事，合成一題出 Threads
+    expect:
+      skill_loaded: open-topic
+      tool_calls:
+        - tool: merge
+        - tool: open-topic
+      topic_count: 1
+
+  - name: 找不到的編號不亂編
+    workspace: fixture:inbox-three-candidates
+    utterance: 第 9 題做 Threads
+    expect:
+      skill_loaded: open-topic
+      tool_calls_exclude: [open-topic]   # 只有三題，不能硬挑一個編號呼叫
+      asks_user: true
