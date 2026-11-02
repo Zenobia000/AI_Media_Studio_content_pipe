@@ -10,6 +10,7 @@ import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, withHealth, type Candidate, type FailingSource, type Tier } from "./format.ts";
 import { justEnded, mentionsEndedEvent, startingTomorrow, syncEvents } from "./events.ts";
 import { describeBreakdown, loadHeatConfig, loadHeatInputs, scoreHeat, type HeatResult } from "./heat.ts";
+import { withTitlesZh } from "./titles.ts";
 import { splitNewsletters } from "./newsletters.ts";
 import { loadTargets, runSelftest } from "./selftest.ts";
 import { collectSignals, describeSignals, latestSignals } from "./signals.ts";
@@ -42,7 +43,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
   const heatOf = (input: ReturnType<typeof inputs.byStory.get>, title: string): HeatResult =>
     scoreHeat({ resonanceSources: 0, ...input, eventEnded: mentionsEndedEvent(title, ended) }, config);
   const heat = (h: HeatResult) => ({ tier: h.tier, score: h.score, heat: describeBreakdown(h), heatReason: h.reasons.join("、") });
-  const fresh: Candidate[] = [
+  const listed: Candidate[] = [
     ...manual.map((m): Candidate => ({
       id: `cand_${m.article_id}`,
       title: m.title,
@@ -80,6 +81,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
       manual: { note: [e.url, e.keywords.length ? `關鍵字：${e.keywords.join("、")}` : ""].filter(Boolean).join("　"), program: "", formats: "" },
     })),
   ];
+  const fresh = await withTitlesZh(listed);
   // The hottest first within a tier.
   const order: Record<Tier, number> = { S: 0, A: 1, B: 2 };
   fresh.sort((a, b) => order[a.tier] - order[b.tier] || (b.score ?? 0) - (a.score ?? 0) || a.title.localeCompare(b.title));
