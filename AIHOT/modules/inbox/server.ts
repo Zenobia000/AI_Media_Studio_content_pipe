@@ -9,6 +9,7 @@ import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, tierOf, withHealth, type Candidate, type FailingSource } from "./format.ts";
 import { splitNewsletters } from "./newsletters.ts";
+import { loadTargets, runSelftest } from "./selftest.ts";
 import { collectSignals, describeSignals, latestSignals } from "./signals.ts";
 import { clock, dayOf, inboxDir, readAnnotations, writeAtomic } from "./workspace.ts";
 
@@ -90,6 +91,14 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
 export const server: ServerModule = {
   name: "inbox",
   schedules: [{
+    name: "fetch-selftest",
+    cron: "40 6 * * *",
+    missed: "skip",
+    run: async () => {
+      const checks = await runSelftest(await loadTargets());
+      return { failed: checks.filter(c => c.status === "fail").map(c => `${c.name} ${c.url ?? ""}：${c.detail}`), warned: checks.filter(c => c.status === "warn").map(c => `${c.name}：${c.detail}`) };
+    },
+  }, {
     name: "newsletter-split",
     cron: "20,50 * * * *",
     missed: "skip",

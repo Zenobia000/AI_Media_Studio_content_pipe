@@ -1,0 +1,14 @@
+{
+  "extract": [
+    "https://github.com/ollama/ollama",
+    "https://arxiv.org/abs/1706.03762",
+    "https://simonwillison.net/2023/Mar/11/llama/"
+  ],
+  "l2": [
+    "https://deepmind.google/blog/genie-4-a-new-generation-of-world-simulation/",
+    "https://huggingface.co/blog/nvidia/nemotron-halloween"
+  ],
+  "l3": [
+    "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+  ]
+}

@@ -32,7 +32,9 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 | `merge-candidates.ts <保留> <併入>` | 把兩個候選合成一題 | T-022 |
 | `fetch-topic.ts <topic_id> [--force]` | 擷取每個來源的原文，並補上報導連到的官方來源 | T-023 |
 | `fetch-media.ts <topic_id> [--layers 2,3]` | 下載媒體：先收網頁直接給的影片、GIF、主視覺圖（遵守 robots.txt、每頁最多 10 個、單檔 500 MB），沒拿到影片的來源再用 yt-dlp、gallery-dl | T-038、T-039 |
-| `assets-topic.ts <topic_id> [--voiceover]` | 盤點 `media/` 的素材，寫 `assets.json` 與 `media.md`，列出缺口 | T-024 |
+| `preprocess-topic.ts <topic_id> [--video-only 或 --audio-only] [--lufs -14]` | 素材前處理：影片與 GIF 轉 30fps CFR yuv420p H.264；旁白轉 48kHz WAV、去頭尾靜音、響度 −14 LUFS；輸出到 `media/proc/`，已處理的不重做 | T-057 |
+| `fetch-selftest.ts`、`fetch-stats.ts [--days 30]` | 補料自我測試（每層固定網址、檢查 yt-dlp 版本，每天 06:40 排程）、最近 30 天各層成功率 | T-056 |
+| `assets-topic.ts <topic_id> [--voiceover]` | 盤點 `media/` 的素材，寫 `assets.json` 與 `media.md`，列出缺口；新影片會做場景偵測，寫進 `usable_ranges_ms` | T-024、T-058 |
 | `init-workspace.ts [path]`、`doctor.ts` | 建立工作區（只補缺、不覆蓋）、檢查環境並給修正建議 | T-008 |
 | （排程）`signals-snapshot`、`newsletter-split` | 每小時記 HN 分數、GitHub star、HF likes 的時間序列；把電子報每一期拆成每則連結 | T-036、T-037 |
 

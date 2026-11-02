@@ -5,6 +5,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { sql } from "@aihot/backend/db";
 import { normalizeUrl, siteIdentityForUrl } from "@aihot/backend/lib/url";
+import { recordAttempts } from "./attempts.ts";
 import { extractSource, ExtractFailure, wordCount, type Extracted, type Get } from "./source-extract.ts";
 import { OpenTopicError, refreshStatus, sourceIdOf } from "./topics.ts";
 import { taipeiIso, workspaceDir, writeAtomic } from "./workspace.ts";
@@ -110,6 +111,7 @@ export async function fetchTopic(topicId: string, opts: { get?: Get; force?: boo
     }
   }
 
+  await recordAttempts([...result.fetched.map(f => ({ layer: 0, url: f.url, ok: true })), ...result.failed.map(f => ({ layer: 0, url: f.url, ok: false, reason: f.reason }))]);
   const files = (await readdir(dir).catch(() => [] as string[])).filter(n => n.endsWith(".md"));
   result.blocked = files.length === 0;
   if (result.failed.length) {

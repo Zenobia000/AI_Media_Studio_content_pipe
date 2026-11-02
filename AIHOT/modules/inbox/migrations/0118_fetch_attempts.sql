@@ -1,0 +1,1 @@
+CREATE TABLE fetch_attempts (layer integer NOT NULL, kind text NOT NULL CHECK (kind IN ('download', 'selftest')), url text NOT NULL, ok boolean NOT NULL, reason text, attempted_at timestamptz NOT NULL DEFAULT now())

@@ -10,6 +10,7 @@ import { sql } from "@aihot/backend/db";
 import { siteIdentityForUrl } from "@aihot/backend/lib/url";
 import { parseHTML } from "linkedom";
 import { probe } from "./assets.ts";
+import { recordAttempts } from "./attempts.ts";
 import { defaultGet, type Get } from "./source-extract.ts";
 import { workspaceDir } from "./workspace.ts";
 
@@ -139,7 +140,8 @@ const EXTENSION_BY_TYPE: Record<string, string> = { "video/mp4": ".mp4", "video/
 export interface Layer2Result {
   topicId: string;
   downloaded: Array<{ path: string; url: string; kind: MediaCandidate["kind"]; method: string; sourceId: string }>;
-  skipped: Array<{ url: string; reason: string }>;
+  /** What was left out. `failed` is false for a rule (robots.txt, a small picture, the cap), true for something that went wrong. */
+  skipped: Array<{ url: string; reason: string; failed?: boolean }>;
 }
 
 export interface Layer2Options {
@@ -186,12 +188,12 @@ export async function fetchLayer2(topicId: string, opts: Layer2Options = {}): Pr
     let candidates: MediaCandidate[];
     try {
       if (!(await allowed(source.url))) {
-        result.skipped.push({ url: source.url, reason: "robots.txt 不允許讀取這個頁面" });
+        result.skipped.push({ url: source.url, reason: "robots.txt 不允許讀取這個頁面", failed: false });
         continue;
       }
       candidates = await candidatesOf(source.url, get, wait);
     } catch (error) {
-      result.skipped.push({ url: source.url, reason: `頁面讀不到：${(error as Error).message.slice(0, 100)}` });
+      result.skipped.push({ url: source.url, reason: `頁面讀不到：${(error as Error).message.slice(0, 100)}`, failed: true });
       continue;
     }
     const order = { video: 0, gif: 1, image: 2 };
@@ -199,10 +201,10 @@ export async function fetchLayer2(topicId: string, opts: Layer2Options = {}): Pr
     const cap = opts.maxPerPage ?? MAX_PER_PAGE;
     if (ranked.length > cap) result.skipped.push({ url: source.url, reason: `頁面列出 ${ranked.length} 個媒體，只取前 ${cap} 個（影片優先）` });
     for (const media of ranked.slice(0, cap)) {
-      const skip = (reason: string) => result.skipped.push({ url: media.url, reason });
+      const skip = (reason: string, failed = true) => result.skipped.push({ url: media.url, reason, failed });
       try {
         if (!(await allowed(media.url))) {
-          skip("robots.txt 不允許下載這個檔案");
+          skip("robots.txt 不允許下載這個檔案", false);
           continue;
         }
         await wait(new URL(media.url).host);
@@ -240,7 +242,7 @@ export async function fetchLayer2(topicId: string, opts: Layer2Options = {}): Pr
           const size = await probe(temp).catch(() => null);
           if (!size || (size.width ?? 0) < MIN_SIDE || (size.height ?? 0) < MIN_SIDE) {
             await rm(temp, { force: true });
-            skip(`圖片太小（${size?.width ?? "?"}×${size?.height ?? "?"}，需要兩邊都至少 ${MIN_SIDE} px）`);
+            skip(`圖片太小（${size?.width ?? "?"}×${size?.height ?? "?"}，需要兩邊都至少 ${MIN_SIDE} px）`, false);
             continue;
           }
         }
@@ -261,6 +263,8 @@ export async function fetchLayer2(topicId: string, opts: Layer2Options = {}): Pr
 
   await sql`DELETE FROM topic_fetch_gaps WHERE topic_id = ${topicId} AND layer = 2`;
   for (const g of gaps.values()) await sql`INSERT INTO topic_fetch_gaps (topic_id, layer, need, reason, suggestion) VALUES (${topicId}, 2, ${g.need}, ${g.reason}, ${g.suggestion}) ON CONFLICT DO NOTHING`;
+  await recordAttempts([...new Set(result.downloaded.map(d => d.url))].map(url => ({ layer: 2, url, ok: true })));
+  await recordAttempts(result.skipped.filter(s => s.failed).map(s => ({ layer: 2, url: s.url, ok: false, reason: s.reason })));
   return result;
 }
 

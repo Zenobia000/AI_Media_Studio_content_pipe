@@ -9,6 +9,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { sql } from "@aihot/backend/db";
 import { parseHTML } from "linkedom";
+import { recordAttempts } from "./attempts.ts";
 import { MAX_BYTES } from "./layer2.ts";
 import { defaultGet, type Get } from "./source-extract.ts";
 import { workspaceDir } from "./workspace.ts";
@@ -33,7 +34,7 @@ export const defaultExec: Exec = async (command, args) => {
 };
 
 /** A downloader may be on PATH, or only reachable as a Python module. */
-async function tool(exec: Exec, names: { bin: string; module: string }): Promise<string[] | null> {
+export async function tool(exec: Exec, names: { bin: string; module: string }): Promise<string[] | null> {
   for (const base of [[names.bin], ["python", "-m", names.module], ["py", "-m", names.module]]) {
     const probe = await exec(base[0]!, [...base.slice(1), "--version"]);
     if (probe.code === 0) return base;
@@ -182,5 +183,7 @@ export async function fetchLayer3(topicId: string, opts: Layer3Options = {}): Pr
       else if (!gotVideo()) await images(url, source.source_id);
     }
   }
+  await recordAttempts([...new Set(result.downloaded.map(d => d.url))].map(url => ({ layer: 3, url, ok: true })));
+  await recordAttempts(result.failed.map(f => ({ layer: 3, url: f.url, ok: false, reason: f.message })));
   return result;
 }
