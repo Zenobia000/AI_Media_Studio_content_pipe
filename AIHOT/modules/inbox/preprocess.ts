@@ -7,6 +7,7 @@ import { mkdir, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { inventory, type Asset } from "./assets.ts";
+import { ffmpeg } from "./ffmpeg.ts";
 import { OpenTopicError } from "./topics.ts";
 import { workspaceDir } from "./workspace.ts";
 
@@ -18,19 +19,6 @@ const TRUE_PEAK = -1.5;
 const LRA = 11;
 const SILENCE = "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-50dB:detection=peak";
 const TRIM_BOTH_ENDS = `${SILENCE},areverse,${SILENCE},areverse`;
-
-/** Runs ffmpeg and returns what it wrote to stderr (its report goes there); a failure says why. */
-export async function ffmpeg(args: string[]): Promise<string> {
-  try {
-    const { stderr } = await run("ffmpeg", ["-hide_banner", "-nostdin", "-y", ...args], { maxBuffer: 64 * 1024 * 1024 });
-    return stderr;
-  } catch (error) {
-    const e = error as NodeJS.ErrnoException & { stderr?: string };
-    if (e.code === "ENOENT") throw new OpenTopicError("找不到 ffmpeg；請安裝 ffmpeg 並確認它在 PATH 裡");
-    const last = (e.stderr ?? e.message).trim().split("\n").filter(Boolean).slice(-2).join(" ");
-    throw new Error(`ffmpeg 失敗：${last.slice(0, 200)}`);
-  }
-}
 
 /** The integrated loudness (LUFS) of a file, measured the way broadcasters do (EBU R128). */
 export async function measureLufs(file: string): Promise<number> {

@@ -7,6 +7,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { sql } from "@aihot/backend/db";
+import { detectScenes, type Range, type SceneDetector } from "./scenes.ts";
 import { FORMATS, OpenTopicError, replaceBlock, block } from "./topics.ts";
 import { taipeiIso, workspaceDir, writeAtomic } from "./workspace.ts";
 
@@ -134,7 +135,7 @@ export function mediaMarkdown(assets: readonly Asset[], gaps: readonly Gap[]): s
   return `## 素材\n\n${table}\n\n## 缺口與建議\n\n${missing}`;
 }
 
-export async function inventory(topicId: string, opts: { now?: Date; voiceover?: boolean } = {}): Promise<InventoryResult> {
+export async function inventory(topicId: string, opts: { now?: Date; voiceover?: boolean; detect?: SceneDetector } = {}): Promise<InventoryResult> {
   const now = opts.now ?? new Date();
   const [topic] = await sql<{ topic_id: string }[]>`SELECT topic_id FROM topics WHERE topic_id = ${topicId}`;
   if (!topic) throw new OpenTopicError(`找不到 topic ${topicId}`);
@@ -178,12 +179,23 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
       const media = type === "image" || type === "screenshot" ? { ...probed, duration_ms: null, fps: null } : probed;
       const k = byId.get(id);
       const before = written.get(id);
+      // Ranges already written (and perhaps edited by a person) stay; only a video seen for the first time is looked at for scenes.
+      // A recording is one range; a picture or a GIF (one looping clip) has none to choose from.
+      let usable: Range[] | null = before?.usable_ranges_ms ?? (type === "audio" && media.duration_ms ? [[0, media.duration_ms]] : null);
+      if (!usable && type === "video" && media.duration_ms) {
+        try {
+          usable = await (opts.detect ?? detectScenes)(file, media.duration_ms);
+        } catch (error) {
+          usable = [[0, media.duration_ms]];
+          warnings.push(`場景偵測失敗，整段視為可用：${rel}（${(error as Error).message.slice(0, 80)}）`);
+        }
+      }
       assets.push({
         asset_id: id, path: rel, type,
         origin: k?.origin ?? defaultOrigin,
         source_id: k?.source_id ?? null, source_url: k?.source_url ?? null, fetch_layer: k?.fetch_layer ?? null, fetch_method: k?.fetch_method ?? null,
         ...media,
-        usable_ranges_ms: type === "video" || type === "audio" ? (before?.usable_ranges_ms ?? (media.duration_ms ? [[0, media.duration_ms]] : null)) : null,
+        usable_ranges_ms: usable,
         // A file the preprocessing made is named after the asset it comes from.
         notes: before?.notes ?? (folder === "proc" && /^ast_[0-9a-f]{12}\./.test(path.basename(file)) ? `由 ${path.basename(file).split(".")[0]} 前處理而來` : ""),
         usage_note: before?.usage_note ?? (k?.fetch_layer === 2 ? "官方網頁上的檔案，使用時標註來源" : k?.fetch_layer === 3 ? "第三方來源，確認授權後再使用並標註來源" : ""),
