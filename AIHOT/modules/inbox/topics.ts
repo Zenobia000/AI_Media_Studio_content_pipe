@@ -105,14 +105,14 @@ async function articleIdsOf(candidateId: string): Promise<string[]> {
   return [...new Set([...(detail?.officialReports ?? []), ...(detail?.timeline ?? [])].map(r => r.id))].slice(0, MAX_SOURCES);
 }
 
-async function sourceIdsOf(candidateIds: readonly string[]): Promise<string[]> {
-  const sources = new Set<string>();
+async function sourcesOf(candidateIds: readonly string[]): Promise<Array<{ id: string; url: string }>> {
+  const sources = new Map<string, string>();
   for (const candidateId of candidateIds) {
     const articleIds = await articleIdsOf(candidateId);
     if (!articleIds.length) continue;
-    for (const a of await sql<{ url: string }[]>`SELECT url FROM articles WHERE id = ANY(${articleIds})`) sources.add(sourceIdOf(a.url));
+    for (const a of await sql<{ url: string }[]>`SELECT url FROM articles WHERE id = ANY(${articleIds})`) sources.set(sourceIdOf(a.url), a.url);
   }
-  return [...sources];
+  return [...sources].map(([id, url]) => ({ id, url }));
 }
 
 async function newTopicId(title: string, created: Date): Promise<string> {
@@ -124,6 +124,7 @@ async function newTopicId(title: string, created: Date): Promise<string> {
   }
 }
 
+const statusText = (candidates: readonly string[], sources: readonly string[]) => `候選：${candidates.join("、")}\n來源：${sources.join("、") || "（尚無）"}`;
 const block = (name: string, body: string) => `<!-- newsroom:begin ${name} -->\n${body}\n<!-- newsroom:end ${name} -->`;
 const replaceBlock = (text: string, name: string, body: string) => {
   const begin = `<!-- newsroom:begin ${name} -->`;
@@ -157,7 +158,7 @@ export async function openTopic(input: OpenTopicInput): Promise<OpenTopicResult>
   const notes = all.map(id => ({ id, text: oneLine(annotations.get(id)?.note ?? "") })).filter(n => n.text);
   const angle = input.angle ?? notes[0]?.text.slice(0, 80) ?? "";
 
-  const sourceIds = await sourceIdsOf(all);
+  const found = await sourcesOf(all);
   const existing = topics[0]?.topic_id ?? null;
   const topicId = existing ?? (await newTopicId(primary.snapshot.title, now));
   const created = !existing;
@@ -166,7 +167,7 @@ export async function openTopic(input: OpenTopicInput): Promise<OpenTopicResult>
   await sql.begin(async tx => {
     await tx`INSERT INTO topics (topic_id, title, program, tier, created_at) VALUES (${topicId}, ${primary.snapshot.title}, ${program}, ${primary.snapshot.tier}, ${now}) ON CONFLICT (topic_id) DO NOTHING`;
     for (const id of all) await tx`INSERT INTO topic_candidates (candidate_id, topic_id) VALUES (${id}, ${topicId}) ON CONFLICT (candidate_id) DO NOTHING`;
-    for (const s of sourceIds) await tx`INSERT INTO topic_sources (topic_id, source_id) VALUES (${topicId}, ${s}) ON CONFLICT DO NOTHING`;
+    for (const s of found) await tx`INSERT INTO topic_sources (topic_id, source_id, url) VALUES (${topicId}, ${s.id}, ${s.url}) ON CONFLICT (topic_id, source_id) DO UPDATE SET url = COALESCE(topic_sources.url, EXCLUDED.url)`;
   });
 
   const topic = (await sql<{ title: string; program: string; tier: string | null; created_at: Date }[]>`SELECT title, program, tier, created_at FROM topics WHERE topic_id = ${topicId}`)[0]!;
@@ -175,7 +176,7 @@ export async function openTopic(input: OpenTopicInput): Promise<OpenTopicResult>
 
   const dir = path.join(workspaceDir(), "topics", topicId);
   await mkdir(path.join(dir, "contents"), { recursive: true });
-  const statusBody = `候選：${allCandidates.join("、")}\n來源：${allSources.join("、") || "（尚無）"}`;
+  const statusBody = statusText(allCandidates, allSources);
   const topicFile = path.join(dir, "topic.md");
   if (await exists(topicFile)) await writeAtomic(topicFile, replaceBlock(await readFile(topicFile, "utf8"), "status", statusBody));
   else {
@@ -207,6 +208,15 @@ export async function openTopic(input: OpenTopicInput): Promise<OpenTopicResult>
 
   await sql`UPDATE candidate_state SET status = 'opened', updated_at = now() WHERE candidate_id = ANY(${all}) AND status <> 'skipped'`;
   return { topicId, created, candidateIds: allCandidates, sourceIds: allSources, contentsCreated, contentsExisting, warnings };
+}
+
+/** Rewrites the status block of topic.md after the sources of a topic changed; the rest of the file is the person's. */
+export async function refreshStatus(topicId: string): Promise<void> {
+  const file = path.join(workspaceDir(), "topics", topicId, "topic.md");
+  if (!(await exists(file))) return;
+  const candidates = (await sql<{ candidate_id: string }[]>`SELECT candidate_id FROM topic_candidates WHERE topic_id = ${topicId} ORDER BY candidate_id`).map(r => r.candidate_id);
+  const sources = (await sql<{ source_id: string }[]>`SELECT source_id FROM topic_sources WHERE topic_id = ${topicId} ORDER BY source_id`).map(r => r.source_id);
+  await writeAtomic(file, replaceBlock(await readFile(file, "utf8"), "status", statusText(candidates, sources)));
 }
 
 /** Marks two candidates as one before a topic is opened; if either already has a topic, the other joins it. */
