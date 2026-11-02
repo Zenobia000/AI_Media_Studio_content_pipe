@@ -1,3 +1,6 @@
+> **本專案（MediaHOT）內部協作請看 [../docs/process/branching-strategy.md](../docs/process/branching-strategy.md)。**
+> 以下是 AIHOT 上游專案的貢獻指南，只有要把改動提回上游 [AIHOT](https://github.com/KKKKhazix/AIHOT) 時才需要參考，其中的連結都指向上游。
+
 # 参与贡献
 
 欢迎提交可复现的问题、文档修正，以及对其他行业也有用的改进。中文或英文都可以。

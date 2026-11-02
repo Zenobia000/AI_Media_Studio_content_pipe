@@ -1,8 +1,12 @@
+MediaHOT
+This is a modified version of AIHOT (https://github.com/KKKKhazix/AIHOT) made by the AI Media Studio team
+for the content pipeline's collection module. The modifications are also released under the MIT License.
+
 AIHOT
 Copyright (c) 2026 数字生命卡兹克. The code is licensed under the MIT License (LICENSE).
 
 The name "AIHOT" and the AIHOT logo are not licensed under the MIT License. Please use your own name
-and logo for your site.
+and logo for your site. MediaHOT does not use them.
 
 This repository also contains third-party material under its own terms:
 

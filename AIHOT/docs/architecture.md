@@ -103,7 +103,7 @@ flowchart LR
 
 ```bash
 npm run typecheck
-DATABASE_URL=postgres://127.0.0.1:5432/myhot_test npm test
+DATABASE_URL=postgres://127.0.0.1:5432/mediahot_test npm test
 npm run build -w @aihot/web && npm run test:web
 ```
 

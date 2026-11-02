@@ -1,3 +1,6 @@
+> **本專案（MediaHOT）目前只在團隊內部使用。** 發現安全問題請私下告訴專案負責人，不要貼在公開的地方。
+> 以下是 AIHOT 上游專案的說明，連結都指向上游。
+
 # 安全问题报告
 
 如果你发现权限绕过、密钥泄露、注入或其他可能影响部署安全的问题，请通过 [GitHub 私密漏洞报告](https://github.com/KKKKhazix/AIHOT/security/advisories/new) 联系维护者。
