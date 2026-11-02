@@ -27,6 +27,7 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 | 工具 | 做什麼 | 對應票 |
 |---|---|---|
 | `add-source.ts <url> [--note --program --formats --title]` | 手動新增候選；同網址（任何寫法）只留一筆並附加備註 | T-011 |
+| `backtest-heat.ts <labels.json>` | 回測熱度分級：人工標記的 S 級事件，有多少被判為 S 或 A（目標 ≥ 80%） | T-075 |
 | （排程）`inbox-write` | 每 30 分鐘寫 `inbox/YYYY-MM-DD.md`：熱點事件、手動新增、前幾天帶過來的 | T-021 |
 | `open-topic.ts <cand_id>... [--program --formats --angle]` | 依勾選建立 topic 與各格式的 content，不重建已有的 | T-022 |
 | `merge-candidates.ts <保留> <併入>` | 把兩個候選合成一題 | T-022 |
@@ -41,6 +42,8 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 相關 skill 在外層 [../skills/](../skills/)：`open-topic`、`gather-assets`。
 
 **下載的限制**：YouTube 可以下載；Vimeo 與 X 推文目前需要登入（用自己帳號時，匯出 cookies 檔並設定 `YTDLP_COOKIES_FILE`）；網站擋下或 `robots.txt` 不允許的，只會成為素材缺口，不會繞過。需要先裝 `python -m pip install --user yt-dlp gallery-dl`。
+
+**熱度分級**（`modules/inbox/heat.config.json`）：S ＝ 預告過的發表會剛結束、或 6 小時內 3 個以上來源共振、或分數 ≥ 70；A ＝ 2 個來源、或分數 ≥ 40；其餘 B。分數是共振、HN 增速、GitHub／HF 增速、電子報提及、來源權重加權（0 到 100），每個候選在 inbox 都列出分數明細與分級原因，同樣的輸入一定得到同樣的結果。X 互動與在地缺口目前停用（權重 0，不報錯），等對應的收集器完成再啟用。**門檻是初始值，還沒有用人工標記的樣本校準**，要用 `backtest-heat.ts` 調整。
 
 **inbox 的規則**：人只改勾選、節目、格式、備註；程式只改受管區塊。沒勾的候選帶到隔天標「昨日」，超過 48 小時自動略過；勾了還沒建題的持續保留。
 

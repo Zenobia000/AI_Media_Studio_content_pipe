@@ -62,7 +62,7 @@ test("a hand-added link reaches today's inbox file and keeps the person's tick o
     assert.match(text, /## 手動新增/);
     assert.match(text, new RegExp(`\`cand_${added.articleId}\``));
     assert.match(text, /備註：今天要做/);
-    await writeFile(written.file, text.replace(/- \[ \] (\*\*[^\n]*cand_)/, "- [x] $1"), "utf8");
+    await writeFile(written.file, text.replace(new RegExp(`- \\[ \\] (\\*\\*[^\\n]*\`cand_${added.articleId}\`)`), "- [x] $1"), "utf8");
     await writeInbox();
     assert.match(await readFile(written.file, "utf8"), new RegExp(`- \\[x\\] .*\`cand_${added.articleId}\``));
   } finally {

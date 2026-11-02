@@ -7,7 +7,8 @@ import { credential } from "@aihot/backend/config";
 import { sql } from "@aihot/backend/db";
 import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
-import { ManagedBlockError, parseAnnotations, renderFile, tierOf, withHealth, type Candidate, type FailingSource } from "./format.ts";
+import { ManagedBlockError, parseAnnotations, renderFile, withHealth, type Candidate, type FailingSource, type Tier } from "./format.ts";
+import { describeBreakdown, loadHeatConfig, loadHeatInputs, scoreHeat, type HeatResult } from "./heat.ts";
 import { splitNewsletters } from "./newsletters.ts";
 import { loadTargets, runSelftest } from "./selftest.ts";
 import { collectSignals, describeSignals, latestSignals } from "./signals.ts";
@@ -31,31 +32,39 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
     WHERE m.added_at > ${new Date(now.getTime() - CARRY_MS)} ORDER BY m.added_at DESC`;
   // What people are saying about each (Hacker News points, stars, likes), from the signal snapshots.
   const signals = await latestSignals({ storyIds: (ranking?.entries ?? []).map(e => e.storyId), articleIds: manual.map(m => m.article_id) });
+  // How hot each is (heat.config.json): the tier, the score and why, and what to suggest.
+  const config = await loadHeatConfig();
+  const inputs = await loadHeatInputs({ storyIds: (ranking?.entries ?? []).map(e => e.storyId), articleIds: manual.map(m => m.article_id) }, config, now);
+  const heatOf = (input: ReturnType<typeof inputs.byStory.get>): HeatResult => scoreHeat(input ?? { resonanceSources: 0 }, config);
+  const heat = (h: HeatResult) => ({ tier: h.tier, score: h.score, heat: describeBreakdown(h), heatReason: h.reasons.join("、") });
   const fresh: Candidate[] = [
     ...manual.map((m): Candidate => ({
       id: `cand_${m.article_id}`,
       title: m.title,
-      tier: "S",
+      ...heat(heatOf(inputs.byArticle.get(m.article_id))),
       participantCount: 1,
       sourceNames: ["手動"],
       firstSeen: clock(m.added_at, { hour: "2-digit", minute: "2-digit" }),
-      suggestedProgram: m.program ?? "ai-today",
-      suggestedFormats: m.formats.length ? m.formats : ["threads"],
+      suggestedProgram: m.program ?? heatOf(inputs.byArticle.get(m.article_id)).program,
+      suggestedFormats: m.formats.length ? m.formats : heatOf(inputs.byArticle.get(m.article_id)).formats,
       manual: { note: m.notes, program: m.program ?? "", formats: m.formats.join(", ") },
       signals: describeSignals(signals.byArticle.get(m.article_id) ?? {}),
     })),
     ...(ranking?.entries ?? []).map((e): Candidate => ({
       id: `cand_${e.storyPublicId}`,
       title: e.title,
-      tier: tierOf(e.participantCount),
+      ...heat(heatOf(inputs.byStory.get(e.storyId))),
       participantCount: e.participantCount,
       sourceNames: e.sourceNames,
       firstSeen: clock(new Date(e.firstReportAt), { hour: "2-digit", minute: "2-digit" }),
-      suggestedProgram: "ai-today",
-      suggestedFormats: ["threads"],
+      suggestedProgram: heatOf(inputs.byStory.get(e.storyId)).program,
+      suggestedFormats: heatOf(inputs.byStory.get(e.storyId)).formats,
       signals: describeSignals(signals.byStory.get(e.storyId) ?? {}),
     })),
   ];
+  // The hottest first within a tier.
+  const order: Record<Tier, number> = { S: 0, A: 1, B: 2 };
+  fresh.sort((a, b) => order[a.tier] - order[b.tier] || (b.score ?? 0) - (a.score ?? 0) || a.title.localeCompare(b.title));
 
   const existing = await readFile(file, "utf8").catch(() => null);
   const earlier = await readAnnotations(dir, dayOf(new Date(now.getTime() - LOOKBACK_DAYS * DAY_MS)), date);

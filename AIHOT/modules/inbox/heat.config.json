@@ -1,0 +1,23 @@
+{
+  "_comment": "Weights and limits of the heat grading (docs/spec/02_collect.md COL-FR-013). A signal with enabled=false has weight 0 and leaves the score as if it did not exist; turn it on when its source is collected. 'cap' is the value at which a signal counts in full.",
+  "signals": {
+    "resonance": { "enabled": true, "weight": 30, "cap": 3, "note": "independent sources in the last 6 hours" },
+    "x_velocity": { "enabled": false, "weight": 20, "cap": 3, "note": "X engagement against the account's median (T-072)" },
+    "hn_velocity": { "enabled": true, "weight": 15, "cap": 50, "note": "Hacker News points gained per hour" },
+    "repo_growth": { "enabled": true, "weight": 10, "cap": 20, "note": "GitHub stars gained per hour; Hugging Face likes per hour; paper upvotes /5" },
+    "newsletter": { "enabled": true, "weight": 5, "cap": 3, "note": "newsletters that mention it" },
+    "source_weight": { "enabled": true, "weight": 10, "cap": 1, "note": "official > evaluator > media > individual" },
+    "local_gap": { "enabled": false, "weight": 10, "cap": 1, "note": "nobody has covered it in Chinese yet (T-104)" }
+  },
+  "sourceWeights": { "T1": 1, "T1_5": 0.8, "T2": 0.5, "manual": 0.6 },
+  "windows": { "resonanceHours": 6 },
+  "tiers": {
+    "S": { "minResonance": 3, "minScore": 70 },
+    "A": { "minResonance": 2, "minScore": 40 }
+  },
+  "mix": {
+    "S": { "formats": ["threads", "carousel", "reel"], "note": "連發：Threads 快訊 30 分鐘內、輪播 2 小時內、Reel" },
+    "A": { "formats": ["carousel", "reel"], "note": "輪播加 Reel" },
+    "B": { "formats": ["threads"], "note": "一則 Threads 或輪播" }
+  }
+}

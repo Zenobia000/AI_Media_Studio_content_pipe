@@ -31,7 +31,7 @@ test("over three days a ticked link and its note stay, an unticked one is carrie
     // The 18th: the ticked one is carried with its tick and note, the other is carried as 昨日.
     await writeInbox(at(18));
     const day2 = await read(18);
-    assert.match(day2, new RegExp(`- \\[x\\] .*\`cand_${kept.articleId}\`\\n.*已勾選\\n.*\\n.*\\n.*\\n  - 備註：要做`));
+    assert.match(day2, new RegExp(`- \\[x\\] .*\`cand_${kept.articleId}\`\\n.*已勾選(?:\\n  - [^\\n]*)*\\n  - 備註：要做`));
     assert.match(day2, new RegExp(`- \\[ \\] .*\`cand_${dropped.articleId}\`\\n.*昨日`));
 
     // The 19th, more than 48 hours after the first listing: the unticked one is gone, the ticked one stays.
