@@ -101,7 +101,8 @@
 - **「抓得到文字」不等於「抓得對」。** 我 59 個網頁測試，57 個抓得到 200 字以上，失敗的 2 個是 openai.com（它不讓程式讀）。這只代表有抓到東西，沒有人工檢查內容正不正確。
 - 場景切換、影片處理：只用人工做的假影片和少數真影片測過，沒有大量真實素材的驗證。
 - AIHOT 原本的全部測試（2026-11-02 在 Linux 容器跑，Node 24）：1122 個，1063 通過、30 失敗、29 略過。在 Windows 上會失敗的 3 個「SIGTERM」測試在 Linux 全部通過，確認是 Windows 沒有真正 SIGTERM；完整測試在 Windows 上會卡住，Linux 不會。剩下的 30 個失敗是我準備的容器不齊全（沒先 build 網站、沒有 pg_dump、沒有 `.git`／外層 `skills/`），從錯誤訊息判斷與程式無關，但我沒有把容器補齊再重跑確認全綠。我新增的測試全部通過。另外在 Windows 上，完整測試同時建測試資料庫會互搶（單獨跑每個檔案都通過），可用 `--test-concurrency=1` 避開。
-- 整個網站和背景程式「完整啟動」（`docker compose up`）我沒有驗證過。
+- 2026-11-03 在 `docker compose` 建好的正式映像（Node 24、Linux）裡重跑 AIHOT 原有測試：1118 個，1082 通過、8 失敗、28 略過。已查明原因的 5 個是映像缺東西：沒有 `git`（3 個）、沒有外層 `skills/`（1 個）、正式映像沒裝開發用套件 `@modelcontextprotocol/client`（`mcp.standalone`，1 個）。另外 `migration-check.standalone`、`outlet-invariants`、`public-categories` 三個測試檔整檔失敗，我沒有逐一查原因，推測也是缺 `git`／開發套件，但沒有在完整開發環境重跑確認。
+- 2026-11-03 整個網站和背景程式用 `docker compose up -d --build` 完整啟動成功（資料庫、setup、api、worker、web 都起來），`scripts/smoke.ts` 全部通過；33 個來源第一輪都抓成功。模型呼叫是關的（`MODEL_CALLS_ENABLED=false`）。
 
 ## 5. 已知的小缺點
 
@@ -116,9 +117,9 @@
 
 ## 6. 接下來
 
-**我可以直接做（需要先開 Postgres 或架服務）**
-1. 架起 changedetection.io，跑 20 頁 14 天的假警報統計
-2. 來源穩不穩的長期統計（連續幾天跑）
+**正在累積時間的（2026-11-03 起，電腦要一直開著 Docker）**
+1. 來源穩不穩的長期統計：整套網站已在跑，14 天後（約 11-17）執行 `docker compose exec -T api node scripts/source-stats.ts --days 14`（新增的工具，從 `fetch_runs` 算每個來源的成功率；需要先把 `scripts/source-stats.ts` 打包進映像，重建後才有，目前是手動複製進去的）
+2. changedetection.io 已在 http://localhost:5000 跑起來，但**還沒加 20 個頁面**：要在網頁介面挑 20 頁加進去，並把 Settings > API 的金鑰填進 `.env` 的 `CHANGEDETECTION_API_KEY`（我這邊被擋下，不能自己去讀金鑰）。14 天後再數假警報
 
 **要先決定，或需要別人**
 

@@ -38,6 +38,7 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 | `assets-topic.ts <topic_id> [--voiceover]` | 盤點 `media/` 的素材，寫 `assets.json` 與 `media.md`，列出缺口；新影片會做場景偵測，寫進 `usable_ranges_ms` | T-024、T-058 |
 | `init-workspace.ts [path]`、`doctor.ts` | 建立工作區（只補缺、不覆蓋）、檢查環境並給修正建議 | T-008 |
 | （排程）`signals-snapshot`、`newsletter-split` | 每小時記 HN 分數、GitHub star、HF likes 的時間序列；把電子報每一期拆成每則連結 | T-036、T-037 |
+| `source-stats.ts [--days 14]` | 各信源最近幾天的抓取成功率與最近一次錯誤（來自 `fetch_runs`） | T-040 |
 | `set-title-zh.ts --list` 或 `<cand_id> "<中文標題>" [--force]` | 列出還是外文標題的候選；替候選存中文標題（只翻一次），inbox 之後改顯示中文，沒有就顯示原文 | T-101 |
 | （排程）`page-watch` | 每 10 分鐘讀自架的 changedetection.io，網頁有變動就在 inbox 加一則「<頁面> 有更新」候選，備註附差異；沒設定就略過，服務停了不影響其他來源 | T-105 |
 
