@@ -116,7 +116,7 @@ export function escapeXml(s: string): string {
 export function cjkRatio(s: string): number {
   const letters = s.match(/[\p{L}]/gu) ?? [];
   if (letters.length === 0) return 0;
-  const cjk = s.match(/[㐀-鿿豈-﫿]/g) ?? [];
+  const cjk = s.match(/[㐀-鿿豈-﫿]/g) ?? [];
   return cjk.length / letters.length;
 }
 

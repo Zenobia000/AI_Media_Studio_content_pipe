@@ -37,7 +37,7 @@ const pages: Record<string, () => string> = {
     `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><entry><title>Episode 42</title><link rel="alternate" href="https://example.org/episodes/42"/>` +
     `<published>2026-09-30T00:00:00Z</published><summary type="html">How leaders build confidence with their team.</summary></entry></feed>`,
   // A list API that gives wall-clock times without a zone, and a page whose metadata does too.
-  "/zoneless.json": () => JSON.stringify({ result: [{ id: "a", title: "采购公告", publishDate: "2026-09-30 17:43:58" }, { id: "b", title: "Zoned", publishDate: "2026-09-30T17:43:58Z" }, { id: "c", title: "Abbreviated zone", publishDate: "Wed, 30 Sep 2026 17:43:58 EST" }] }),
+  "/zoneless.json": () => JSON.stringify({ result: [{ id: "a", title: "採購公告", publishDate: "2026-09-30 17:43:58" }, { id: "b", title: "Zoned", publishDate: "2026-09-30T17:43:58Z" }, { id: "c", title: "Abbreviated zone", publishDate: "Wed, 30 Sep 2026 17:43:58 EST" }] }),
   "/zoneless-post": () => `<html><head><meta property="article:published_time" content="2026-09-30 17:43:58"></head><body><p>Post</p></body></html>`,
   // A Next.js page whose embedded posts hold arrays and brackets of their own.
   "/flight": () => `<html><body><script>self.__next_f.push([1,${JSON.stringify(`5:["$","div",null,{"children":[],"posts":${JSON.stringify([
@@ -52,7 +52,7 @@ const pages: Record<string, () => string> = {
   // A site that negotiates its language: the article at /en/post, its translation at /zh/post.
   "/en/blog": () => `<a class="row" href="/en/post"><p>Improved token efficiency</p><time>Sep 23, 2026</time></a>`,
   "/en/post": () => article("Improved token efficiency", "Agents now finish longer runs with fewer tokens. ".repeat(8)),
-  "/zh/post": () => article("提升 token 效率", "智能体现在能用更少的 token 完成更长的运行。".repeat(12)),
+  "/zh/post": () => article("提升 token 效率", "智慧體現在能用更少的 token 完成更長的執行。".repeat(12)),
   "/en/feed.xml": () => `<rss version="2.0"><channel><item><title>Improved token efficiency</title><link>${site}/en/post</link><pubDate>Wed, 23 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>`,
   // liquid.ai/blog/lfm3 was 8.7 MB: the framework inlines the whole page payload again as script.
   "/large/post": () => article("LFM3", `Benchmarks for the new models. ${"Each row compares the same task. ".repeat(12)}</p><table><tr><th>Benchmark</th><th>LFM3</th></tr><tr><td><p>LiveClaw</p></td><td><p>45.60</p></td></tr></table><p>`)
@@ -82,16 +82,16 @@ after(() => new Promise<void>((resolve) => server.close(() => resolve())));
 test("Jina card links become posts with their own titles", () => {
   const md = [
     "[Skip to main content](http://example.org/blog/#main)",
-    "[![Image 1: hero](https://cdn.example.org/a.jpg) ##### 智元发布GE-Act 2.0 新闻资讯 | 2026-09-20](https://example.org/blog/220.html \"智元发布GE-Act 2.0\")",
-    "[![Image 2](https://cdn.example.org/b.png) ##### 小米18 Pro Max 测评 尾巴视频](http://example.org/blog/784.html)",
+    "[![Image 1: hero](https://cdn.example.org/a.jpg) ##### 智元發布GE-Act 2.0 新聞資訊 | 2026-09-20](https://example.org/blog/220.html \"智元發布GE-Act 2.0\")",
+    "[![Image 2](https://cdn.example.org/b.png) ##### 小米18 Pro Max 測評 尾巴影片](http://example.org/blog/784.html)",
     "[![Image 3](https://cdn.example.org/c.png)](https://example.org/blog/carousel.html)",
     "# [Introducing v6](http://example.org/blog/introducing-v6)",
     "[2026](http://example.org/blog/2026) [Algorithms & Theory](http://example.org/blog/label/algorithms) [Next page](http://example.org/blog/page/2)",
   ].join("\n\n");
   const out = fromMarkdown(md, "https://example.org", source({ url: "https://r.jina.ai/http://example.org/blog/", allowUrlPrefixes: ["https://example.org/blog/"] }));
   assert.deepEqual(out, [
-    { url: "https://example.org/blog/220.html", title: "智元发布GE-Act 2.0" },
-    { url: "https://example.org/blog/784.html", title: "小米18 Pro Max 测评 尾巴视频" },
+    { url: "https://example.org/blog/220.html", title: "智元發布GE-Act 2.0" },
+    { url: "https://example.org/blog/784.html", title: "小米18 Pro Max 測評 尾巴影片" },
     { url: "https://example.org/blog/introducing-v6", title: "Introducing v6" },
   ]);
 });
@@ -225,12 +225,12 @@ test("hidden page parts are dropped whole, and a news page's closing blocks are 
 });
 
 test("noise words match whatever their case", () => {
-  // 笔记本 is noise, but the lower-case exemption agent keeps a post about an Agent product.
-  const source = { config: { ingestNoiseFilter: { dropMarkers: ["笔记本", "iphone"], keepIfMatches: ["agent"] } } } as never;
+  // 筆記本 is noise, but the lower-case exemption agent keeps a post about an Agent product.
+  const source = { config: { ingestNoiseFilter: { dropMarkers: ["筆記本", "iphone"], keepIfMatches: ["agent"] } } } as never;
   const c = (title: string, excerpt: string) => ({ url: "https://example.org/a", title, excerpt }) as never;
-  assert.equal(noiseFiltered(c("Manus：正组建团队开发面向国内市场的产品", "与笔记本厂商合作的 Agent 产品"), source), false);
-  assert.equal(noiseFiltered(c("新款笔记本开售", "首发价 4999 元"), source), true);
-  assert.equal(noiseFiltered(c("iPhone 18 开售", ""), source), true);
+  assert.equal(noiseFiltered(c("Manus：正組建團隊開發面向國內市場的產品", "與筆記本廠商合作的 Agent 產品"), source), false);
+  assert.equal(noiseFiltered(c("新款筆記本開售", "首發價 4999 元"), source), true);
+  assert.equal(noiseFiltered(c("iPhone 18 開售", ""), source), true);
 });
 
 test("a time without a zone is read in the source's offset, in JSON lists and in detail page metadata", async () => {
@@ -276,7 +276,7 @@ test("a source's language reaches its listing, detail page and article body, whi
   // Without one, the default Chinese preference stays.
   await fetchWebList(source(listing));
   assert.match(sent("/en/blog") ?? "", /^zh-CN/);
-  assert.match((await extractFromUrl(item!.url, "article:fixture", pageRules({})))?.text ?? "", /^智能体/);
+  assert.match((await extractFromUrl(item!.url, "article:fixture", pageRules({})))?.text ?? "", /^智慧體/);
 });
 
 test("a page of several megabytes is read directly, keeping its tables", async () => {

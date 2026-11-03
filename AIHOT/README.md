@@ -6,11 +6,11 @@ AI Media Studio 內容產線的**素材收集**部分：每天從一批 AI 與�
 
 ## 基於 AIHOT
 
-MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授權，Copyright (c) 2026 数字生命卡兹克）的修改版。信源收集、去重、事件歸組、評分精選、熱度榜、網站與後台都來自 AIHOT；原作者的版權聲明保留在 [LICENSE](LICENSE) 與 [NOTICE](NOTICE)。AIHOT 的名稱與 Logo 不在授權內，這個專案不使用它們。
+MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授權，Copyright (c) 2026 數字生命卡茲克）的修改版。信源收集、去重、事件歸組、評分精選、熱度榜、網站與後臺都來自 AIHOT；原作者的版權宣告保留在 [LICENSE](LICENSE) 與 [NOTICE](NOTICE)。AIHOT 的名稱與 Logo 不在授權內，這個專案不使用它們。
 
 ## 我們改了什麼
 
-| 項目 | 內容 |
+| 專案 | 內容 |
 |---|---|
 | 站名與設定 | 站名 MediaHOT、繁體中文（zh-TW）、爬蟲標識 `MediaHOTBot`（`site/site.ts`） |
 | 信源 | 33 個：官方 AI blog、英文科技媒體、TLDR AI 與 AINews 電子報、Hacker News、Hugging Face 論文與熱門模型、8 個 GitHub release、iThome 與科技新報（`industry/sources.json`） |
@@ -44,7 +44,7 @@ MediaHOT 是 [AIHOT](https://github.com/KKKKhazix/AIHOT) 開源引擎（MIT 授�
 
 相關 skill 在外層 [../skills/](../skills/)：`open-topic`、`gather-assets`、`triage-inbox`。
 
-**發表會行事曆**：在工作區的 `calendar/events.md` 填表（日期 `YYYY-MM-DD`、時間 `10:00` 或 `10:00-12:30`、活動、關鍵字用逗號隔開、官方連結，台北時間）。活動前一天 inbox 會多一則「準備：…」候選；活動結束 24 小時內，標題含關鍵字的新聞直接判為 S 級。表格有誤的列會被略過。活動前後把收集頻率改成每 5 分鐘還沒做。
+**發表會行事曆**：在工作區的 `calendar/events.md` 填表（日期 `YYYY-MM-DD`、時間 `10:00` 或 `10:00-12:30`、活動、關鍵字用逗號隔開、官方連結，臺北時間）。活動前一天 inbox 會多一則「準備：…」候選；活動結束 24 小時內，標題含關鍵字的新聞直接判為 S 級。表格有誤的列會被略過。活動前後把收集頻率改成每 5 分鐘還沒做。
 
 **手動新增的短網址**（t.co、bit.ly 等）會先展開成真正的頁面再去重複；展開失敗就維持原網址。
 
@@ -92,11 +92,11 @@ node --test-global-setup=tests/databases.ts --import ./tests/databases.ts --test
 
 其餘設定見 [.env.example](.env.example)。
 
-## 文件
+## 檔案
 
-- 引擎怎麼運作、怎麼換行業：[docs/customize.md](docs/customize.md)、[docs/architecture.md](docs/architecture.md)、[docs/sources.md](docs/sources.md)、[docs/selection.md](docs/selection.md)、[docs/deploy.md](docs/deploy.md)（AIHOT 原作者的文件，部分說法仍指向原專案）。
+- 引擎怎麼運作、怎麼換行業：[docs/customize.md](docs/customize.md)、[docs/architecture.md](docs/architecture.md)、[docs/sources.md](docs/sources.md)、[docs/selection.md](docs/selection.md)、[docs/deploy.md](docs/deploy.md)（AIHOT 原作者的檔案，部分說法仍指向原專案）。
 - 我們的需求與規格：[../docs/spec/02_collect.md](../docs/spec/02_collect.md)、[../docs/spec/03_fetch_assets.md](../docs/spec/03_fetch_assets.md)、[../docs/spec/07_interfaces.md](../docs/spec/07_interfaces.md)。
 
 ## 授權
 
-MIT，見 [LICENSE](LICENSE)。引擎部分的版權屬於原作者；我們的修改一併以 MIT 釋出。
+MIT，見 [LICENSE](LICENSE)。引擎部分的版權屬於原作者；我們的修改一併以 MIT 發布。

@@ -78,7 +78,7 @@ const followUps = async (sourceId: string) => (await collectFindings(now)).filte
 async function weekly() {
   const lines: string[] = [];
   const log = console.log;
-  console.log = (value: unknown) => { if (String(value).includes("信源周报")) lines.push(...JSON.parse(String(value)).lines); };
+  console.log = (value: unknown) => { if (String(value).includes("信源週報")) lines.push(...JSON.parse(String(value)).lines); };
   try { await sourceHealthWeekly(now); } finally { console.log = log; }
   return lines.join("\n");
 }
@@ -89,12 +89,12 @@ test("hot-signal activity does not hide editorial collection stopping", async ()
   await material(signal, "signal");
   const finding = (await collectFindings(now)).find(f => f.key === "content.collect");
   assert.equal(finding?.level, "now");
-  assert.match(finding!.title, /文章|编辑/);
+  assert.match(finding!.title, /文章|編輯/);
   await material(editorial, "editorial");
   assert.equal((await collectFindings(now)).find(f => f.key === "content.collect"), undefined);
 });
 
-// 10-19..11-01: 21 "反复抓取失败" follow-ups were timeouts, dropped TLS and the origin's 404/406/502,
+// 10-19..11-01: 21 "反覆抓取失敗" follow-ups were timeouts, dropped TLS and the origin's 404/406/502,
 // healing by the next run, all closed as accepted; the ones worth fixing were our parsing coming back empty.
 async function runs(sourceId: string, ok: number, failed: number, error: string) {
   await sql`INSERT INTO fetch_runs(source_id,started_at,finished_at,status,error)
@@ -142,7 +142,7 @@ test("daily follow-ups retain chronic failures after a successful run, separatel
         CASE WHEN i BETWEEN 1 AND 5 THEN 'failed' ELSE 'ok' END, 1, 0,
         CASE WHEN i BETWEEN 1 AND 5 THEN 'no items matched (html)' ELSE NULL END FROM generate_series(0,19) i`;
   }
-  for (const [name, id] of [["编辑内容", editorial], ["热度信号", signal]]) {
+  for (const [name, id] of [["編輯內容", editorial], ["熱度訊號", signal]]) {
     const [f, ...more] = await followUps(id!);
     assert.equal(more.length, 0);
     assert.equal(f?.key, `sources.unstable.${id}`);
@@ -158,7 +158,7 @@ test("each failing source is a follow-up of its own, closed when that source rec
   const second = await source("failing-second", "editorial", new Date(now));
   for (const id of [first, second]) await sql`UPDATE sources SET health = 'failing', fail_count = 6, last_error = 'HTTP 403' WHERE id = ${id}`;
   assert.deepEqual((await followUps(first)).map(f => f.key), [`sources.failing.${first}`]);
-  assert.match((await followUps(first))[0]!.detail!, /连续失败 6 次，HTTP 403/);
+  assert.match((await followUps(first))[0]!.detail!, /連續失敗 6 次，HTTP 403/);
   await sql`UPDATE sources SET health = 'ok', fail_count = 0, last_error = NULL WHERE id = ${first}`;
   assert.deepEqual(await followUps(first), []);
   assert.deepEqual((await followUps(second)).map(f => f.key), [`sources.failing.${second}`]);
@@ -178,8 +178,8 @@ test("weekly totals count every silent source and include successful attributed 
     assert.equal(result.silent, 20, "18 silent plus two chronic sources, not the display limit or the collector");
   } finally { console.log = log; }
   const text = lines.join("\n");
-  assert.match(text, /编辑内容/);
-  assert.match(text, /热度信号/);
+  assert.match(text, /編輯內容/);
+  assert.match(text, /熱度訊號/);
   assert.doesNotMatch(text, new RegExp(`· ${collector}`));
 });
 
@@ -190,13 +190,13 @@ test("undated editorial articles and repeated edits are follow-ups of their own,
   const signal = await source("quality-signal", "hot_signal", new Date(now));
   const article = await material(editorial, "undated-editorial", null);
   await material(signal, "undated-signal", null);
-  await dismissFollowUp(`sources.undated.${editorial}`, "原文页本身没有发布时间", "test", now, "ongoing");
+  await dismissFollowUp(`sources.undated.${editorial}`, "原文頁本身沒有發布時間", "test", now, "ongoing");
   await sql`INSERT INTO article_revisions(article_id,revision,title,created_at)
     SELECT ${article.articleId},i,'changed',${new Date(now)} FROM generate_series(2,6) i`;
   const found = await followUps(editorial);
   assert.deepEqual(found.map(f => f.key).sort(), [`sources.revisions.${editorial}`, `sources.undated.${editorial}`]);
-  assert.match(found.find(f => f.key.startsWith("sources.undated"))!.detail!, /缺发布时间 1/);
-  assert.match(found.find(f => f.key.startsWith("sources.revisions"))!.detail!, /反复修订 1/);
+  assert.match(found.find(f => f.key.startsWith("sources.undated"))!.detail!, /缺發布時間 1/);
+  assert.match(found.find(f => f.key.startsWith("sources.revisions"))!.detail!, /反覆修訂 1/);
   const closed = await dismissedFollowUps(found, now);
   assert.ok(closed[`sources.undated.${editorial}`]);
   assert.equal(closed[`sources.revisions.${editorial}`], undefined, "repeated edits are not hidden by the closure of missing dates");
@@ -218,10 +218,10 @@ test("detail pages that keep failing are a follow-up, an occasional timeout amon
   const [f, ...more] = await followUps(refused);
   assert.equal(more.length, 0);
   assert.equal(f?.key, `sources.details.${refused}`);
-  assert.match(f!.detail!, /近 7 天失败 6\/34 页/);
+  assert.match(f!.detail!, /近 7 天失敗 6\/34 頁/);
   const report = await weekly();
   assert.doesNotMatch(report, new RegExp(`${once}|${rare}`), "nor a line in the weekly report");
-  assert.match(report, new RegExp(`详情补全失败：[^\\n]*${refused}）：近 7 天失败 6/34 页`));
+  assert.match(report, new RegExp(`詳情補全失敗：[^\\n]*${refused}）：近 7 天失敗 6/34 頁`));
 });
 
 test("a low-frequency source quiet for a week is not late, while a daily one is", async () => {
@@ -237,8 +237,8 @@ test("a low-frequency source quiet for a week is not late, while a daily one is"
   assert.ok(group.overdue.some(s => s.id === daily), "a daily source quiet for a week is overdue");
   assert.deepEqual(await followUps(daily), [], "being late is not a daily follow-up: it may never end by itself");
   const report = await weekly();
-  assert.match(report, /超出自身更新节奏（先对照原站/);
-  assert.match(report, new RegExp(`${daily}）：近 7 天没有新内容，平时约 1 天一条（7 倍）`));
+  assert.match(report, /超出自身更新節奏（先對照原站/);
+  assert.match(report, new RegExp(`${daily}）：近 7 天沒有新內容，平時約 1 天一條（7 倍）`));
 });
 
 test("a source without enough history to have a rhythm stays visible instead of being called fine", async () => {
@@ -249,13 +249,13 @@ test("a source without enough history to have a rhythm stays visible instead of 
   assert.ok(group.unknown.some(s => s.id === thin), "two dated days are not a rhythm");
   assert.ok(group.unknown.some(s => s.id === never), "a source that never produced anything is visible too");
   assert.ok(!group.overdue.some(s => s.id === thin || s.id === never));
-  assert.match(rhythmText(group.unknown.find(s => s.id === thin)!), /近 7 天 \d+ 次抓取、0 条新内容；近 90 天里只有 2 天发过内容，还看不出固定频率/);
-  assert.match(rhythmText(group.unknown.find(s => s.id === never)!), /近 7 天 \d+ 次抓取、0 条新内容；从未收到过内容/);
+  assert.match(rhythmText(group.unknown.find(s => s.id === thin)!), /近 7 天 \d+ 次抓取、0 條新內容；近 90 天裡只有 2 天發過內容，還看不出固定頻率/);
+  assert.match(rhythmText(group.unknown.find(s => s.id === never)!), /近 7 天 \d+ 次抓取、0 條新內容；從未收到過內容/);
   assert.deepEqual([...await followUps(thin), ...await followUps(never)], []);
   const report = await weekly();
-  assert.match(report, new RegExp(`${thin}）：近 7 天 \\d+ 次抓取、0 条新内容；近 90 天里只有 2 天发过内容，还看不出固定频率`));
-  assert.match(report, new RegExp(`${never}）：近 7 天 \\d+ 次抓取、0 条新内容；从未收到过内容`));
-  assert.ok(!report.includes("后台“"));
+  assert.match(report, new RegExp(`${thin}）：近 7 天 \\d+ 次抓取、0 條新內容；近 90 天裡只有 2 天發過內容，還看不出固定頻率`));
+  assert.match(report, new RegExp(`${never}）：近 7 天 \\d+ 次抓取、0 條新內容；從未收到過內容`));
+  assert.ok(!report.includes("後臺“"));
 });
 
 // Which days count as output: a first import is the one day it arrived, only the rhythm window counts,
@@ -324,7 +324,7 @@ test("collection failures stay reported on their own, also when the source is pa
   assert.ok(!group.unstable.some(s => s.id === broken), "listed once, as failing, not also as failing often");
   assert.ok(group.overdue.some(s => s.id === broken), "a failed source past its rhythm is not excused by its silence");
   assert.deepEqual((await followUps(broken)).map(f => f.key), [`sources.failing.${broken}`]);
-  assert.match(await weekly(), new RegExp(`超出自身更新节奏[^\\n]*${broken}`));
+  assert.match(await weekly(), new RegExp(`超出自身更新節奏[^\\n]*${broken}`));
 });
 
 // Ways closing a source follow-up as "not to be fixed" goes wrong: it still shows in the digest; it is
@@ -339,7 +339,7 @@ test("a source follow-up closed as not to be fixed leaves the digest until it is
   const log = console.log;
   const digest = async () => {
     const lines: string[] = [];
-    console.log = (value: unknown) => { if (String(value).includes("系统日报")) lines.push(...JSON.parse(String(value)).lines); };
+    console.log = (value: unknown) => { if (String(value).includes("系統日報")) lines.push(...JSON.parse(String(value)).lines); };
     try { await sendDigest(now); } finally { console.log = log; }
     return lines.join("\n");
   };
@@ -354,21 +354,21 @@ test("a source follow-up closed as not to be fixed leaves the digest until it is
     assert.ok((await collectFindings(now)).some(f => f.key === "receipts.unknown"));
     await assert.rejects(dismissFollowUp("receipts.unknown", "covers later receipts too", "test", now), /source follow-up/);
 
-    await dismissFollowUp(KEY, "原站屏蔽机房出口，改用其他信源", "test", now);
+    await dismissFollowUp(KEY, "原站遮蔽機房出口，改用其他信源", "test", now);
     assert.ok(!(await digest()).includes(blocked));
     assert.ok(!(await digest()).includes(blocked), "still closed the next day while the problem lasts");
-    assert.match(await weekly(), new RegExp(`${blocked}）：连续失败 9 次，HTTP 403（已判定不修：原站屏蔽机房出口，改用其他信源）`));
+    assert.match(await weekly(), new RegExp(`${blocked}）：連續失敗 9 次，HTTP 403（已判定不修：原站遮蔽機房出口，改用其他信源）`));
 
-    assert.ok(await restoreFollowUp(KEY, "原站恢复访问", "test"));
+    assert.ok(await restoreFollowUp(KEY, "原站恢復訪問", "test"));
     assert.ok((await digest()).includes(blocked));
     assert.deepEqual((await audits()).map(a => [a.action, a.reason]),
-      [["followup.dismiss", "原站屏蔽机房出口，改用其他信源"], ["followup.restore", "原站恢复访问"]]);
+      [["followup.dismiss", "原站遮蔽機房出口，改用其他信源"], ["followup.restore", "原站恢復訪問"]]);
 
     // Closed again; the source then recovers and later fails again: the recurrence is listed.
-    await dismissFollowUp(KEY, "原站屏蔽机房出口，改用其他信源", "test", now);
+    await dismissFollowUp(KEY, "原站遮蔽機房出口，改用其他信源", "test", now);
     await sql`UPDATE sources SET health = 'ok', fail_count = 0, last_error = NULL WHERE id = ${blocked}`;
     await digest();
-    assert.equal(await restoreFollowUp(KEY, "已经过期", "test"), null, "the closure lapsed with the problem");
+    assert.equal(await restoreFollowUp(KEY, "已經過期", "test"), null, "the closure lapsed with the problem");
     await sql`UPDATE sources SET health = 'failing', fail_count = 5, last_error = 'HTTP 403' WHERE id = ${blocked}`;
     assert.ok((await digest()).includes(blocked));
   } finally {
@@ -402,7 +402,7 @@ test("a closure accepting an ongoing condition holds through its new failures fo
   const id = await source("accepted-ongoing");
   const key = `sources.details.${id}`;
   await detailRun(id, 20, 10);
-  await dismissFollowUp(key, "原站偶发超时，下一轮即恢复", "test", now, "ongoing");
+  await dismissFollowUp(key, "原站偶發超時，下一輪即恢復", "test", now, "ongoing");
   const failAt = async (at: number) => sql`INSERT INTO fetch_runs(source_id,started_at,finished_at,status,detail)
     VALUES(${id},${new Date(at)},${new Date(at + 1000)},'ok',${sql.json({ detailAttempts: 10, detailFailures: 2 })})`;
   const closed = async (at: number) => !!(await dismissedFollowUps(await collectFindings(at), at))[key];
@@ -430,24 +430,24 @@ test("the weekly report names sources paused or partly excluded this week, with 
   const at = new Date(now - 2 * 86400_000);
   const update = (id: string, actor: string, reason: string, before: object, after: object) =>
     sql`INSERT INTO audit_log(actor,action,subject,reason,before,after,created_at) VALUES(${actor},'source.update',${`source:${id}`},${reason},${sql.json(before as never)},${sql.json(after as never)},${at})`;
-  await update(paused, "ops-script", "订阅源反复 404，按授权暂停", { enabled: true }, { enabled: false });
-  await update(fenced, "admin:ou_test", "这一篇原文 404，只排除这一篇", { config: { feedUrl: "x" } }, { config: { feedUrl: "x", denyUrlPrefixes: ["https://example.test/dead"] } });
+  await update(paused, "ops-script", "訂閱源反覆 404，按授權暫停", { enabled: true }, { enabled: false });
+  await update(fenced, "admin:ou_test", "這一篇原文 404，只排除這一篇", { config: { feedUrl: "x" } }, { config: { feedUrl: "x", denyUrlPrefixes: ["https://example.test/dead"] } });
   // A second exclusion on the same source later that week is another line, not another source.
   await update(fenced, "ops-script", "又一篇原文 404", { config: { feedUrl: "x", denyUrlPrefixes: ["https://example.test/dead"] } }, { config: { feedUrl: "x", denyUrlPrefixes: ["https://example.test/dead", "https://example.test/gone"] } });
-  await update(resumed, "ops-script", "误停", { enabled: true }, { enabled: false });
+  await update(resumed, "ops-script", "誤停", { enabled: true }, { enabled: false });
   // A form saved again on a source paused before this week repeats enabled=false; it was not paused this week.
   const earlier = await source("paused-before-this-week");
   await sql`UPDATE sources SET enabled = false, health = 'paused' WHERE id = ${earlier}`;
-  await update(earlier, "admin:ou_test", "改一下名字", { enabled: false, name: "旧名" }, { enabled: false, name: earlier });
+  await update(earlier, "admin:ou_test", "改一下名字", { enabled: false, name: "舊名" }, { enabled: false, name: earlier });
   const text = await weekly();
-  assert.match(text, new RegExp(`本周停用、现在仍停着的信源 1 个：\\n· ${paused}（AI，[^）]+）：订阅源反复 404，按授权暂停`));
-  assert.match(text, new RegExp(`本周排除了部分入口的信源 1 个：\\n· ${fenced}（后台，[^，]+，排除 https://example\\.test/dead）：这一篇原文 404，只排除这一篇\\n· ${fenced}（AI，[^，]+，排除 https://example\\.test/gone）：又一篇原文 404`));
+  assert.match(text, new RegExp(`本週停用、現在仍停著的信源 1 個：\\n· ${paused}（AI，[^）]+）：訂閱源反覆 404，按授權暫停`));
+  assert.match(text, new RegExp(`本週排除了部分入口的信源 1 個：\\n· ${fenced}（後臺，[^，]+，排除 https://example\\.test/dead）：這一篇原文 404，只排除這一篇\\n· ${fenced}（AI，[^，]+，排除 https://example\\.test/gone）：又一篇原文 404`));
   assert.doesNotMatch(text, new RegExp(`· ${resumed}`), "a source enabled again is not listed as paused");
   assert.doesNotMatch(text, new RegExp(`· ${earlier}`), "a source paused before this week is not listed as paused this week");
 });
 
 test("sources only a module uses are counted and named on their own, apart from the news sources", async () => {
-  const counts = async () => Number(/在用信源 (\d+) 个/.exec(await weekly())![1]);
+  const counts = async () => Number(/在用信源 (\d+) 個/.exec(await weekly())![1]);
   const before = await counts();
   const watched = await source("module-only", "isolated");
   const failing = await source("module-only-failing", "isolated");
@@ -455,15 +455,15 @@ test("sources only a module uses are counted and named on their own, apart from 
   await sql`UPDATE sources SET health = 'failing' WHERE id = ${failing}`;
   const paused = await source("module-only-paused", "isolated");
   await sql`UPDATE sources SET uses = ${["watch"]}, enabled = false, health = 'paused' WHERE id = ${paused}`;
-  await sql`INSERT INTO audit_log(actor,action,subject,reason,before,after,created_at) VALUES('ops-script','source.update',${`source:${paused}`},'账号设为私密',${sql.json({ enabled: true })},${sql.json({ enabled: false })},${new Date(now - 86400_000)})`;
+  await sql`INSERT INTO audit_log(actor,action,subject,reason,before,after,created_at) VALUES('ops-script','source.update',${`source:${paused}`},'賬號設為私密',${sql.json({ enabled: true })},${sql.json({ enabled: false })},${new Date(now - 86400_000)})`;
   const text = await weekly();
   assert.equal(await counts(), before, "the news sources in use are counted without them");
-  assert.match(text, /另有只给模块用的信源 2 个（盯梢 2），抓取失败 1 个/);
-  assert.match(text, new RegExp(`· ${paused}（AI，[^，）]+，只给盯梢用）：账号设为私密`));
+  assert.match(text, /另有隻給模組用的信源 2 個（盯梢 2），抓取失敗 1 個/);
+  assert.match(text, new RegExp(`· ${paused}（AI，[^，）]+，只給盯梢用）：賬號設為私密`));
   // With every news source fine, a module's failing source still needs handling.
   const news = await sql<{ id: string }[]>`UPDATE sources SET enabled = false WHERE enabled AND uses = '{}' RETURNING id`;
   try {
-    assert.match(await weekly(), /需要处理的话，把这条转给 AI/);
+    assert.match(await weekly(), /需要處理的話，把這條轉給 AI/);
   } finally {
     if (news.length) await sql`UPDATE sources SET enabled = true WHERE id IN ${sql(news.map((r) => r.id))}`;
   }

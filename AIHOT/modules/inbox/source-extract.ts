@@ -113,7 +113,7 @@ async function page(get: Get, url: string, subject: string): Promise<Extracted> 
   try {
     const res = await get(url, { "accept-language": "zh-TW,zh;q=0.9,en;q=0.8" });
     if (res.status !== 200) failure = `HTTP ${res.status}`;
-    else if (!/html/.test(res.type)) failure = `不是網頁（${res.type || "未知類型"}）`;
+    else if (!/html/.test(res.type)) failure = `不是網頁（${res.type || "未知型別"}）`;
     else {
       const body = readable(res.text, res.url);
       if (body) return fromBody(body, res, "readability");

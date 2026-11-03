@@ -10,7 +10,7 @@ import { composeDaily, composeDueReports, composeWeekly, composeMonthly } from "
 
 const T = tag();
 const SOURCE = `report-recovery-${T}`;
-const answer = async (user: string) => ({ title: user.slice(0, 100), leadParagraph: "导语", highlights: [1], headline: "本期进展", overview: "总述", themes: [{ heading: "主题", summary: "摘要", refs: [1] }] });
+const answer = async (user: string) => ({ title: user.slice(0, 100), leadParagraph: "導語", highlights: [1], headline: "本期進展", overview: "總述", themes: [{ heading: "主題", summary: "摘要", refs: [1] }] });
 const provider = await stub(async (_hit, request) => ({
   choices: [{ message: { content: JSON.stringify(await answer(JSON.parse(request.body).messages.at(-1).content)) } }],
 }));

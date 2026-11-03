@@ -62,7 +62,7 @@ const FOLDERS: Array<[string, Origin]> = [["raw", "self"], ["gen", "generated"],
 export function typeOf(file: string): AssetType | null {
   const type = EXTENSIONS[path.extname(file).slice(1).toLowerCase()];
   if (!type) return null;
-  return type === "image" && /^(screenshot|截圖|截图)/i.test(path.basename(file)) ? "screenshot" : type;
+  return type === "image" && /^(screenshot|截圖|截圖)/i.test(path.basename(file)) ? "screenshot" : type;
 }
 
 interface Probe {
@@ -130,7 +130,7 @@ const cell = (s: string | null | undefined) => (s ?? "").replace(/\|/g, "／").r
 
 export function mediaMarkdown(assets: readonly Asset[], gaps: readonly Gap[]): string {
   const rows = assets.map(a => `| ${cell(a.path)} | ${a.type} | ${length(a.duration_ms)} | ${cell(a.source_url ?? "自己放入")} | ${cell(a.fetch_layer ? `${a.origin}（L${a.fetch_layer} ${a.fetch_method ?? ""}）` : a.origin)} | ${cell(a.usage_note)} |`);
-  const table = assets.length ? ["| 檔名 | 類型 | 長度 | 來源 | 取得方式 | 使用註記 |", "|---|---|---|---|---|---|", ...rows].join("\n") : "目前沒有素材。";
+  const table = assets.length ? ["| 檔名 | 型別 | 長度 | 來源 | 取得方式 | 使用註記 |", "|---|---|---|---|---|---|", ...rows].join("\n") : "目前沒有素材。";
   const missing = gaps.length ? gaps.map(g => `- **${g.need}**：${g.reason}。建議：${g.suggestion}`).join("\n") : "沒有缺口。";
   return `## 素材\n\n${table}\n\n## 缺口與建議\n\n${missing}`;
 }
@@ -156,7 +156,7 @@ export async function inventory(topicId: string, opts: { now?: Date; voiceover?:
       const type = typeOf(file);
       const rel = path.relative(dir, file).split(path.sep).join("/");
       if (!type) {
-        warnings.push(`不認得的檔案類型，已略過：${rel}`);
+        warnings.push(`不認得的檔案型別，已略過：${rel}`);
         continue;
       }
       const hash = await sha256(file);

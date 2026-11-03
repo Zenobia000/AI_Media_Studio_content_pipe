@@ -91,16 +91,16 @@ async function members(slug: string): Promise<string[]> {
 }
 
 test("a company topic takes the articles about it, not the ones that only mention it", async () => {
-  const about = await report({ at: hoursAgo(30), title: `Claude Code 推出插件 ${T}`, subjects: ["anthropic"] });
-  const product = await report({ at: hoursAgo(31), title: `Sonnet 新版上线 ${T}`, subjects: ["anthropic"] });
+  const about = await report({ at: hoursAgo(30), title: `Claude Code 推出外掛 ${T}`, subjects: ["anthropic"] });
+  const product = await report({ at: hoursAgo(31), title: `Sonnet 新版上線 ${T}`, subjects: ["anthropic"] });
   const english = await report({ at: hoursAgo(32), title: `新模型發布 ${T}`, originalTitle: `Anthropic launches a model ${T}`, subjects: ["anthropic", "openai"] });
-  const subpoena = await report({ at: hoursAgo(33), title: `加州检察长向 OpenAI 发出传票 ${T}`, subjects: ["openai", "anthropic", "hugging-face"] });
-  const lowerCase = await report({ at: hoursAgo(34), title: `openai 公布新的安全框架 ${T}`, subjects: ["openai", "anthropic"] });
-  const pact = await report({ at: hoursAgo(35), title: `二十余家科技公司签署安全协议 ${T}`, subjects: ["openai", "anthropic", "google"] });
-  const metadata = await report({ at: hoursAgo(36), title: `Metadata 标准发布，OpenAI 参与 ${T}`, subjects: ["meta", "openai"] });
-  const adjacent = await report({ at: hoursAgo(37), title: `发布Meta的新模型 ${T}`, subjects: ["meta", "openai"] });
-  const headline = await report({ at: hoursAgo(38), title: `Anthropic 被一篇盘点提到 ${T}`, subjects: ["google"] });
-  const agent = await report({ at: hoursAgo(39), title: `智能体框架发布 ${T}`, tags: ["Agent"] });
+  const subpoena = await report({ at: hoursAgo(33), title: `加州檢察長向 OpenAI 發出傳票 ${T}`, subjects: ["openai", "anthropic", "hugging-face"] });
+  const lowerCase = await report({ at: hoursAgo(34), title: `openai 公佈新的安全框架 ${T}`, subjects: ["openai", "anthropic"] });
+  const pact = await report({ at: hoursAgo(35), title: `二十餘家科技公司簽署安全協議 ${T}`, subjects: ["openai", "anthropic", "google"] });
+  const metadata = await report({ at: hoursAgo(36), title: `Metadata 標準發布，OpenAI 參與 ${T}`, subjects: ["meta", "openai"] });
+  const adjacent = await report({ at: hoursAgo(37), title: `發布Meta的新模型 ${T}`, subjects: ["meta", "openai"] });
+  const headline = await report({ at: hoursAgo(38), title: `Anthropic 被一篇盤點提到 ${T}`, subjects: ["google"] });
+  const agent = await report({ at: hoursAgo(39), title: `智慧體框架發布 ${T}`, tags: ["Agent"] });
 
   const anthropic = await members("anthropic");
   for (const id of [about, product, english]) assert.ok(anthropic.includes(id), "about Anthropic");
@@ -125,7 +125,7 @@ test("a company topic takes the articles about it, not the ones that only mentio
 });
 
 test("renaming a company topic keeps its old full name usable for search", async () => {
-  const id = await report({at: hoursAgo(2), title: `Kimi 新模型上线 ${T}`, subjects: ['kimi'], selected: false});
+  const id = await report({at: hoursAgo(2), title: `Kimi 新模型上線 ${T}`, subjects: ['kimi'], selected: false});
   for (const query of ['Kimi / 月之暗面', '月之暗面 / Kimi']) {
     const res = await app.inject({method: 'GET', url: `/api/site/pool?q=${encodeURIComponent(query)}`});
     assert.equal(res.statusCode, 200);
@@ -134,21 +134,21 @@ test("renaming a company topic keeps its old full name usable for search", async
 });
 
 test("a story page names the topics of its reports", async () => {
-  const launch = await story(`智能体框架 V2 发布 ${T}`);
-  await report({ source: OFFICIAL, at: hoursAgo(26), title: `智能体框架 V2 发布 ${T}`, tags: ["Agent"], fact: await fact(launch.id, "发布 V2") });
+  const launch = await story(`智慧體框架 V2 發布 ${T}`);
+  await report({ source: OFFICIAL, at: hoursAgo(26), title: `智慧體框架 V2 發布 ${T}`, tags: ["Agent"], fact: await fact(launch.id, "發布 V2") });
   assert.deepEqual(await topicsOfStory(launch.id), [{ slug: "agent", name: "Agent 智慧體" }, { slug: "model-releases", name: "模型發布" }]);
 });
 
 test("withdrawn articles stay out of lists and counts", async () => {
-  const kept = await report({ at: hoursAgo(5), title: `Kimi 发布新模型 ${T}`, subjects: ["kimi"] });
-  const withdrawn = await report({ at: hoursAgo(4), title: `Kimi 撤回的消息 ${T}`, subjects: ["kimi"] });
+  const kept = await report({ at: hoursAgo(5), title: `Kimi 發布新模型 ${T}`, subjects: ["kimi"] });
+  const withdrawn = await report({ at: hoursAgo(4), title: `Kimi 撤回的訊息 ${T}`, subjects: ["kimi"] });
   await sql`UPDATE publications SET visibility = 'withdrawn' WHERE article_id = ${withdrawn}`;
 
   const data = await page("kimi");
   assert.deepEqual(ids(data.items), [kept]);
   assert.equal(data.topic.total, 1);
   const summary = (await listTopicSummaries()).topics.find((t) => t.slug === "kimi")!;
-  assert.equal(summary.latest?.title, `Kimi 发布新模型 ${T}`, "the index shows the newest public article");
+  assert.equal(summary.latest?.title, `Kimi 發布新模型 ${T}`, "the index shows the newest public article");
 });
 
 test("every topic has a page; unknown topics and pages past the end have none", async () => {

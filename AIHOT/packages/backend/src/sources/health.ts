@@ -62,19 +62,19 @@ export interface QuietSource extends SourceHealthRow {
   quiet_days: number | null;
 }
 
-export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "编辑内容", hot_signal: "热度信号" };
+export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "編輯內容", hot_signal: "熱度訊號" };
 
 /** A fixable source problem. */
 export type SourceProblem = "failing" | "unstable" | "undated" | "revisions" | "details";
 /** Each fixable problem as it is listed, per source: `action` is for the daily follow-up. */
 export const SOURCE_PROBLEMS: { problem: SourceProblem; title: string; describe: (s: SourceHealthRow) => string; observedAt: (s: SourceHealthRow) => Date | null; action: string }[] = [
-  { problem: "failing", observedAt: s => s.last_failed_at, title: "连续抓取失败", describe: s => `连续失败 ${s.fail_count} 次${s.last_error ? `，${s.last_error}` : ""}`, action: "转给 AI 检查抓取错误" },
-  { problem: "unstable", observedAt: s => s.last_unusable_at, title: "反复读不出条目", describe: s => `近 7 天 ${s.unusable}/${s.runs} 次抓到了页面却没解析出条目`, action: "即使最近成功也需检查，避免继续漏收" },
-  { problem: "undated", observedAt: s => s.last_undated_at, title: "文章缺发布时间", describe: s => `近 7 天缺发布时间 ${s.undated} 篇`,
-    action: "缺时间可能让新闻按历史文章处理" },
-  { problem: "revisions", observedAt: s => s.last_repeated_at, title: "文章反复修订", describe: s => `近 7 天反复修订 ${s.repeated} 篇`,
-    action: "需核对正文是否混入变化内容" },
-  { problem: "details", observedAt: s => s.last_detail_failure_at, title: "详情补全失败", describe: s => `近 7 天失败 ${s.detail_failures}/${s.detail_attempts} 页`, action: "查看抓取记录中的详情地址与错误" },
+  { problem: "failing", observedAt: s => s.last_failed_at, title: "連續抓取失敗", describe: s => `連續失敗 ${s.fail_count} 次${s.last_error ? `，${s.last_error}` : ""}`, action: "轉給 AI 檢查抓取錯誤" },
+  { problem: "unstable", observedAt: s => s.last_unusable_at, title: "反覆讀不出條目", describe: s => `近 7 天 ${s.unusable}/${s.runs} 次抓到了頁面卻沒解析出條目`, action: "即使最近成功也需檢查，避免繼續漏收" },
+  { problem: "undated", observedAt: s => s.last_undated_at, title: "文章缺發布時間", describe: s => `近 7 天缺發布時間 ${s.undated} 篇`,
+    action: "缺時間可能讓新聞按歷史文章處理" },
+  { problem: "revisions", observedAt: s => s.last_repeated_at, title: "文章反覆修訂", describe: s => `近 7 天反覆修訂 ${s.repeated} 篇`,
+    action: "需核對正文是否混入變化內容" },
+  { problem: "details", observedAt: s => s.last_detail_failure_at, title: "詳情補全失敗", describe: s => `近 7 天失敗 ${s.detail_failures}/${s.detail_attempts} 頁`, action: "檢視抓取記錄中的詳情地址與錯誤" },
 ];
 
 /** A run error that is the network or the origin's answer, not our reading of the page (fetch_runs.error, 10-01..11-01). */
@@ -99,13 +99,13 @@ export function rhythmMultiple(s: QuietSource): number | null {
 export function rhythmText(s: QuietSource): string {
   const times = rhythmMultiple(s);
   if (times === null) {
-    const run = `近 7 天 ${s.runs} 次抓取、0 条新内容`;
-    if (!s.ever_output) return `${run}；从未收到过内容`;
+    const run = `近 7 天 ${s.runs} 次抓取、0 條新內容`;
+    if (!s.ever_output) return `${run}；從未收到過內容`;
     return s.evidence_days > 0
-      ? `${run}；近 ${RHYTHM_WINDOW_DAYS} 天里只有 ${s.evidence_days} 天发过内容，还看不出固定频率`
-      : `${run}；近 ${RHYTHM_WINDOW_DAYS} 天没有发过内容`;
+      ? `${run}；近 ${RHYTHM_WINDOW_DAYS} 天裡只有 ${s.evidence_days} 天發過內容，還看不出固定頻率`
+      : `${run}；近 ${RHYTHM_WINDOW_DAYS} 天沒有發過內容`;
   }
-  return `近 ${s.quiet_days} 天没有新内容，平时约 ${s.median_gap_days} 天一条（${Number(times.toFixed(1))} 倍）`;
+  return `近 ${s.quiet_days} 天沒有新內容，平時約 ${s.median_gap_days} 天一條（${Number(times.toFixed(1))} 倍）`;
 }
 
 /** Seven days of outcomes, including intermittent failures that a later success clears on sources.

@@ -35,7 +35,7 @@ const provider = await stub(async (_hit, request) => {
   const content = step === "prefilter" ? { label: "PASS", reason: "AI model release" }
     : step === "score" ? { attentionScore: SELECTING_SCORE }
       : step === "structure" ? { category: "ai-models", tags: ["模型發布"], subjects: [], fact: { title: "新模型發布" } }
-        : { itemType: "model_release", authorRole: "principal", tags: ["模型發布"], editorialJudgment: "模型有明确的能力提升", titleZh: `新模型發布 ${T}`, summaryZh: "模型發布并提供了评测和价格。" };
+        : { itemType: "model_release", authorRole: "principal", tags: ["模型發布"], editorialJudgment: "模型有明確的能力提升", titleZh: `新模型發布 ${T}`, summaryZh: "模型發布並提供了評測和價格。" };
   return { id: `stub-${active.calls.length}`, choices: [{ message: { content: JSON.stringify(content) } }], usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } };
 });
 const children = new Set<ReturnType<typeof spawn>>();

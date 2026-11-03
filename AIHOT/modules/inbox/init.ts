@@ -48,9 +48,9 @@ X 收集器（R4）需要 X API 或 SocialData。要追的 List ID 與帳號寫�
 
 const CREATORS = `# 中文圈創作者
 
-在地熱度檢查（R4）要比對的創作者與平台帳號。
+在地熱度檢查（R4）要比對的創作者與平臺帳號。
 
-| 名稱 | 平台 | 帳號 |
+| 名稱 | 平臺 | 帳號 |
 |---|---|---|
 | | | |
 `;
@@ -111,7 +111,7 @@ export const CLAUDE_MD = `# 內容產線工作區
 | \`add-source\` | 手動新增候選 |
 | \`open-topic\`、\`merge-candidates\` | 建題、合併候選 |
 | \`fetch-topic\` | 擷取來源原文 |
-| \`fetch-media\` | 下載網頁與影音平台上的媒體 |
+| \`fetch-media\` | 下載網頁與影音平臺上的媒體 |
 | \`preprocess-topic\` | 素材前處理（影片 30fps、旁白響度 −14 LUFS） |
 | \`assets-topic\` | 盤點素材與缺口 |
 | \`doctor\` | 檢查環境 |

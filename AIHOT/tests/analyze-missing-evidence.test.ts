@@ -16,7 +16,7 @@ const provider = await stub((_hit, request) => {
   const output = step === "prefilter" ? { label, reason: "fixture" }
     : step === "score" ? { attentionScore: SELECTING_SCORE }
     : step === "structure" ? { scope: "unknown", category: "model", tags: [], subjects: [], fact: null }
-    : { itemType: "model_release", authorRole: "principal", titleZh: "模型發布", summaryZh: "来源确认模型發布。", bodyZh: "来源确认模型發布。", tags: [], editorialJudgment: "fixture" };
+    : { itemType: "model_release", authorRole: "principal", titleZh: "模型發布", summaryZh: "來源確認模型發布。", bodyZh: "來源確認模型發布。", tags: [], editorialJudgment: "fixture" };
   return { choices: [{ message: { content: JSON.stringify(output) } }] };
 });
 pointModels(provider.url);
@@ -45,8 +45,8 @@ test("title-only articles wait for evidence without a model call (no prefilter l
 
 test("real body, feed excerpt and quoted text still receive both scores and writing", async (t) => {
   label = "PASS";
-  for (const changes of [{ bodyText: "来源确认模型發布。" }, { excerpt: "来源确认模型發布。" },
-    { xPost: { text: "支持", quoted: { text: "来源确认模型發布。" } } }]) await t.test(JSON.stringify(changes), async () => {
+  for (const changes of [{ bodyText: "來源確認模型發布。" }, { excerpt: "來源確認模型發布。" },
+    { xPost: { text: "支援", quoted: { text: "來源確認模型發布。" } } }]) await t.test(JSON.stringify(changes), async () => {
     steps.length = 0;
     const out = normalizeAnalysis(await runFresh(article(changes)));
     assert.equal(steps.filter((step) => step === "score").length, 2);
@@ -76,7 +76,7 @@ test("a later material revision can be scored after the title-only revision wait
   const input = article();
   assert.equal(normalizeAnalysis(await runFresh(input)).relevance, "unknown");
   steps.length = 0;
-  const out = normalizeAnalysis(await runFresh({ ...input, revision: 2, bodyStatus: "ok", bodyText: "来源确认模型發布。" }));
+  const out = normalizeAnalysis(await runFresh({ ...input, revision: 2, bodyStatus: "ok", bodyText: "來源確認模型發布。" }));
   assert.equal(steps.filter((step) => step === "score").length, 2);
   assert.equal(out.relevance, "pass");
   assert.equal(out.selected, true);
