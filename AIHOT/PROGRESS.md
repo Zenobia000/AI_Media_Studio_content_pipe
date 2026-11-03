@@ -118,7 +118,7 @@
 ## 6. 接下來
 
 **正在累積時間的（2026-11-03 起，電腦要一直開著 Docker）**
-1. 來源穩不穩的長期統計：整套網站已在跑，14 天後（約 11-17）執行 `docker compose exec -T api node scripts/source-stats.ts --days 14`（新增的工具，從 `fetch_runs` 算每個來源的成功率；需要先把 `scripts/source-stats.ts` 打包進映像，重建後才有，目前是手動複製進去的）
+1. 來源穩不穩的長期統計：整套網站已在跑，14 天後（約 11-17）執行 `docker compose exec -T api node scripts/source-stats.ts --days 14`（新增的工具，從 `fetch_runs` 算每個來源的成功率；映像已重建，內含此工具）
 2. changedetection.io 已在 http://localhost:5000 跑起來，但**還沒加 20 個頁面**：要在網頁介面挑 20 頁加進去，並把 Settings > API 的金鑰填進 `.env` 的 `CHANGEDETECTION_API_KEY`（我這邊被擋下，不能自己去讀金鑰）。14 天後再數假警報
 
 **要先決定，或需要別人**
