@@ -7,9 +7,14 @@ import { after, test } from "node:test";
 import { closeDb, sql } from "@aihot/backend/db";
 import { addSource } from "../manual.ts";
 import { writeInbox } from "../server.ts";
+import type { Get } from "../source-extract.ts";
 import { setTitleZh } from "../titles.ts";
 
 after(() => closeDb());
+
+const offline: Get = async () => {
+  throw new Error("offline");
+};
 
 // Taipei is UTC+8: these instants are 10:00 on the 17th, 18th and 19th.
 const at = (day: number, hour = 2) => new Date(Date.UTC(2026, 9, day, hour));
@@ -19,8 +24,8 @@ test("over three days a ticked link and its note stay, an unticked one is carrie
   process.env.INBOX_DIR = dir;
   const read = (day: number) => readFile(path.join(dir, `2026-10-${day}.md`), "utf8");
   try {
-    const kept = await addSource(`https://example.com/kept-${tag()}`, { note: "要做", queue: false });
-    const dropped = await addSource(`https://example.com/dropped-${tag()}`, { note: "不做", queue: false });
+    const kept = await addSource(`https://example.com/kept-${tag()}`, { note: "要做", queue: false, get: offline });
+    const dropped = await addSource(`https://example.com/dropped-${tag()}`, { note: "不做", queue: false, get: offline });
     // Both were added now; pretend the first inbox of the 17th is when they were first listed.
     await sql`UPDATE manual_candidates SET added_at = ${at(17)}`;
 
@@ -53,7 +58,7 @@ test("taking a tick away puts the candidate back, so it is not kept past its 48 
   process.env.INBOX_DIR = dir;
   const file = (day: number) => path.join(dir, `2026-10-${day}.md`);
   try {
-    const item = await addSource(`https://example.com/untick-${tag()}`, { queue: false });
+    const item = await addSource(`https://example.com/untick-${tag()}`, { queue: false, get: offline });
     const id = `cand_${item.articleId}`;
     await sql`UPDATE manual_candidates SET added_at = ${at(10)} WHERE article_id = ${item.articleId}`;
     await writeInbox(at(10));
