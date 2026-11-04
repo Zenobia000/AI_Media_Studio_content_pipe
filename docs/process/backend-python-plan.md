@@ -51,8 +51,12 @@
 |---|---|---|
 | 0 底層 | ✅（除模組註冊） | `time.py`、`lib/{text,ids,cursor,video_url,image_url}.py`（用 Node 版輸出對照）、`lib/netguard.py`（出站位址防護，40 個位址對照）、`lib/http_fetch.py`（出站請求：逐跳檢查、固定連線位址、大小與時間上限）、`lib/page_content.py`、`lib/cache.py`、`audit.py`、`config.py`、`pack.py`＋`pack/*.json`、`http_policy.py`。`modules.ts` 沒搬：網站已經沒有自己的模組（inbox 已搬出去），註冊表是空的 |
 | 1 契約 | 併入階段 2 | Node 版的契約只是 TypeScript 型別，行為在各路由裡；Python 版在搬每條路由時定義回應結構，用對照測試確認 |
-| 2 唯讀公開 API | ◐ 進行中 | ✅ FastAPI 骨架（`api/app.py`）、`api/respond.py`、`/api/v1/*` 的 404／405／預檢、**`/api/v1/items`**（`engine/publication/{scope,pool,v1}.py`、`engine/taxonomy.py`：模式、視窗、排序、分類、搜尋與容量限制、游標分頁、ETag／304、各種錯誤請求；52 條對照測試）。⬜ `hot-topics`、`stories/:id`（需要 `events/hot`、`events/related`、代表報導、故事文字、主題）、`dailies`／`weeklies`／`monthlies`（`publication/reports.ts` 661 行）、`selected/snapshot`／`changes`（需要 `publication/publish.ts` 的帳本）、`/api/site/*`、feeds、sitemap、OG 圖、媒體、agent、MCP、靜態檔 |
-| 3～7 | ⬜ | |
+| 2 唯讀公開 API | ◐ 約一半 | ✅ **v1 全部**（items、hot-topics、stories、dailies、weeklies、monthlies、selected/snapshot、selected/changes）、**網站專用**：meta、contact、stats、changelog、items/availability、timeline、pool（含搜尋與相關度排序）、search/suggestions。⬜ 網站專用：hot、items/:id（文章頁，需要內文清理與影片正規化）、items/:id/original、stories/:id（熱度曲線）、stories/:id/followups、groups/:id/reports、topics、topics/:slug、reports/* 的詳細頁與導覽、feedback、items/:id/markdown。⬜ 其他：feeds（RSS）、sitemap、llms.txt、靜態檔與 openapi-v1.json、OG 圖、圖片代理與媒體、agent、MCP、ingest、後臺登入與後臺 API。**127 條對照測試** |
+| 3 信源收集與入庫 | ⬜ | `sources/`（約 2,700 行）、`content/`（約 1,500 行）：收集器、文章入庫（取代 `collect/materials.py` 的精簡版）、原文擷取 |
+| 4 工作佇列與排程 | ⬜ | `jobs/`、`apps/worker`、pg-boss 的替代 |
+| 5 事件聚類、熱度、模型精選與寫作 | ⬜ | `events/`（約 2,000 行）、`editorial/`（約 1,800 行）、`providers/`（約 1,200 行）；需要錄製的模型回應才能對照 |
+| 6 發布、後臺、營運、日報產生、通知 | ⬜ | `publication/publish.ts`（463 行）、`admin/`（約 1,600 行）、`operations/`（約 1,500 行）、`reports/`（約 800 行）、`notify/`（約 700 行） |
+| 7 刪掉 TypeScript 後端 | ⬜ | |
 
 ### 對照用的資料
 `AIHOT/scripts/seed-parity.ts` 用 Node 版自己的函式（`upsertMaterial`、`publishArticle`、`computeHotRanking`）在全新、已遷移的資料庫上造一份固定結構的資料：40 篇公開文章（9 篇精選、含沒有分數與低於瀏覽門檻的、超過 24 小時視窗的、一篇 X 貼文）、5 個事件（各有 3 篇報導）、1 份熱度榜、日報／週報／月報各 1 份。**不需要模型金鑰**。造資料時間是相對「現在」的，所以每次要重新造一份（`PARITY_DATABASE_URL` 指向它）。等 Python 的 `publish` 搬完，這支腳本也要改寫成 Python，Node 就不再需要。
