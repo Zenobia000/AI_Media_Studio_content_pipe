@@ -1,0 +1,222 @@
+{
+ "ABOUT": {
+  "kicker": "關於 MediaHOT",
+  "description": "關於 MediaHOT：從一批 AI 信源裡挑出值得看的動態，把同一件事的多篇報道歸到一起，每天 08:00 出一份日報。",
+  "headline": [
+   "AI 圈每天都有新動靜，",
+   "值得看的，只有幾條。"
+  ],
+  "lead": "MediaHOT 替你盯著{sources}個信源：抓取、歸併、打分、精選，每天 08:00 出一份日報。免費，不用註冊。",
+  "sourcesFallback": "十幾",
+  "steps": {
+   "collect": "官方部落格、媒體和個人的訂閱源都在看；更新越勤的源看得越勤，最快 15 分鐘看一次。",
+   "store": "抓到的都存下來，同一件事的報道歸到一起，熱點榜就是從這裡算出來的。",
+   "select": "模型先看是不是這個行業的事、有沒有實際資訊，再寫中文標題、摘要和推薦理由；營銷稿和重複轉發進不來。",
+   "publish": "每天 08:00 出日報，每週一 10:00 出週報，每月 1 日 10:30 出月報。"
+  },
+  "maker": null,
+  "copyright": [
+   "MediaHOT 是聚合摘要和閱讀索引，原文版權歸各來源所有。如果你是來源方，希望更正、下架或調整展示方式，可以通過",
+   "聯絡我們。"
+  ],
+  "termsAnchor": null
+ },
+ "ACCESS": {
+  "ratePerMinute": null,
+  "userAgent": null
+ },
+ "ADMIN": {
+  "feedbackNote": null,
+  "banNote": null,
+  "budgetNote": null
+ },
+ "AGENT": {
+  "search": {
+   "scope": "按公司、產品、人物或話題搜最近 7 天",
+   "ask": "這家公司最近發了什麼？"
+  }
+ },
+ "ALERTS": {
+  "quietMinutes": 360,
+  "quietWhileFetchingMinutes": 720,
+  "usualFlow": null,
+  "workerLogs": "看 worker 的日誌（docker compose logs worker）"
+ },
+ "CARDS": {
+  "site": {
+   "kicker": "每日 AI 精選",
+   "title": "值得關注的 AI 動態",
+   "subtitle": "從一批 AI 信源裡挑出值得看的動態，把同一件事的多篇報道歸到一起，每天 08:00 出一份日報。"
+  },
+  "all": {
+   "kicker": "全部 AI 動態",
+   "title": "所有信源的最新動態，一站看完",
+   "subtitle": "按時間彙總各信源的最新動態，可按類別與標籤篩選。"
+  },
+  "hot": {
+   "kicker": "熱點榜",
+   "title": "過去 48 小時，大家在討論什麼",
+   "subtitle": "熱度指數、趨勢與組成熱度的公開來源。",
+   "accent": "hot"
+  },
+  "daily": {
+   "kicker": "AI 日報",
+   "title": "每天 8 點，一份讀得完的 AI 日報",
+   "subtitle": "前一天值得關注的 AI 動態。"
+  },
+  "weekly": {
+   "kicker": "AI 週報",
+   "title": "一週大事，一次看清",
+   "subtitle": "本週的主線、重要發布與值得回看的討論。"
+  },
+  "monthly": {
+   "kicker": "AI 月報",
+   "title": "一個月的變化",
+   "subtitle": "月度主線與關鍵事件回顧。"
+  },
+  "about": {
+   "kicker": "關於",
+   "title": "關於 MediaHOT",
+   "subtitle": "從一批 AI 信源裡挑出值得看的動態，把同一件事的多篇報道歸到一起，每天 08:00 出一份日報。"
+  },
+  "terms": {
+   "kicker": "使用規則",
+   "title": "MediaHOT 使用規則",
+   "subtitle": "網頁、API、RSS 與 MCP 的使用範圍。"
+  },
+  "privacy": {
+   "kicker": "隱私說明",
+   "title": "MediaHOT 隱私說明",
+   "subtitle": "訪問日誌、瀏覽器本地資料與反饋資料的處理方式。"
+  },
+  "changelog": {
+   "kicker": "更新日誌",
+   "title": "MediaHOT 更新日誌",
+   "subtitle": "功能更新、最佳化、公告與下線記錄。"
+  },
+  "feedback": {
+   "kicker": "反饋",
+   "title": "告訴我們哪裡可以更好",
+   "subtitle": "內容、功能、接入，或來源方的更正與下架請求。"
+  },
+  "agent": {
+   "kicker": "Agent 接入",
+   "title": "把 MediaHOT 接進你的 Agent",
+   "subtitle": "MCP、RSS、API 三種方式，匿名只讀，無需 API Key。"
+  }
+ },
+ "COMMUNITY_FEEDS": {
+  "dev": [],
+  "hn": []
+ },
+ "DEPLOYMENT": {
+  "credentialsDir": null,
+  "credentialFiles": {},
+  "requiredSecrets": [],
+  "originHost": null,
+  "loginReturnHeader": null,
+  "imageUpstreamBudget": null,
+  "directFetchHosts": [],
+  "selectionGold": null
+ },
+ "EDITION_TIMES": {
+  "daily": "08:00",
+  "weekly": "10:00",
+  "monthly": "10:30"
+ },
+ "EDITION_WHEN": {
+  "daily": "每天 08:00",
+  "weekly": "每週一 10:00",
+  "monthly": "每月 1 日 10:30"
+ },
+ "FEED_COPY": {
+  "allLeavesOut": []
+ },
+ "ITEM_COPY": {
+  "reasonLabel": "推薦理由",
+  "showScore": true
+ },
+ "NAV": {
+  "hidden": []
+ },
+ "POLICY": {
+  "terms": {
+   "name": "使用規則",
+   "description": "本站網頁、RSS、公開 API 與 MCP 的使用規則。",
+   "covers": null,
+   "notes": null,
+   "license": null,
+   "headers": null
+  },
+  "privacy": {
+   "description": "本站如何處理瀏覽器本地資料、反饋資料與訪問日誌。",
+   "covers": null
+  },
+  "xPostIsFullText": true
+ },
+ "PUBLIC_CATEGORIES": {
+  "merge": {},
+  "feedLabels": {}
+ },
+ "REPORTS": {
+  "imprint": "MEDIAHOT",
+  "motto": "AI",
+  "descriptions": {
+   "daily": "MediaHOT 每天 08:00（北京時間）發布的 AI 行業精編日報",
+   "weekly": "每週 AI 行業綜合回顧",
+   "monthly": "每月 AI 行業盤點"
+  },
+  "entry": {
+   "measure": "件",
+   "noun": "大事"
+  },
+  "metricUnits": {
+   "sourcesCount": "個來源",
+   "firstPartyEvents": "件一手發布",
+   "selectedCount": "條精選",
+   "reportsCovered": "期日報"
+  },
+  "shareUnit": "件大事",
+  "quiet": {
+   "title": "今日安靜，無大事發生",
+   "paragraph": "北京時間 {start} 至 {end}，沒有新的 AI 大事。"
+  }
+ },
+ "SITE": {
+  "name": "MediaHOT",
+  "subject": "AI",
+  "homeTitle": "MediaHOT — AI 與科技動態 · 每日精選與日報",
+  "topicsTitle": "AI 主題：公司與模型、技術方向、內容形態的最新動態",
+  "feedbackExample": "例如：我在搜尋某個關鍵詞時遇到……我原本想……",
+  "feedbackLead": "發現 bug、想要的功能、看不順眼的地方，都可以告訴我們。",
+  "feedbackEmailHint": "留下郵箱，我們可以回信聯絡你",
+  "description": "從一批 AI 信源裡挑出值得看的動態，把同一件事的多篇報道歸到一起，每天 08:00 出一份日報。",
+  "llmsIntro": null,
+  "tagline": "值得關注的 AI 動態",
+  "keywords": [
+   "AI 資訊",
+   "AI 新聞",
+   "AI 日報",
+   "科技動態"
+  ],
+  "since": null,
+  "locale": "zh-TW",
+  "defaultUrl": "http://localhost:3000",
+  "rootIcons": [],
+  "mcpPrefix": "mediahot",
+  "interfaceVersion": "4.0.0",
+  "contactEmail": null,
+  "footerNote": "AI Media Studio 內容產線 · 素材收集",
+  "icp": null,
+  "psb": null,
+  "github": null,
+  "organization": {
+   "name": "MediaHOT",
+   "founder": null
+  },
+  "crawlerName": "MediaHOTBot/1.0"
+ },
+ "SOURCE_DEFAULTS": {
+  "siteFulltext": false
+ }
+}

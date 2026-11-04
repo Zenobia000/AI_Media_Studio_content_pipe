@@ -1,7 +1,7 @@
 # 整個後端改成 Python：計畫
 
 日期 2026-11-04。**目標**：AIHOT 的後端（`packages/backend`、`apps/api`、`apps/worker`、`packages/contracts`、`scripts/`）全部改成 Python，只留網站前端（`apps/web`，React Router）。
-**順序**：先有 MVP、跟周長曉與楊舒媁串接（見 [mvp-handoff.md](mvp-handoff.md)），再做整體改寫與優化。收集、補料、inbox 已經是 Python，不在這份範圍。
+**順序**：MVP 已完成（見 [mvp-handoff.md](mvp-handoff.md)）。2026-11-04 起依這份計畫開始改寫，不等串接結果。收集、補料、inbox 已經是 Python，不在這份範圍。
 
 ## 規模（行數，不含測試）
 
@@ -44,3 +44,18 @@
 - 約 3 萬行加上測試，估計是好幾週的工作，不是一兩天。階段 5 的模型呼叫沒有錄製的回應就不能驗證，而且正式環境要花錢。
 - API 回應的細節（欄位順序、日期格式、空值）網站前端可能依賴，所以才用逐條比對。
 - 其他人的資料表與程式（楊舒媁的狀態機、發布）會接在這個後端上，順序要在串接時一起確認，避免改兩次。
+
+## 進度（`src/newsroom/engine/`）
+
+| 階段 | 狀態 | 內容 |
+|---|---|---|
+| 0 底層 | ◐ 做了一半 | ✅ `time.py`、`lib/text.py`、`lib/ids.py`、`lib/cursor.py`、`lib/video_url.py`、`lib/image_url.py`（用 Node 版輸出做對照，68 個測試）、`config.py`（設定與憑證）、`pack.py`＋`pack/*.json`（網站與產業設定包，由 TypeScript 常數匯出成資料，之後以 JSON 為準）、`core/urls.py`、`core/db.py`（numeric 讀成 float，和 TypeScript 版一致）。⬜ `lib/http-fetch.ts`（出站請求防護、重定向、大小限制）、`egress-proxy`、`cache`、`page-content`、`audit`、`modules` |
+| 1 契約 | ⬜ | `packages/contracts/src/site.ts`（492 行）、`admin.ts`（441）、`http-policy.ts`（155）、`mcp.ts` 等，要改成 pydantic 模型 |
+| 2 唯讀公開 API | ⬜ | |
+| 3～7 | ⬜ | |
+
+### 這輪發現的差異（TypeScript 版的行為，Python 版照搬並註明）
+- `lib/text.ts` 的 `cjkRatio` 想寫相容漢字區（U+F900），實際打成 `豈`（U+8C48），所以範圍是 U+3400–U+FAFF，**韓文也算 CJK**。Python 版保持一樣，並在程式註解寫明。如果這是 bug，兩邊要一起改。
+
+### 設定包
+`site.ts` 裡的 `subjectAfter`、`withSubject` 是函式，已手動搬成 `pack.subject_after`、`pack.with_subject`，並用匯出的已求值字串驗證一致。`industry/` 的提示詞（`prompts/*.md`）、`sources.json`、`topics.json` 本來就是資料，階段 5 再接。

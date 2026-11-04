@@ -1,0 +1,21 @@
+{
+ "SELECTION": {
+  "thresholds": {
+   "T1": 60,
+   "T1_5": 65,
+   "T2": 76
+  },
+  "classes": {
+   "ecosystem": {
+    "label": "生態與基礎設施",
+    "threshold": 70
+   },
+   "leaderboard": {
+    "label": "評測榜單",
+    "threshold": 76
+   }
+  },
+  "understandFloor": 50,
+  "browseFloor": 40
+ }
+}
