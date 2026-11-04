@@ -41,6 +41,7 @@
 | 網頁列表收集器（選擇器、Markdown、Docusaurus／Intercom 更新日誌、mimo 首頁）的列表讀取 | 假網站放六種頁面，Node 與 Python 各讀一次，逐筆比對。選擇器用 soupsieve、HTML 用 html5lib，對應 cheerio／parse5。詳情頁補抓（`fetchDetail`）要等 `content/extract.ts` 移植；經 Jina 的列表尚未移植 |
 | 信源健康度（`sources/health`：連續失敗、反覆讀不出、缺時間、反覆修訂、詳情失敗、各信源自己的發文節奏與報告文字） | 一份資料庫放進合成的抓取紀錄、文章與修訂，Node 與 Python 在同一時刻各讀一次，比對分組與報告文字 |
 | 收集一個信源的整個流程（`collectSource`：RSS、網頁列表、JSON 列表；過濾、首次匯入的範圍與數量、新舊判斷、入庫、交給後續處理、成功與失敗的記錄、冷卻） | 兩份資料庫複本、同一個本機網站，Node 與 Python 各收集一輪：首次匯入、沒變化的第二輪（304）、網站改版後（新文章、改標題、換網址）。比對信源、抓取紀錄、文章、版本、發現紀錄與排進佇列的工作。尚未移植：X 搜尋、詳情頁補抓（要先移植 `content/extract.ts`）、排程與間隔調整 |
+| 文章正文擷取：Mozilla Readability 0.6.0 逐方法移植（含 linkedom 的 DOM 行為：屬性順序、class 正規化、大小寫、`getElementsByTagName` 規則），加上來源規則（保留程式碼區塊／描述表格、SVG 圖說、React 串流、行內隱藏樣式、旁註、版面 class）、頁面發布時間、尾端雜訊、清理後的結果 | 由 Node 對同一批網頁各讀一次逐項比對：27 頁手寫版型加 2,000 頁隨機組合的 Readability 輸出，另有 150 頁加 14 頁功能頁的完整流程（含發布時間與清理）。抓取並寫回資料庫的 `extractArticleBody` 與收集時的詳情頁補抓（`fetchDetail`），也以資料庫複本比對。**未移植：** 讀不出來時改用付費 Jina 的備援（讀不出的文章在 Python 一律標為「未確認」）、X 文章（要 SocialData）、模型翻譯隨版面更動的 `rebaseTranslation` |
 
 ## B. 做得了，但驗證不了（需要金鑰、外部服務或真實資料）
 

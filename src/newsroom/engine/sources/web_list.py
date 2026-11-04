@@ -441,5 +441,67 @@ def fetch_web_list(source: dict) -> list[dict]:
 
 
 def fetch_detail(url: str, source: dict, need: dict) -> dict:
-    """What a listing's detail pages add (config.detail): the date, title and summary its rules find, and the body for a source that reads whole."""
-    raise NotImplementedError("detail pages need the article reader (content/extract.ts), which is not ported yet")
+    """What a listing's detail pages add (config.detail): the date, title and summary its rules find, and the body for a source that reads whole. Each
+    rule reads the rendering it was written for; a regex over a Jina rendering needs the paid reader, which is not ported."""
+    from newsroom.engine.extract import is_sign_in_redirect
+    from newsroom.engine.lib.page_content import UnavailablePageError
+    from newsroom.engine.page_reader import article_utc_offset, page_publication_date, page_rules, readable_document
+
+    cfg = source["config"]
+    d = cfg.get("detail") or {}
+    offset = article_utc_offset(cfg)
+    jina_listing = str(cfg["url"] if cfg.get("url") is not None else "").startswith(JINA_PREFIX)
+    date_in_jina = need.get("date") and jina_listing and bool(d.get("publishedAtRegex"))
+    title_in_jina = need.get("title") and jina_listing and bool(d.get("titleRegex"))
+    if date_in_jina or title_in_jina:
+        raise NotImplementedError("reading a detail page through Jina needs the paid-request receipts, which are not ported yet")
+    html = None
+    page = None
+    if (need.get("date") and not date_in_jina) or (need.get("title") and not title_in_jina) or need.get("summary"):
+        # The rules read a page's head and byline. A page past the size limit is read up to it rather than failing on every run; a body cut there is
+        # not kept.
+        res = require_ok(guarded_fetch(url, headers=language_headers(cfg.get("acceptLanguage")), timeout_ms=20_000, truncate=True), "detail")
+        # A sign-in form is no detail page: its title, date and text are not the post's.
+        if is_sign_in_redirect(url, res.url):
+            raise UnavailablePageError("redirected to a sign-in form")
+        html = res.text()
+        page = {"document": content_document(html), "url": res.url, "whole": not res.truncated and "html" in (res.headers.get("content-type") or "")}
+    soup = parse_html(html) if html is not None else None
+
+    date = NO_DATE
+    if need.get("date"):
+        # The source's rule first. An authoritative rule is the only source of the date: when its byline is missing, no other timestamp on the page
+        # (an update time, a related post) stands in for it.
+        if soup is not None and d.get("publishedAtSelector"):
+            date = element_date((soup.select(d["publishedAtSelector"]) or [None])[0], offset)
+        if not date.published_at and d.get("publishedAtRegex") and html is not None:
+            m = re.search(d["publishedAtRegex"], html)
+            date = read_publication_date(m.group(1) if m and m.re.groups >= 1 else None, _offset(offset))
+        authoritative = d.get("publishedAtAuthoritative") is True and bool(d.get("publishedAtSelector") or d.get("publishedAtRegex"))
+        if not date.published_at and page and not authoritative:
+            date = page_publication_date(page["document"], offset)
+
+    title = None
+    if need.get("title"):
+        if d.get("titleRegex") and html is not None:
+            m = re.search(d["titleRegex"], html, re.M)
+            title = collapse_whitespace(m.group(1) if m and m.re.groups >= 1 and m.group(1) is not None else "") or None
+        elif d.get("titleSelector") and soup is not None:
+            title = collapse_whitespace(text_of((soup.select(d["titleSelector"]) or [None])[0])) or None
+
+    summary = None
+    if need.get("summary") and soup is not None:
+        el = (soup.select(d["summarySelector"]) or [None])[0] if d.get("summarySelector") else None
+        content = attr_of(el, "content")
+        summary = collapse_whitespace(content if content is not None else text_of(el)) or None
+
+    # The body last, from the same document: Readability changes what it reads.
+    body = None
+    if need.get("body") and page and page["whole"]:
+        try:
+            got = readable_document(page["document"], page["url"], page_rules(cfg))
+            if got:
+                body = {"html": got.html, "text": got.text, "images": got.images}
+        except Exception:
+            pass  # A failed extraction must not discard the detail metadata.
+    return {"published_at": date.published_at, "publication_time": date.publication_time, "title": title, "summary": summary, "body": body}

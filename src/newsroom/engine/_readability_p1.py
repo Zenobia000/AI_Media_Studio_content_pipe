@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import re
-from urllib.parse import urlsplit
-
-from bs4 import Comment, NavigableString, Tag
 
 from newsroom.engine import dom as D
 from newsroom.engine.dom import El

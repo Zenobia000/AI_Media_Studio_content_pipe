@@ -18,6 +18,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
+from tests.engine.reader_pages import body
 from tests.parity.conftest import AIHOT, ENV, clone_template
 from tests.parity.test_publish import _admin
 
@@ -75,6 +76,21 @@ def api_json(round_: int) -> str:
     return json.dumps({"items": rows})
 
 
+def detail_list(round_: int) -> str:
+    cards = [("Read more", "/d/1"), ("Second detail entry", "/d/2"), ("Third detail entry", "/d/3"), ("No date page", "/d/nodate")]
+    if round_ >= 2:
+        cards.append(("Fourth detail entry", "/d/4"))
+    pad = "<p>" + "Filler paragraph so the page is long enough to be a real page. " * 6 + "</p>"
+    rows = "".join(f'<div class="card"><a href="{p}"><h3>{t}</h3></a></div>' for t, p in cards)
+    return f"<html><head><title>D</title></head><body><h1>Details</h1>{pad}{rows}</body></html>"
+
+
+def detail_page(n: str) -> str:
+    when = "" if n == "nodate" else f'<span class="when">2026-11-0{n[0] if n.isdigit() else 1} 10:00</span>'
+    return (f'<html><head><title>Detail {n}</title><meta name="description" content="Summary of {n}"></head><body><h1 class="t">Detail title {n}</h1>{when}'
+            f"<article>{body(6)}</article></body></html>")
+
+
 def serve():
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -87,6 +103,10 @@ def serve():
                 content, ctype = list_html(round_), "text/html"
             elif path == "/api.json":
                 content, ctype = api_json(round_), "application/json"
+            elif path == "/dlist.html":
+                content, ctype = detail_list(round_), "text/html"
+            elif path.startswith("/d/"):
+                content, ctype = detail_page(path[3:]), "text/html"
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -119,6 +139,10 @@ def source_rows(origin: str) -> list[dict]:
         {"id": "t-web", "kind": "web_list", "config": {"url": f"{origin}/list.html", "itemSelector": ".card", "titleSelector": "h3", "publishedAtSelector": "time"}},
         {"id": "t-json", "kind": "json_list", "config": {"url": f"{origin}/api.json", "itemsPath": "items", "titlePaths": ["t"], "urlTemplate": f"{origin}/a/{{slug}}",
                                                           "externalIdPath": "id", "publishedAtPath": "ts", "publishedAtUnit": "epoch_s"}},
+        {"id": "t-detail", "kind": "web_list", "config": {"url": f"{origin}/dlist.html", "itemSelector": ".card", "titleSelector": "h3", "detail": {
+            "publishedAtSelector": ".when", "titleSelector": "h1.t", "summarySelector": 'meta[name="description"]', "maxFetches": 2, "publishedAtUtcOffset": "+00:00"}}},
+        {"id": "t-detail-auth", "kind": "web_list", "participation_mode": "hot_signal", "config": {"url": f"{origin}/dlist.html", "itemSelector": ".card", "titleSelector": "h3",
+            "detail": {"publishedAtSelector": ".when", "publishedAtAuthoritative": True, "maxFetches": 10, "publishedAtUtcOffset": "+00:00"}}},
         {"id": "t-404", "kind": "rss", "config": {"feedUrl": f"{origin}/missing.xml"}},
         {"id": "t-paused", "kind": "rss", "config": {"feedUrl": f"{origin}/feed.xml"}, "enabled": False},
         {"id": "t-bogus", "kind": "rss", "config": {"feedUrl": f"{origin}/feed.xml", "bogusKey": 1}},
@@ -126,7 +150,7 @@ def source_rows(origin: str) -> list[dict]:
     ]  # fmt: skip
 
 
-IDS = ["t-rss", "t-rss-fulltext", "t-web", "t-json", "t-404", "t-paused", "t-bogus", "t-mp", "nope"]
+IDS = ["t-rss", "t-rss-fulltext", "t-web", "t-json", "t-detail", "t-detail-auth", "t-404", "t-paused", "t-bogus", "t-mp", "nope"]
 
 
 def install(url: str, origin: str) -> None:
@@ -161,6 +185,11 @@ def dump(url: str) -> dict:
             for k in ("lastOkAt", "initializedAt"):
                 if s["cursor"] and k in s["cursor"]:
                     s["cursor"][k] = "<time>"
+            for entry in ((s["cursor"] or {}).get("detailDatedOut") or {}).values():
+                if entry[2] is not None:
+                    entry[2] = "<time>"
+            for entry in ((s["cursor"] or {}).get("detailRetries") or {}).values():
+                entry[1] = "<time>"
         runs = c.execute("SELECT source_id, status, found_count, new_count, error, detail FROM fetch_runs WHERE source_id LIKE 't-%' ORDER BY source_id, id").fetchall()
         articles = c.execute(
             """SELECT identity_key, source_id, title, url, published_at, publication_time, backfill, backfill_reason, excerpt, body_text, body_status, revision, raw,

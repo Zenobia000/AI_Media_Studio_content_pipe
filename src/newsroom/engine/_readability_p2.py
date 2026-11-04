@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
 from newsroom.engine import dom as D
 from newsroom.engine._readability_p1 import (
     ALTER_TO_DIV_EXCEPTIONS,

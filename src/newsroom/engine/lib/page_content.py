@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import re
 
-from lxml import html as lxml_html
-
 from newsroom.engine.lib.text import collapse_whitespace, strip_tags
 
 _ERROR_LABEL = re.compile(
@@ -38,27 +36,30 @@ def assert_page_content(title: str, text: str) -> None:
 
 def _lead_text(node, out: list[str], length: list[int]) -> str:
     """The text a page opens with, read from its tree: element boundaries separate words; scripts and styles are no text."""
-    if node.text and length[0] < LEAD_CHARS:
-        out.append(node.text)
-        length[0] += len(node.text)
-    for child in node:
+    from bs4 import Comment, NavigableString, Tag
+
+    for child in list(node.contents):
         if length[0] >= LEAD_CHARS:
             break
-        if isinstance(child.tag, str) and child.tag.lower() not in ("script", "style", "noscript", "template"):
+        if isinstance(child, NavigableString) and not isinstance(child, Comment):
+            out.append(str(child))
+            length[0] += len(str(child))
+        elif isinstance(child, Tag) and child.name not in ("script", "style", "noscript", "template"):
             out.append(" ")
             _lead_text(child, out, length)
             out.append(" ")
-        if child.tail and length[0] < LEAD_CHARS:
-            out.append(child.tail)
-            length[0] += len(child.tail)
     return "".join(out)
 
 
 def content_document(html: str):
-    """The page, parsed once, after its title, main heading and opening text passed the boundary check."""
-    doc = lxml_html.fromstring(html) if html.strip() else lxml_html.fromstring("<html></html>")
-    body = doc.find("body") if doc.tag != "body" else doc
-    title = "".join(doc.xpath("//title[1]//text()"))
-    assert_page_content(title, _lead_text(body, [], [0]) if body is not None else strip_tags(html))
-    assert_page_content("".join(doc.xpath("//h1[1]//text()")), "")
-    return doc
+    """The page, parsed once (linkedom's tree), after its title, main heading and opening text passed the boundary check."""
+    from newsroom.engine import dom as D
+
+    document = D.parse_html(html)
+    soup = document.soup
+    title = soup.select_one("title")
+    body = soup.select_one("body")
+    assert_page_content(D.text_content(title) if title is not None else "", _lead_text(body, [], [0]) if body is not None else strip_tags(html))
+    h1 = soup.select_one("h1")
+    assert_page_content(D.text_content(h1) if h1 is not None else "", "")
+    return document

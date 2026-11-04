@@ -54,7 +54,7 @@ def test_a_listed_private_host_may_reach_a_private_service_but_not_metadata():
 
 def test_content_document_checks_the_title_heading_and_opening_text():
     ok = content_document("<html><head><title>Real</title></head><body><h1>Heading</h1><p>text</p></body></html>")
-    assert ok.xpath("//h1/text()") == ["Heading"]
+    assert ok.soup.select_one("h1").get_text() == "Heading"
     with pytest.raises(UnavailablePageError):
         content_document("<html><head><title>404 Not Found</title></head><body><p>x</p></body></html>")
     with pytest.raises(UnavailablePageError):
