@@ -9,7 +9,9 @@ import psycopg
 import pytest
 
 BOUNDARY = "----parityboundary"
-PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360f8cfc0f01f0005000201a5f6458b0000000049454e44ae426082")
+PNG = bytes.fromhex(
+    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360f8cfc0f01f0005000201a5f6458b0000000049454e44ae426082"
+)
 
 
 def form(fields: dict[str, str], file: tuple[str, bytes] | None = None) -> tuple[dict[str, str], bytes]:
@@ -26,9 +28,14 @@ def form(fields: dict[str, str], file: tuple[str, bytes] | None = None) -> tuple
 @pytest.mark.parametrize(
     ("fields", "file"),
     [
-        ({"content": ""}, None), ({"content": "x"}, None), ({"content": "y" * 5001}, None), ({"content": "hello there", "email": "not-an-email"}, None),
-        ({"content": "hello there", "email": "a@" + "b" * 200 + ".com"}, None), ({"content": "hello there"}, ("s.png", b"not an image at all")),
-        ({"content": "hello there"}, ("s.png", b"\x89PNG\r\n\x1a\nnoise")), ({"content": "hello there"}, ("s.png", b"GIF89a" + b"\0" * 5)),
+        ({"content": ""}, None),
+        ({"content": "x"}, None),
+        ({"content": "y" * 5001}, None),
+        ({"content": "hello there", "email": "not-an-email"}, None),
+        ({"content": "hello there", "email": "a@" + "b" * 200 + ".com"}, None),
+        ({"content": "hello there"}, ("s.png", b"not an image at all")),
+        ({"content": "hello there"}, ("s.png", b"\x89PNG\r\n\x1a\nnoise")),
+        ({"content": "hello there"}, ("s.png", b"GIF89a" + b"\0" * 5)),
     ],
 )
 def test_rejections(compare, fields, file):
@@ -48,7 +55,9 @@ def test_saved_report(py_api):
     again = py_api.post("/api/site/feedback", headers={**headers, "User-Agent": "Mozilla/5.0 Firefox Windows"}, content=body)
     assert again.json() == res.json()  # an exact retry is the same report
     with psycopg.connect(os.environ["PARITY_DATABASE_URL"]) as conn:
-        row = conn.execute("SELECT content, email, page_url, screenshot_key, forward_error FROM feedback WHERE id = %s", (res.json()["id"],)).fetchone()
+        row = conn.execute(
+            "SELECT content, email, page_url, screenshot_key, forward_error FROM feedback WHERE id = %s", (res.json()["id"],)
+        ).fetchone()
     assert row[0] == "A parity test report" and row[1] == "t@example.com" and row[2] is None and row[3].startswith("local:") and row[4] == "pending"
 
 

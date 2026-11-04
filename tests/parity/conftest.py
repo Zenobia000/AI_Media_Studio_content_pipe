@@ -13,6 +13,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -25,7 +26,7 @@ PORT = int(os.environ.get("PARITY_NODE_PORT", "3921"))
 ENV = {
     "SITE_URL": "http://127.0.0.1:3000", "API_BASE_URL": f"http://127.0.0.1:{PORT}", "SESSION_SECRET": "ci-session-secret-0123456789abcdef",
     "IMG_PROXY_SIGN_SECRET": "ci-img-secret-0123456789abcdef", "COLLECT_ENABLED": "false", "MODEL_CALLS_ENABLED": "false", "API_PORT": str(PORT),
-    "LOG_LEVEL": "error",
+    "LOG_LEVEL": "error", "ALLOW_PRIVATE_NETWORK_FETCH": "true",
 }  # fmt: skip
 
 
@@ -42,7 +43,7 @@ def database_url() -> str:
 
 @pytest.fixture(scope="session")
 def node_api(database_url):
-    env = {**os.environ, **ENV, "DATABASE_URL": database_url}
+    env = {**os.environ, **ENV, "DATABASE_URL": database_url, "AIHOT_DATA_DIR": tempfile.mkdtemp(prefix="parity-node-")}
     proc = subprocess.Popen(["node", "apps/api/src/main.ts"], cwd=AIHOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{PORT}"
     try:
@@ -65,6 +66,7 @@ def py_api(database_url):
     for k, v in ENV.items():
         os.environ[k] = v
     os.environ["DATABASE_URL"] = database_url
+    os.environ["AIHOT_DATA_DIR"] = tempfile.mkdtemp(prefix="parity-py-")
     from newsroom.api.app import build_app  # noqa: PLC0415
 
     with TestClient(build_app(), base_url=f"http://127.0.0.1:{PORT + 1}", follow_redirects=False) as client:
