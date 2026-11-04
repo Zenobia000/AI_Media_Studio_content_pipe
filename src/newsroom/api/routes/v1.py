@@ -13,6 +13,7 @@ from fastapi import FastAPI, Request, Response
 from newsroom.api.respond import QueryError, apply_public_headers, json_with_etag, problem, strict_query
 from newsroom.engine.config import config
 from newsroom.engine.lib.cursor import InvalidCursorError
+from newsroom.engine.publication.stories import resolve_story, v1_hot_topics, v1_story
 from newsroom.engine.publication.v1 import V1ItemsQuery, v1_items
 from newsroom.engine.taxonomy import public_api_category_keys
 
@@ -156,6 +157,30 @@ def register_v1(app: FastAPI) -> None:
             raise InvalidCursorError("empty cursor")
         body = v1_items(request.app.state.pool, V1ItemsQuery(mode, window, by, category, search, limit, q.get("cursor")))
         return send_v1(request, body, "v1-items", V1_OPERATIONS["items"]["cacheControl"])
+
+    @app.get("/api/v1/hot-topics")
+    @public_handler
+    def hot_topics(request: Request) -> Response:
+        strict_query(request, V1_OPERATIONS["hotTopics"]["queryKeys"])
+        with request.app.state.pool.connection() as conn:
+            body = v1_hot_topics(conn)
+        return send_v1(request, body, "v1-hot", V1_OPERATIONS["hotTopics"]["cacheControl"])
+
+    @app.get("/api/v1/stories/{public_id}")
+    @public_handler
+    def story(request: Request, public_id: str) -> Response:
+        strict_query(request, V1_OPERATIONS["storyByPublicId"]["queryKeys"])
+        cache = V1_OPERATIONS["storyByPublicId"]["cacheControl"]
+        if len(public_id) > 128:
+            raise QueryError("publicId must be a short opaque id.")
+        with request.app.state.pool.connection() as conn:
+            found = resolve_story(conn, public_id)
+            if found["kind"] == "merged":
+                return Response(status_code=308, headers={"Location": f"/api/v1/stories/{found['target']}", "Cache-Control": cache})
+            body = v1_story(conn, found["storyId"]) if found["kind"] == "found" else None
+        if not body:
+            return problem(request, 404, "not_found", f"No public story exists for {public_id}.", cache_control="public, max-age=60")
+        return send_v1(request, body, "v1-story", cache)
 
 
 def register_v1_fallbacks(app: FastAPI) -> None:
