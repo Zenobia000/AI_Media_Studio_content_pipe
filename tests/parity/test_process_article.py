@@ -54,7 +54,7 @@ def world(database_url, settings_env):
             for r, (key, title, body, status, mode) in zip(rows, [c_ for c_ in CASES if c_[1]], strict=True):
                 c.execute(
                     """UPDATE articles SET title = %s, body_text = %s, excerpt = NULL, body_status = %s, x_post = NULL, media = '[]'::jsonb, revision = 1, processing_state = 'new',
-                         processing_attempts = 0, processing_error = NULL, published_at = now() - interval '3 hours', publication_time = NULL, url = %s WHERE id = %s""",
+                         processing_attempts = 0, processing_error = NULL, published_at = '2026-10-30T08:00:00Z', publication_time = NULL, url = %s WHERE id = %s""",
                     (title, body, status, f"https://example.org/p/{key}", r["id"]),
                 )
                 c.execute(

@@ -105,7 +105,7 @@ def world(database_url, settings_env):
             for r, (key, a) in zip(rows, ARTICLES.items(), strict=False):
                 c.execute(
                     """UPDATE articles SET title = %s, body_text = %s, excerpt = %s, body_status = %s, x_post = %s, media = '[]'::jsonb, revision = 1, processing_state = 'new',
-                         published_at = now() - interval '3 hours', publication_time = NULL WHERE id = %s""",
+                         published_at = '2026-10-30T08:00:00Z', publication_time = NULL WHERE id = %s""",
                     (a["title"], a["body_text"], a["excerpt"], a["body_status"], Jsonb(a["x_post"]) if a["x_post"] else None, r["id"]),
                 )
             c.execute("DELETE FROM analyses")

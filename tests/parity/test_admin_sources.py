@@ -44,10 +44,14 @@ def serve():
 
 @pytest.fixture(scope="module")
 def admin(sides):  # noqa: F811
+    from newsroom.api.routes import admin_auth
+
+    admin_auth._attempts.clear()  # the sign-in limit counts every module's logins in this one process
     migration = Path(__file__).parents[2] / "src/newsroom/core/migrations/0123_job_queue.sql"
     with psycopg.connect(sides["urls"]["py"], autocommit=True) as c:
         c.execute(migration.read_text(encoding="utf-8"))
     for name, res in zip(("node", "py"), both(sides, "POST", "/api/auth/password", form={"password": PASSWORD, "return": "/admin"}), strict=True):
+        assert res.status_code == 303 and "set-cookie" in res.headers, (name, res.status_code, res.headers.get("location"), res.text[:200])
         sides[name].cookie = cookie_of(res).split(";")[0]
     a, b = both(sides, "GET", "/api/admin/me")
     sides["node"].csrf, sides["py"].csrf = a.json()["csrf"], b.json()["csrf"]
