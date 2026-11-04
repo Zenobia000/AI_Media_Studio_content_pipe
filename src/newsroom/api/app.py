@@ -14,6 +14,7 @@ from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from newsroom.api.respond import problem
+from newsroom.api.routes.agent import register_agent
 from newsroom.api.routes.feeds import register_feeds
 from newsroom.api.routes.site import register_site
 from newsroom.api.routes.static import register_static
@@ -82,6 +83,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
     register_feeds(app)
     register_static(app)
     register_v1(app)
+    register_agent(app)
     register_v1_fallbacks(app)
 
     @app.exception_handler(StarletteHTTPException)

@@ -323,6 +323,13 @@ def _fetch_report(conn, kind: str, key: str):
 
 
 def v1_daily(pool, date: str) -> dict | None:
+    found = daily_with_notes(pool, date)
+    return found["body"] if found else None
+
+
+def daily_with_notes(pool, date: str) -> dict | None:
+    """The v1 daily (its fields never change) and the notes the Agent answer adds to it, by the entry's link: other sources, the event's other
+    developments (title and link on this site), and the earlier daily it follows."""
     with pool.connection() as conn:
         r = _fetch_report(conn, "daily", date)
         if not r:
@@ -344,7 +351,17 @@ def v1_daily(pool, date: str) -> dict | None:
     url = daily_url(r["key"])
     gone = {i for i, a in avail.items() if not a["available"]}
     lead = issue_lead(c, "daily", gone) if truthy(c.get("lead")) or truthy(c.get("leadItemId")) else None
-    return {
+    notes: dict[str, dict] = {}
+    for i in [x for x in raw if ok(x)]:
+        related = [
+            {"title": str(x.get("title")), "link": item_url(x["itemId"])} for x in nullish(i.get("related"), []) if truthy(x.get("itemId")) and ok(x)
+        ]
+        sources = _number(i.get("sources"))
+        other = int(sources - 1) if sources > 1 and (sources - 1).is_integer() else (sources - 1 if sources > 1 else 0)
+        if other or related or truthy(i.get("followUp")):
+            link = links(i)
+            notes[link["aihot"] or link["original"]] = {"otherSources": other, "related": related, "followUp": nullish(i.get("followUp"), None)}
+    body = {
         "schemaVersion": 1,
         "report": {
             "date": r["key"], "generatedAt": iso(r["generated_at"]), "windowStart": iso(r["window_start"]), "windowEnd": iso(r["window_end"]),
@@ -364,6 +381,7 @@ def v1_daily(pool, date: str) -> dict | None:
             ],  # fmt: skip
         },
     }  # fmt: skip
+    return {"body": body, "notes": notes}
 
 
 def period_of(kind: str, key: str) -> dict:
