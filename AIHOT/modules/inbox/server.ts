@@ -9,6 +9,8 @@ import { latestHotRanking } from "@aihot/backend/publication/hot";
 import { CARRY_MS, planInbox, type StateRow } from "./cross-day.ts";
 import { ManagedBlockError, parseAnnotations, renderFile, withHealth, type Candidate, type FailingSource, type Tier } from "./format.ts";
 import { justEnded, mentionsEndedEvent, startingTomorrow, syncEvents } from "./events.ts";
+import { withLocalHeat } from "./local-heat.ts";
+import { notifyNewS } from "./alerts.ts";
 import { describeBreakdown, loadHeatConfig, loadHeatInputs, scoreHeat, type HeatResult } from "./heat.ts";
 import { runWatchPoll } from "./watch.ts";
 import { withTitlesZh } from "./titles.ts";
@@ -101,7 +103,7 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
     .map((r): StateRow => ({ id: r.candidate_id, status: r.status, firstListedAt: r.first_listed_at, snapshot: r.snapshot }));
   const planned = planInbox(fresh, rows, now, date, dayOf);
   // Carried candidates show the Chinese title given after they were listed.
-  const plan = { ...planned, listed: await withTitlesZh(planned.listed) };
+  const plan = { ...planned, listed: await withLocalHeat(await withTitlesZh(planned.listed)) };
 
   // A source that failed its last three collections is listed at the foot (COL-FR-004).
   const failing = (await sql<{ name: string; fail_count: number; last_error: string | null; last_ok_at: Date | null }[]>`
@@ -120,6 +122,8 @@ export async function writeInbox(now = new Date()): Promise<{ file: string; cand
       ON CONFLICT (candidate_id) DO UPDATE SET snapshot = EXCLUDED.snapshot, updated_at = now()`;
   }
   if (plan.skip.length) await sql`UPDATE candidate_state SET status = 'skipped', updated_at = now() WHERE candidate_id = ANY(${plan.skip}) AND status = 'new'`;
+  // A candidate that reaches S for the first time is told once (COL-FR-018).
+  await notifyNewS(plan.listed, file);
   return { file, candidates: plan.listed.length };
 }
 

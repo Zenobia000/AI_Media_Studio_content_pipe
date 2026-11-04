@@ -13,6 +13,8 @@ export interface SdMedia {
   type: "photo" | "video" | "animated_gif";
   media_url_https: string;
   original_info?: { width?: number; height?: number };
+  /** Video and GIF files: one entry per rendition (and the HLS playlist, which has no bitrate). */
+  video_info?: { variants?: Array<{ bitrate?: number; content_type?: string; url: string }> };
 }
 
 export interface SdTweet {

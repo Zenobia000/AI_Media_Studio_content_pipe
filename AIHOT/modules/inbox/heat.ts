@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { sql } from "@aihot/backend/db";
 import type { Tier } from "./format.ts";
+import { xVelocities } from "./x-velocity.ts";
 
 export type SignalName = "resonance" | "x_velocity" | "hn_velocity" | "repo_growth" | "newsletter" | "source_weight" | "local_gap";
 
@@ -184,6 +185,7 @@ export async function loadHeatInputs(targets: HeatTargets, config: HeatConfig, n
       series.set(k, [...(series.get(k) ?? []), { value: r.value, at: r.observed_at }]);
     }
   }
+  const xByKey = await xVelocities(keys);
   const best = (a: number | null | undefined, b: number | null) => (b === null ? (a ?? null) : a === null || a === undefined ? b : Math.max(a, b));
 
   const owners = new Map<string, typeof members>();
@@ -207,6 +209,8 @@ export async function loadHeatInputs(targets: HeatTargets, config: HeatConfig, n
       if (stars) input.starsPerHour = best(input.starsPerHour, latestAndRate(stars).perHour);
       if (likes) input.hfLikesPerHour = best(input.hfLikesPerHour, latestAndRate(likes).perHour);
       if (upvotes) input.hfUpvotes = best(input.hfUpvotes, latestAndRate(upvotes).latest);
+      const x = xByKey.get(m.key);
+      if (x !== undefined) input.xVelocity = best(input.xVelocity, x);
       if (mentions) input.newsletterMentions = best(input.newsletterMentions, latestAndRate(mentions).latest);
     }
     if (id.startsWith("s:")) byStory.set(Number(id.slice(2)), input);

@@ -83,6 +83,10 @@ export async function runChecks(d: Deps): Promise<Check[]> {
     add(d.env[name] ? { name, status: "ok", detail: "已設定" } : { name, status: "warn", detail: "沒有設定（選用）", fix: `設定後可用於：${use}` });
   }
 
+  add(d.env.THREADS_ACCESS_TOKEN
+    ? { name: "THREADS_ACCESS_TOKEN", status: "ok", detail: "已設定（權限有沒有通過審核要實際搜尋才知道）" }
+    : { name: "THREADS_ACCESS_TOKEN", status: "warn", detail: "沒有設定（選用）：S／A 級候選的「在地」欄會顯示「未檢查」", fix: "要檢查中文圈有沒有人報導，需要 Meta 核准 Threads 關鍵字搜尋權限（threads_keyword_search），核准後把權杖設為 THREADS_ACCESS_TOKEN" });
+
   for (const [name, url] of SERVICES) {
     add((await d.reach(url)) ? { name: `連線：${name}`, status: "ok", detail: "連得上" } : { name: `連線：${name}`, status: "warn", detail: "連不上", fix: "確認網路；對應的收集器會暫時失敗，但不影響其他來源" });
   }

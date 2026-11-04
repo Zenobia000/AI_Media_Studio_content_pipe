@@ -19,6 +19,8 @@ export interface Candidate {
   carried?: "昨日" | "已勾選";
   /** What people are saying ("HN 412 分、120 則留言"), from the signal snapshots; shown with the sources. */
   signals?: string;
+  /** Whether the Chinese-speaking side has covered it ("中文圈還沒人報導"), for S and A; "未檢查（原因）" when it could not be asked. */
+  local?: string;
   /** The heat score (0 to 100), the breakdown of it, and why the tier. */
   score?: number;
   heat?: string;
@@ -87,6 +89,7 @@ export function renderBlock(candidates: readonly Candidate[], notes: ReadonlyMap
         `- [${kept?.checked ? "x" : " "}] **${c.title}** \`${c.id}\``,
         `  - 共振 ${c.participantCount} 源｜${sources}｜首次出現 ${c.firstSeen}${c.carried ? `｜${c.carried}` : ""}`,
         ...(c.heat ? [`  - 熱度：${c.heat}${c.heatReason ? `｜${c.heatReason}` : ""}`] : []),
+        ...(c.local ? [`  - 在地：${c.local}`] : []),
         `  - 建議：${c.suggestedProgram}｜${c.suggestedFormats.join(", ")}`,
         `  - 節目：${kept?.program || c.manual?.program || ""}`,
         `  - 格式：${kept?.formats || c.manual?.formats || ""}`,
