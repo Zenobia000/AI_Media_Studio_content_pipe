@@ -85,6 +85,14 @@ def migrate() -> None:
     typer.echo(f"套用 {len(applied)} 個 migration" + (f"：{'、'.join(applied)}" if applied else "，資料表已是最新。"))
 
 
+@app.command("worker")
+def worker_cmd() -> None:
+    """啟動後臺工作行程：收集信源、抓正文與它們的定時任務（Ctrl+C 停止，會等進行中的工作做完）。"""
+    from newsroom.engine.worker import run  # noqa: PLC0415
+
+    run()
+
+
 @app.command("init")
 def init(path: Annotated[Optional[Path], typer.Argument()] = None, as_json: Json = False) -> None:
     """建立工作區（只補缺的，已有的不動）。"""
