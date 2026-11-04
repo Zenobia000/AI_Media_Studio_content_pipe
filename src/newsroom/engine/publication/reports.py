@@ -7,6 +7,7 @@ the TypeScript relies on them."""
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime
 
 import regex
@@ -14,6 +15,7 @@ import regex
 from newsroom.engine import pack
 from newsroom.engine.http_policy import site_url
 from newsroom.engine.lib.cache import cached
+from newsroom.engine.media.imgproxy import proxied_image, proxied_image_set
 from newsroom.engine.publication.scope import listed_condition, scope_params
 from newsroom.engine.publication.stories import public_source_name  # noqa: F401  (the citation read side uses it)
 from newsroom.engine.publication.v1 import iso, item_url
@@ -429,6 +431,220 @@ def v1_period(pool, kind: str, key: str) -> dict | None:
             "sections": sections,
         },  # fmt: skip
     }
+
+
+# ── the website's report pages ──────────────────────────────────────────────────────────
+
+
+def _number(v) -> float:
+    """Number(x) for a saved value; NaN is never greater than one, so it reads as 0."""
+    try:
+        n = float(v) if v not in (None, "") else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+    return 0.0 if n != n else n
+
+
+def citation_from(raw: dict, avail: dict[str, dict]) -> dict:
+    item_id = raw.get("itemId") if raw.get("itemId") is not None else None
+    a = avail.get(item_id) if truthy(item_id) else None
+    title = str(nullish(raw.get("title"), ""))
+    if not still_public(raw, avail):
+        # Withdrawn since: the reader sees a marked title; the summary and links are not sent at all.
+        return {"itemId": item_id, "title": title, "summary": None, "sourceName": "", "sourceUrl": "", "sourceIconUrl": None,
+                "firstParty": False, "publishedAt": None, "available": False}  # fmt: skip
+    icon = a.get("sourceIcon") if a else None
+    icon_set = proxied_image_set(icon, "avatar") if icon else None
+    metadata = citation_metadata(raw, a)
+    out = {"itemId": item_id, "title": title, **metadata, "sourceName": public_source_name(metadata["sourceName"]),
+           "sourceIconUrl": proxied_image(icon, "avatar") if icon else None}  # fmt: skip
+    if icon_set:
+        out["sourceIconSrcSet"] = icon_set
+    out["firstParty"] = a["firstParty"] if a else False
+    out["available"] = True
+    return out
+
+
+def entry_citation(raw: dict, avail: dict[str, dict]) -> dict:
+    """A cited entry with what a daily entry composed by rule adds: how many other sources reported the event, the event's other developments
+    listed under it (titles only), and the earlier daily it follows."""
+    citation = citation_from(raw, avail)
+    if not citation["available"]:
+        return citation
+    related = [{**citation_from(r, avail), "summary": None} for r in nullish(raw.get("related"), [])]
+    story_id = avail.get(raw["itemId"], {}).get("storyId") if truthy(raw.get("itemId")) else None
+    out = dict(citation)
+    sources = _number(raw.get("sources"))
+    if sources > 1:
+        other = sources - 1
+        out["otherSources"] = int(other) if other.is_integer() else other
+        if story_id:
+            out["storyId"] = story_id
+    if related:
+        out["related"] = related
+    if isinstance(raw.get("followUp"), str):
+        out["followUp"] = raw["followUp"]
+    return out
+
+
+def cited_sources(content: dict, kind: str, avail: dict[str, dict]) -> int:
+    """How many sources an issue cites: those of its entries still public and of what is listed under them."""
+    cited = [x for e in entries_of(content, kind) if still_public(e, avail) for x in [e, *nullish(e.get("related"), [])]]
+    ids = set()
+    for e in cited:
+        if not still_public(e, avail):
+            continue
+        sid = avail.get(e["itemId"], {}).get("sourceId") if truthy(e.get("itemId")) else None
+        sid = sid if sid is not None else e.get("sourceId")
+        if truthy(sid):
+            ids.add(sid)
+    return len(ids)
+
+
+def lead_cover(conn, item_id: str) -> dict | None:
+    """A picture for the front page's lead item: its own first sizeable image, else one from another public report of the same event
+    (first-hand first). Items shown as summaries only lend no pictures."""
+    row = conn.execute(
+        f"""SELECT img.m FROM publications p JOIN articles a ON a.id = p.article_id
+            CROSS JOIN LATERAL (
+              SELECT m FROM jsonb_array_elements(coalesce(a.media, '[]'::jsonb)) m
+              WHERE m->>'kind' = 'image' AND coalesce((m->>'width')::numeric, 800) >= 480 LIMIT 1
+            ) img
+            WHERE (p.article_id = %(id)s OR p.story_id = (SELECT story_id FROM publications WHERE article_id = %(id)s))
+              AND {listed_condition()} AND p.body_mode <> 'summary'
+            ORDER BY (p.article_id = %(id)s) DESC, p.first_party DESC, coalesce(p.score, 0) DESC, p.article_id LIMIT 1""",
+        {**scope_params(datetime.now().astimezone()), "id": item_id},
+    ).fetchone()
+    if not row:
+        return None
+    m = row["m"]
+    url = proxied_image(m.get("url"), "full")
+    if not url:
+        return None
+    out = {"url": url}
+    src_set = proxied_image_set(m.get("url"), "hero")
+    if src_set:
+        out["srcSet"] = src_set
+
+    def dim(v):
+        return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+    out["width"] = dim(m.get("width"))
+    out["height"] = dim(m.get("height"))
+    return out
+
+
+def reading_minutes(text: str) -> int:
+    return max(1, math.floor(len(text) / 450 + 0.5))
+
+
+def load_report(pool, kind: str, key: str) -> dict | None:
+    shape = "daily" if kind == "daily" else "periodic"
+    with pool.connection() as conn:
+        # Its number counts every issue of the kind up to it, as the index numbers them (report_index_rows).
+        r = conn.execute(
+            """SELECT r.content, r.generated_at, (SELECT count(*)::int FROM reports earlier WHERE earlier.kind = r.kind AND earlier.key <= r.key) AS issue_number
+               FROM reports r WHERE r.kind = %s AND r.key = %s""",
+            (kind, key),
+        ).fetchone()
+        if not r:
+            return None
+        c = r["content"]
+        entries = [
+            *[i for s in nullish(c.get("sections"), []) for i in nullish(s.get("items"), [])],
+            *nullish(c.get("flashes"), []),
+            *[x for t in nullish(c.get("themes"), []) for x in nullish(t.get("storyRefs"), [])],
+        ]
+        raw_items = [*entries, *[x for e in entries for x in nullish(e.get("related"), [])]]
+        avail = availability(conn, list(dict.fromkeys(i["itemId"] for i in raw_items if truthy(i.get("itemId")))))
+
+        def cite(raw: dict) -> dict:
+            return entry_citation(raw, avail)
+
+        if kind == "daily":
+            sections = [{"label": str(s.get("label")), "summary": None, "items": [cite(i) for i in nullish(s.get("items"), [])]} for s in nullish(c.get("sections"), [])]  # fmt: skip
+        else:
+            sections = [{"label": str(t.get("heading")), "summary": section_summary(t, avail), "items": [cite(i) for i in nullish(t.get("storyRefs"), [])]} for t in nullish(c.get("themes"), [])]  # fmt: skip
+        all_ = [i for s in sections for i in s["items"]]
+        highlight_ids = nullish(c.get("highlights"), [])
+        if highlight_ids:
+            highlights = [x for x in (next((a for a in all_ if a["itemId"] == i), None) for i in highlight_ids) if x]
+        else:
+            highlights = all_[:3]
+        text = "".join([
+            str(nullish((c.get("lead") or {}).get("leadParagraph"), "")), str(nullish(c.get("overview"), "")),
+            *[f"{i['title']}{nullish(i['summary'], '')}" + "".join(x["title"] for x in nullish(i.get("related"), [])) for i in all_],
+        ])  # fmt: skip
+        gone = {i for i, a in avail.items() if not a["available"]}
+        has_cited_lead = truthy(c.get("leadItemId")) or truthy(written_lead_id(c, shape))
+        named = issue_lead(c, shape, gone) if has_cited_lead else None
+        overview = nullish(c.get("overview"), None) if kind == "daily" else period_overview(c, kind, gone)
+        if has_cited_lead:
+            lead_item = next((x for x in all_ if x["itemId"] == (named or {}).get("itemId")), None)
+        elif kind == "daily":
+            lead_item = lead_item_of((c.get("lead") or {}).get("title"), highlights, all_)
+        else:
+            lead_item = next((x for x in highlights if x["available"]), None) or next((x for x in all_ if x["available"]), None)
+        nb = conn.execute(
+            "SELECT (SELECT key FROM reports WHERE kind = %(k)s AND key < %(key)s ORDER BY key DESC LIMIT 1) AS prev, "
+            "(SELECT key FROM reports WHERE kind = %(k)s AND key > %(key)s ORDER BY key ASC LIMIT 1) AS next",
+            {"k": kind, "key": key},
+        ).fetchone()
+        picture = lead_cover(conn, lead_item["itemId"]) if lead_item and truthy(lead_item.get("itemId")) and lead_item["available"] else None
+    cover = {**picture, "caption": None if kind == "daily" or truthy(c.get("leadItemId")) else lead_item["title"]} if picture and lead_item else None
+    headline = None if kind == "daily" else periodic_headline(c)
+    name = pack.site()["SITE"]["name"]
+    if kind == "daily":
+        title = f"{pack.with_subject('日報')} · {key}"
+    else:
+        chosen = (named or {}).get("title") if has_cited_lead and c.get("title") == headline else c.get("title")
+        title = str(chosen if chosen is not None else (f"{name} 週報 · {key}" if kind == "weekly" else f"{name} 月報 · {key}"))
+    if has_cited_lead:
+        lead = {"title": named["title"], "leadParagraph": nullish(named["leadParagraph"] if kind == "daily" else overview, "")} if named else None
+    elif kind == "daily":
+        lead = nullish(c.get("lead"), None)
+    elif c.get("lead"):
+        lead = {**c["lead"], "leadParagraph": nullish(overview, "")}
+    else:
+        lead = {"title": headline, "leadParagraph": nullish(overview, "")} if headline else None
+    saved = c.get("metrics") or {}
+    metrics = dict(saved)
+    if saved.get("firstPartyEvents") is not None:
+        metrics["firstPartyEvents"] = len([i for i in all_ if i["firstParty"]])
+    if saved.get("sourcesCount") is not None:
+        metrics["sourcesCount"] = cited_sources(c, shape, avail)
+    return {
+        "kind": kind, "key": key, "issueNumber": r["issue_number"], "title": title, "generatedAt": iso(r["generated_at"]), "lead": lead,
+        "leadItemId": lead_item["itemId"] if (kind == "daily" or truthy(c.get("leadItemId"))) and lead_item and lead_item["available"] else None,
+        "overview": overview, "highlights": highlights, "sections": sections, "flashes": [cite(i) for i in nullish(c.get("flashes"), [])],
+        "cover": cover, "metrics": metrics, "readingMinutes": reading_minutes(text), "prev": nb["prev"], "next": nb["next"],
+    }  # fmt: skip
+
+
+def list_reports(pool, kind: str, limit: int = INDEX_LIMIT) -> list[dict]:
+    index = report_index(pool, kind)
+    shape = "daily" if kind == "daily" else "periodic"
+    return [{"key": r["key"], "issueNumber": r["issue_number"], "title": (issue_lead(r["content"], shape, index["gone"]) or {}).get("title"),
+             "count": len(entries_of(r["content"], shape))} for r in index["rows"][:limit]]  # fmt: skip
+
+
+def report_navigation(kind: str, index: list[dict], key: str) -> list[dict]:
+    at = next((i for i, e in enumerate(index) if e["key"] == key), -1)
+    out = []
+    for n, entry in enumerate(index):
+        item = {"key": entry["key"], "issueNumber": entry["issueNumber"]}
+        if kind != "daily" or entry["key"][:7] == key[:7] or n < 3 or abs(n - at) <= 1:
+            item["title"] = entry["title"]
+        out.append(item)
+    return out
+
+
+def load_report_navigation(pool, kind: str, key: str) -> list[dict]:
+    return report_navigation(kind, list_reports(pool, kind), key)
+
+
+def load_report_month(pool, kind: str, month: str) -> list[dict]:
+    return [{"key": e["key"], "issueNumber": e["issueNumber"], "title": e["title"]} for e in list_reports(pool, kind) if e["key"].startswith(month)]
 
 
 __all__ = ["is_valid_date"]  # the route validates dates with the time module

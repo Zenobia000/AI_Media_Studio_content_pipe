@@ -10,7 +10,7 @@
 |---|---|
 | API 骨架 | 請求編號、重定向表、OAuth 探測、404／405／錯誤格式（problem+json）、`/api/health` |
 | 公開 API v1（全部） | `items`、`hot-topics`、`stories/:id`、`dailies`（含 latest、依日期）、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`，以及 `/api/v1/*` 的 404、405、CORS 預檢 |
-| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions` |
+| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、報告索引／最新頁／導覽／月份／詳細頁 |
 | 靜態檔 | `robots.txt`、`security.txt`、`manifest.webmanifest`、`openapi-v1.json`、各種圖示、聯絡 QR、IndexNow 金鑰檔 |
 | 底層 | 時間、文字、ID、游標、設定與憑證、出站網路防護與請求、快取、稽核紀錄、簽名的圖片代理網址 |
 
@@ -20,12 +20,8 @@
 
 | 項目 | 規模 | 說明 |
 |---|---|---|
-| `GET /api/site/hot` | 約 100 行 | 事件熱榜卡片：每小時熱度曲線、封面圖、參與者；需要 `events/hot.ts` 的 `heatSeries`、`sourceClocks`、`behindSources`（約 150 行） |
-| `GET /api/site/stories/:id`、`/followups` | 約 200 行 | 事件頁：熱度曲線、為何熱門、發展脈絡；與 v1 共用的部分已經搬了 |
-| `GET /api/site/groups/:id/reports` | 41 行 | 閱讀群組 |
 | `GET /api/site/items/:id`、`/original`、`/items/:id/markdown` | 約 210 行 | 文章頁。需要內文 HTML 的清理與圖片改寫（`media/imgproxy.ts` 的 `proxyBodyImages`，用到 cheerio 的影片正規化 `content/video.ts`），Python 要用 lxml 重寫，細節多、最容易和 Node 版差一個字元 |
 | `GET /api/site/topics`、`/topics/:slug` | 約 370 行 | 主題目錄與主題頁；`topics.ts` 的定義已搬，頁面與計數沒搬 |
-| `GET /api/site/reports/:kind`、`latest-page`、`navigation`、`daily/months`、`:key` | 約 250 行 | 報告詳細頁與導覽，還要 `leadCover`（封面圖） |
 | RSS：`/feed.xml`、`/feed/*.xml`、`/feed/category/*` | 約 210 行 | `publication/feeds.ts`，XML 字串必須逐字元一致，否則訂閱器會重發舊文章 |
 | `/sitemap.xml`、`/sitemaps/*`、`/llms.txt` | 約 320 行 | 依賴上面的主題頁計數 |
 | `/og/*` 分享圖、`/api/img-proxy` 圖片代理、媒體路由 | 約 700 行 | 圖片轉檔與縮放（原本用 sharp），Python 要用 Pillow；像素層級的輸出沒辦法逐位元組比對，只能比尺寸與格式 |

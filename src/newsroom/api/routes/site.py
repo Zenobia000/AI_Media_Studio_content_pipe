@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 import time
 from collections.abc import Callable
 from functools import wraps
@@ -14,6 +15,13 @@ from fastapi import FastAPI, Request, Response
 from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_query, problem
 from newsroom.engine.lib.cursor import InvalidCursorError
 from newsroom.engine.publication.pool import SearchBusyError
+from newsroom.engine.publication.reports import (
+    list_reports,
+    load_report,
+    load_report_month,
+    load_report_navigation,
+    report_navigation,
+)
 from newsroom.engine.publication.site_lists import hot_search_links, load_hot_strip, load_pool, load_timeline
 from newsroom.engine.publication.site_story import load_group_reports, load_hot, load_story_detail, load_story_followups
 from newsroom.engine.publication.stories import resolve_story
@@ -166,3 +174,51 @@ def register_site(app: FastAPI) -> None:
         if not data:
             return problem(request, 404, "not_found", "story not public", cache_control="public, max-age=60")
         return json_with_etag(request, data, "story", "public, max-age=60, s-maxage=60")
+
+    kinds = ("daily", "weekly", "monthly")
+    key_re = re.compile(r"\d{4}-(\d{2}(-\d{2})?|W\d{2})")
+    cache60 = "public, max-age=60, s-maxage=60"
+
+    @app.get("/api/site/reports/{kind}")
+    @site_handler
+    def report_list(request: Request, kind: str) -> Response:
+        if kind not in kinds:
+            return problem(request, 404, "not_found", "unknown report kind")
+        body = {"kind": kind, "items": list_reports(request.app.state.pool, kind)}
+        return json_with_etag(request, body, "reports", cache60)
+
+    # The latest report page needs its archive selector and the report in one HTTP request.
+    @app.get("/api/site/reports/{kind}/latest-page")
+    @site_handler
+    def report_latest(request: Request, kind: str) -> Response:
+        if kind not in kinds:
+            return problem(request, 404, "not_found", "unknown report kind")
+        pool = request.app.state.pool
+        index = list_reports(pool, kind)
+        report = load_report(pool, kind, index[0]["key"]) if index else None
+        body = {"index": report_navigation(kind, index, report["key"] if report else ""), "report": report}
+        return json_with_etag(request, body, "report-latest", cache60)
+
+    @app.get("/api/site/reports/daily/months/{month}")
+    @site_handler
+    def report_month(request: Request, month: str) -> Response:
+        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+            return problem(request, 404, "not_found", "month not found")
+        return json_with_etag(request, {"items": load_report_month(request.app.state.pool, "daily", month)}, "report-month", cache60)
+
+    @app.get("/api/site/reports/{kind}/navigation/{key}")
+    @site_handler
+    def report_nav(request: Request, kind: str, key: str) -> Response:
+        if kind not in kinds or not key_re.fullmatch(key):
+            return problem(request, 404, "not_found", "report not found")
+        return json_with_etag(request, {"items": load_report_navigation(request.app.state.pool, kind, key)}, "report-navigation", cache60)
+
+    @app.get("/api/site/reports/{kind}/{key}")
+    @site_handler
+    def report_detail(request: Request, kind: str, key: str) -> Response:
+        if kind not in kinds or not key_re.fullmatch(key):
+            return problem(request, 404, "not_found", "report not found")
+        data = load_report(request.app.state.pool, kind, key)
+        if not data:
+            return problem(request, 404, "not_found", "report not found", cache_control="public, max-age=60")
+        return json_with_etag(request, data, "report", "public, max-age=120, s-maxage=120")
