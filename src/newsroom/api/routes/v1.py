@@ -13,9 +13,11 @@ from fastapi import FastAPI, Request, Response
 from newsroom.api.respond import QueryError, apply_public_headers, json_with_etag, problem, strict_query
 from newsroom.engine.config import config
 from newsroom.engine.lib.cursor import InvalidCursorError
+from newsroom.engine.publication.reports import is_period_key, v1_dailies, v1_daily, v1_period, v1_periods
 from newsroom.engine.publication.stories import resolve_story, v1_hot_topics, v1_story
 from newsroom.engine.publication.v1 import V1ItemsQuery, v1_items
 from newsroom.engine.taxonomy import public_api_category_keys
+from newsroom.engine.time import is_valid_date
 
 log = logging.getLogger("newsroom.api")
 
@@ -181,6 +183,70 @@ def register_v1(app: FastAPI) -> None:
         if not body:
             return problem(request, 404, "not_found", f"No public story exists for {public_id}.", cache_control="public, max-age=60")
         return send_v1(request, body, "v1-story", cache)
+
+    @app.get("/api/v1/dailies")
+    @public_handler
+    def dailies(request: Request) -> Response:
+        q = strict_query(request, V1_OPERATIONS["dailies"]["queryKeys"])
+        limit = int_param(q.get("limit"), "limit", 1, 180, 30)
+        return send_v1(request, v1_dailies(request.app.state.pool, limit), "v1-dailies", V1_OPERATIONS["dailies"]["cacheControl"])
+
+    @app.get("/api/v1/dailies/latest")
+    @public_handler
+    def latest_daily(request: Request) -> Response:
+        strict_query(request, V1_OPERATIONS["latestDaily"]["queryKeys"])
+        body = v1_daily(request.app.state.pool, "latest")
+        if not body:
+            return problem(request, 404, "not_found", "No daily report has been published yet.")
+        return send_v1(request, body, "v1-daily", V1_OPERATIONS["latestDaily"]["cacheControl"])
+
+    @app.get("/api/v1/dailies/{date}")
+    @public_handler
+    def daily_by_date(request: Request, date: str) -> Response:
+        strict_query(request, V1_OPERATIONS["dailyByDate"]["queryKeys"])
+        if not is_valid_date(date):
+            raise QueryError("date must be a real YYYY-MM-DD calendar date.")
+        body = v1_daily(request.app.state.pool, date)
+        if not body:
+            return problem(request, 404, "not_found", f"No daily report exists for {date}.", cache_control="public, max-age=60")
+        return send_v1(request, body, "v1-daily", V1_OPERATIONS["dailyByDate"]["cacheControl"])
+
+    # Weeklies and monthlies: an index, the latest issue and one issue by ISO week or month.
+    for kind, path, param, name, form, index_op, latest_op, key_op in (
+        ("weekly", "weeklies", "week", "weekly", "a real ISO week such as 2026-W39", "weeklies", "latestWeekly", "weeklyByWeek"),
+        ("monthly", "monthlies", "month", "monthly", "a real month such as 2026-09", "monthlies", "latestMonthly", "monthlyByMonth"),
+    ):
+        _register_period(app, kind, path, param, name, form, index_op, latest_op, key_op)
+
+
+def _register_period(app: FastAPI, kind: str, path: str, param: str, name: str, form: str, index_op: str, latest_op: str, key_op: str) -> None:
+    @public_handler
+    def index(request: Request) -> Response:
+        q = strict_query(request, V1_OPERATIONS[index_op]["queryKeys"])
+        limit = int_param(q.get("limit"), "limit", 1, 60, 12)
+        return send_v1(request, v1_periods(request.app.state.pool, kind, limit), f"v1-{path}", V1_OPERATIONS[index_op]["cacheControl"])
+
+    @public_handler
+    def latest(request: Request) -> Response:
+        strict_query(request, V1_OPERATIONS[latest_op]["queryKeys"])
+        body = v1_period(request.app.state.pool, kind, "latest")
+        if not body:
+            return problem(request, 404, "not_found", f"No {name} report has been published yet.")
+        return send_v1(request, body, f"v1-{name}", V1_OPERATIONS[latest_op]["cacheControl"])
+
+    @public_handler
+    def by_key(request: Request, key: str) -> Response:
+        strict_query(request, V1_OPERATIONS[key_op]["queryKeys"])
+        if not is_period_key(kind, key):
+            raise QueryError(f"{param} must be {form}.")
+        body = v1_period(request.app.state.pool, kind, key)
+        if not body:
+            return problem(request, 404, "not_found", f"No {name} report exists for {key}.", cache_control="public, max-age=60")
+        return send_v1(request, body, f"v1-{name}", V1_OPERATIONS[key_op]["cacheControl"])
+
+    app.add_api_route(f"/api/v1/{path}", index, methods=["GET"], include_in_schema=False)
+    app.add_api_route(f"/api/v1/{path}/latest", latest, methods=["GET"], include_in_schema=False)
+    app.add_api_route(f"/api/v1/{path}/{{key}}", by_key, methods=["GET"], include_in_schema=False)
 
 
 def register_v1_fallbacks(app: FastAPI) -> None:
