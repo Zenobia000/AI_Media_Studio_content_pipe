@@ -10,7 +10,7 @@
 |---|---|
 | API 骨架 | 請求編號、重定向表、OAuth 探測、404／405／錯誤格式（problem+json）、`/api/health` |
 | 公開 API v1（全部） | `items`、`hot-topics`、`stories/:id`、`dailies`（含 latest、依日期）、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`，以及 `/api/v1/*` 的 404、405、CORS 預檢 |
-| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、報告索引／最新頁／導覽／月份／詳細頁 |
+| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、RSS（摘要、全部、日報／週報／月報、分類）、報告索引／最新頁／導覽／月份／詳細頁 |
 | 靜態檔 | `robots.txt`、`security.txt`、`manifest.webmanifest`、`openapi-v1.json`、各種圖示、聯絡 QR、IndexNow 金鑰檔 |
 | 底層 | 時間、文字、ID、游標、設定與憑證、出站網路防護與請求、快取、稽核紀錄、簽名的圖片代理網址 |
 
@@ -21,7 +21,7 @@
 | 項目 | 規模 | 說明 |
 |---|---|---|
 | `GET /api/site/items/:id`、`/original`、`/items/:id/markdown` | 約 210 行 | 文章頁。需要內文 HTML 的清理與圖片改寫（`media/imgproxy.ts` 的 `proxyBodyImages`，用到 cheerio 的影片正規化 `content/video.ts`），Python 要用 lxml 重寫，細節多、最容易和 Node 版差一個字元 |
-| RSS：`/feed.xml`、`/feed/*.xml`、`/feed/category/*` | 約 210 行 | `publication/feeds.ts`，XML 字串必須逐字元一致，否則訂閱器會重發舊文章 |
+| RSS 全文版：`/feed/full.xml`、`/feed/full/category/*` | 約 60 行 | 摘要版、全部、日報／週報／月報與分類 RSS 已完成並逐位元組一致；全文版要內聯清理過的內文與簽名圖片，等文章頁的 HTML 清理一起做 |
 | `/sitemap.xml`、`/sitemaps/*`、`/llms.txt` | 約 320 行 | 依賴上面的主題頁計數 |
 | `/og/*` 分享圖、`/api/img-proxy` 圖片代理、媒體路由 | 約 700 行 | 圖片轉檔與縮放（原本用 sharp），Python 要用 Pillow；像素層級的輸出沒辦法逐位元組比對，只能比尺寸與格式 |
 | Agent 回答（`/api/agent/*`）、MCP（`/api/mcp`） | 約 800 行 | 讀取層為主，MCP 是 JSON-RPC，可以用既有的 `scripts/mcp-check.ts` 對照 |
