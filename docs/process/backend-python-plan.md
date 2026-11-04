@@ -51,8 +51,11 @@
 |---|---|---|
 | 0 底層 | ✅（除模組註冊） | `time.py`、`lib/{text,ids,cursor,video_url,image_url}.py`（用 Node 版輸出對照）、`lib/netguard.py`（出站位址防護，40 個位址對照）、`lib/http_fetch.py`（出站請求：逐跳檢查、固定連線位址、大小與時間上限）、`lib/page_content.py`、`lib/cache.py`、`audit.py`、`config.py`、`pack.py`＋`pack/*.json`、`http_policy.py`。`modules.ts` 沒搬：網站已經沒有自己的模組（inbox 已搬出去），註冊表是空的 |
 | 1 契約 | 併入階段 2 | Node 版的契約只是 TypeScript 型別，行為在各路由裡；Python 版在搬每條路由時定義回應結構，用對照測試確認 |
-| 2 唯讀公開 API | ◐ 剛開始 | ✅ FastAPI 骨架（`api/app.py`：請求編號、重定向表、OAuth 探測、404／錯誤格式、`/api/health`）、`api/respond.py`（problem+json、ETag／304、嚴格查詢解析）、`api/routes/v1.py` 的共用部分與 `/api/v1/*` 的 404／405／預檢。**24 條對照測試**（`tests/parity/`）。⬜ 各 v1 操作（`items`、`hot-topics`、`stories`、`dailies`、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`）、`/api/site/*`、feeds、sitemap、OG 圖、媒體、agent、MCP、靜態檔 |
+| 2 唯讀公開 API | ◐ 進行中 | ✅ FastAPI 骨架（`api/app.py`）、`api/respond.py`、`/api/v1/*` 的 404／405／預檢、**`/api/v1/items`**（`engine/publication/{scope,pool,v1}.py`、`engine/taxonomy.py`：模式、視窗、排序、分類、搜尋與容量限制、游標分頁、ETag／304、各種錯誤請求；52 條對照測試）。⬜ `hot-topics`、`stories/:id`（需要 `events/hot`、`events/related`、代表報導、故事文字、主題）、`dailies`／`weeklies`／`monthlies`（`publication/reports.ts` 661 行）、`selected/snapshot`／`changes`（需要 `publication/publish.ts` 的帳本）、`/api/site/*`、feeds、sitemap、OG 圖、媒體、agent、MCP、靜態檔 |
 | 3～7 | ⬜ | |
+
+### 對照用的資料
+`AIHOT/scripts/seed-parity.ts` 用 Node 版自己的函式（`upsertMaterial`、`publishArticle`、`computeHotRanking`）在全新、已遷移的資料庫上造一份固定結構的資料：40 篇公開文章（9 篇精選、含沒有分數與低於瀏覽門檻的、超過 24 小時視窗的、一篇 X 貼文）、5 個事件（各有 3 篇報導）、1 份熱度榜、日報／週報／月報各 1 份。**不需要模型金鑰**。造資料時間是相對「現在」的，所以每次要重新造一份（`PARITY_DATABASE_URL` 指向它）。等 Python 的 `publish` 搬完，這支腳本也要改寫成 Python，Node 就不再需要。
 
 ### 對照工具（`tests/parity/`）
 同一個資料庫、同一個請求，Node 版 API 與 Python 版各答一次，比對狀態碼、重要標頭與 JSON（請求編號除外）。需要：`PARITY_DATABASE_URL` 指向一份已用 `scripts/migrate.ts` 遷移過的真資料庫副本，與 Node。副本做法在 `tests/parity/conftest.py` 開頭。目前副本裡有 449 筆分析、448 筆公開文章，但**沒有事件（stories）、日報、週報**（要模型呼叫才會產生），而且 2026-11-02～04 的資料不在 24 小時視窗內，所以事件、報告相關的路由用這份副本只能比對到「空結果」。要比對有內容的結果，需要有金鑰跑一次模型流程，或由 TypeScript 的測試輔助函式造一份資料。
