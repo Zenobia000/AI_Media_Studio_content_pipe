@@ -103,6 +103,9 @@ def test_states_retries_and_queued_work(world, monkeypatch):
     def configure(conn):
         conn.adapters.register_loader("numeric", _FloatNumeric)
 
+    from newsroom.engine.models import invalidate_model_cache
+
+    invalidate_model_cache()  # the model choices of an earlier test's database are not this one's
     py = []
     with ConnectionPool(urls["pr_py"], min_size=1, max_size=6, kwargs={"row_factory": dict_row, "autocommit": True}, configure=configure, open=True) as pool:
         for key in order:

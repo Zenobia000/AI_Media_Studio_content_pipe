@@ -145,6 +145,9 @@ def test_analysis_of_ten_articles(world, tmp_path, monkeypatch):
     def configure(conn):
         conn.adapters.register_loader("numeric", _FloatNumeric)
 
+    from newsroom.engine.models import invalidate_model_cache
+
+    invalidate_model_cache()  # the model choices of an earlier test's database are not this one's
     py = []
     with ConnectionPool(urls["an_py"], min_size=1, max_size=6, kwargs={"row_factory": dict_row, "autocommit": True}, configure=configure, open=True) as pool:
         for article_id in ids["an_py"][: len(ARTICLES)]:
