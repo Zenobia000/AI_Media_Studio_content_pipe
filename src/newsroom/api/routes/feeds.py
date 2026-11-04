@@ -1,5 +1,5 @@
 """RSS routes (port of apps/api/src/routes/feeds.ts). Unknown query parameters are accepted and never change content. A preflight gets 204 and
-the allowed methods; feeds send no CORS headers. The full-text feeds (/feed/full.xml, /feed/full/category/*) are not ported yet."""
+the allowed methods; feeds send no CORS headers."""
 
 from __future__ import annotations
 
@@ -33,7 +33,16 @@ def register_feeds(app: FastAPI) -> None:
     def preflight() -> Response:
         return Response(status_code=204, headers={"Allow": "GET, HEAD, OPTIONS"})
 
-    for url in ["/feed.xml", "/feed/all.xml", "/feed/daily.xml", "/feed/weekly.xml", "/feed/monthly.xml", "/feed/category/{file}"]:
+    for url in [
+        "/feed.xml",
+        "/feed/full.xml",
+        "/feed/all.xml",
+        "/feed/daily.xml",
+        "/feed/weekly.xml",
+        "/feed/monthly.xml",
+        "/feed/category/{file}",
+        "/feed/full/category/{file}",
+    ]:
         app.add_api_route(url, preflight, methods=["OPTIONS"], include_in_schema=False)
 
     def item(url: str, kind: str) -> None:
@@ -43,6 +52,7 @@ def register_feeds(app: FastAPI) -> None:
         app.add_api_route(url, handler, methods=["GET"], include_in_schema=False)
 
     item("/feed.xml", "selected")
+    item("/feed/full.xml", "selected-full")
     item("/feed/all.xml", "all")
 
     def report(kind: str) -> None:
@@ -54,9 +64,14 @@ def register_feeds(app: FastAPI) -> None:
     for kind in ("daily", "weekly", "monthly"):
         report(kind)
 
-    @app.get("/feed/category/{file}", include_in_schema=False)
-    def category(request: Request, file: str) -> Response:
-        slug = file.removesuffix(".xml") if file.endswith(".xml") else file
-        if not file.endswith(".xml") or not is_feed_category(slug):
-            return Response("Not found", status_code=404, media_type="text/plain; charset=utf-8")
-        return _serve(request, lambda: item_feed(request.app.state.pool, "selected", slug), "selected")
+    def category(url: str, kind: str) -> None:
+        def handler(request: Request, file: str) -> Response:
+            slug = file.removesuffix(".xml") if file.endswith(".xml") else file
+            if not file.endswith(".xml") or not is_feed_category(slug):
+                return Response("Not found", status_code=404, media_type="text/plain; charset=utf-8")
+            return _serve(request, lambda: item_feed(request.app.state.pool, kind, slug), kind)
+
+        app.add_api_route(url, handler, methods=["GET"], include_in_schema=False)
+
+    category("/feed/category/{file}", "selected")
+    category("/feed/full/category/{file}", "selected-full")

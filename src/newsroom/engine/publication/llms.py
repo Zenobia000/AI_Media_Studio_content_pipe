@@ -141,7 +141,7 @@ def llms_txt(opts: dict) -> str:
     lines.append(f"- [主題]({u('/topics')}): 按{'、'.join(g['name'] for g in topic_groups())}{pack.subject_after('追蹤', '最新動態')}{count}")
     if opts["topics"]:
         lines += ["", f"## 主題：各公司與{field}的最新動態", "", "每個主題頁持續更新最新精選。", ""]
-        lines += [f"- [{x['name']}]({u(f'/topics/{x['slug']}')}): {x['definition']}" for x in opts["topics"]]
+        lines += [f"- [{x['name']}]({u('/topics/' + x['slug'])}): {x['definition']}" for x in opts["topics"]]
     lines += ["", "## 使用說明", ""]
     lines.append("- 內容為第三方原文的聚合摘要與編輯策展，原文版權歸各來源所有。" + ((policy["terms"].get("license") or {}).get("llms") or ""))
     lines.append(

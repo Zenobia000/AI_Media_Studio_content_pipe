@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request, Response
 
 from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_query, problem
 from newsroom.engine.lib.cursor import InvalidCursorError
+from newsroom.engine.publication.detail import load_item_detail
 from newsroom.engine.publication.pool import SearchBusyError
 from newsroom.engine.publication.reports import (
     list_reports,
@@ -107,6 +108,21 @@ def register_site(app: FastAPI) -> None:
     @site_handler
     def changelog(request: Request) -> Response:
         return json_with_etag(request, load_changelog(), "changelog", "public, max-age=300, s-maxage=300")
+
+    item_id_re = re.compile(r"[a-zA-Z0-9_-]{1,80}")
+
+    def item_route(request: Request, item_id: str, language: str, prefix: str) -> Response:
+        if not item_id_re.fullmatch(item_id):
+            return problem(request, 404, "not_found", "item not found")
+        result = load_item_detail(request.app.state.pool, item_id, language)
+        if not result:
+            return problem(request, 404, "not_found", "item not found", cache_control="public, max-age=60")
+        return json_with_etag(request, result["item"], prefix, "public, max-age=60, s-maxage=60")
+
+    @app.get("/api/site/items/{item_id}/original")
+    @site_handler
+    def item_original(request: Request, item_id: str) -> Response:
+        return item_route(request, item_id, "original", "item-original")
 
     @app.get("/api/site/items/availability")
     @site_handler
@@ -246,3 +262,8 @@ def register_site(app: FastAPI) -> None:
         if not data:
             return problem(request, 404, "not_found", "topic page not found", cache_control="public, max-age=60")
         return json_with_etag(request, data, "topic", "public, max-age=60, s-maxage=60")
+
+    @app.get("/api/site/items/{item_id}")
+    @site_handler
+    def item_detail(request: Request, item_id: str) -> Response:
+        return item_route(request, item_id, "zh", "item")

@@ -12,8 +12,11 @@ from urllib.parse import urlparse
 
 from newsroom.engine import pack
 from newsroom.engine.config import config
+from newsroom.engine.content import proxy_body_images, text_to_html
 from newsroom.engine.http_policy import site_url
 from newsroom.engine.lib.text import escape_xml
+from newsroom.engine.publication.detail import export_translation
+from newsroom.engine.publication.items import x_view
 from newsroom.engine.publication.reports import (
     INDEX_LIMIT,  # noqa: F401
     daily_leads,
@@ -106,18 +109,58 @@ def channel(meta: dict, items: list[str]) -> str:
 """
 
 
-def item_xml(r: dict) -> str:
+FEED_IMAGE_SECONDS = 7 * 86400  # readers keep feed items for days: body images in full RSS are signed for a week, not a day
+
+
+def full_content(r: dict, aihot: str) -> str | None:
+    """The body a full feed carries, in Chinese when the page has it: an X post's translation (with the post it quotes, translated too), else a
+    complete Chinese translation of the article, else the original. It ends with an attribution line (also a mark on copies taken from the feed)."""
+    html = None
+    x = None
+    if r.get("channel") == "x":
+        x = x_view({"x_post": r.get("x_post"), "x_article": r.get("x_article"), "zh_text": r.get("zh_text"), "quoted_zh": r.get("quoted_zh")})
+    if x:
+        html = text_to_html(x["translation"] if x["translation"] is not None else x["text"])
+        q = x["quoted"]
+        if q and q["text"]:
+            link = f'<p><a href="{escape_xml(q["url"])}">{escape_xml(q["url"])}</a></p>' if q["url"] else ""
+            quoted = text_to_html(q["translation"] if q["translation"] is not None else q["text"])
+            html += f"<blockquote><p>引用 @{escape_xml(q['handle'])}：</p>{quoted}{link}</blockquote>"
+        for media in (r.get("x_post") or {}).get("media") or []:
+            url = str(media["url"] if media.get("url") is not None else "")
+            if not re.match(r"^https?://", url, re.I):
+                continue
+            if media.get("kind") == "video":
+                html += f'<p><a href="{escape_xml(url)}">影片</a></p>'
+            else:
+                alt = escape_xml(str(media["alt"] if media.get("alt") is not None else ""))
+                html += f'<p><img src="{escape_xml(url)}" alt="{alt}"></p>'
+    elif r.get("body_html"):
+        html = export_translation(r) or r["body_html"]
+    if not html:
+        return None
+    site = pack.site()["SITE"]["name"]
+    more = escape_xml(pack.subject_after("更多", "動態"))
+    return f'{proxy_body_images(html, True, FEED_IMAGE_SECONDS)}<p>—— 本文由 {escape_xml(site)} 聚合整理，完整版與{more}見 <a href="{aihot}">{aihot}</a></p>'
+
+
+def item_xml(r: dict, include_content: bool = False) -> str:
     name = pack.site()["SITE"]["name"]
     link = item_url(r["id"])
     summary = r["summary"] if r["summary"] is not None else ""
     description = f'<p>{escape_xml(summary)}</p>\n<p>🔗 <a href="{escape_xml(r["url"])}">閱讀原文</a></p>\n<p>via {escape_xml(name)} · <a href="{link}">{link}</a></p>'
+    content = ""
+    if include_content and r.get("syndicate"):
+        body = full_content(r, link)
+        if body:
+            content = f"\n      <content:encoded>{cdata(body)}</content:encoded>"
     public = to_public_api_category(r["category"])
     category = f"\n      <category>{escape_xml(feed_category_label(public))}</category>" if public else ""
     pub_date = f"\n      <pubDate>{rfc822(r['published_at'])}</pubDate>" if r["published_at"] else ""
     return f"""    <item>
       <title>{cdata(r["title"])}</title>
       <link>{link}</link>
-      <description>{cdata(description)}</description>{category}{pub_date}
+      <description>{cdata(description)}</description>{content}{category}{pub_date}
       <guid isPermaLink="false">{escape_xml(r["id"])}</guid>
       <author>{escape_xml(_author())} ({escape_xml(public_source_name(r["source_name"]))})</author>
     </item>"""
@@ -133,6 +176,7 @@ def _category_condition(category: str | None) -> tuple[str, dict]:
 def item_feed(pool, kind: str, category: str | None, now: datetime | None = None) -> str:
     """Items are the newest by their original publish time (the pubDate shown): 50 per feed; a category feed holds only its last 7 days."""
     now = now or datetime.now().astimezone()
+    full = kind == "selected-full"
     params = scope_params(now)
     if kind == "all":
         scope = (
@@ -146,6 +190,12 @@ def item_feed(pool, kind: str, category: str | None, now: datetime | None = None
         if category:
             scope += " AND coalesce(p.published_at, p.discovered_at) >= %(week_ago)s"
             params["week_ago"] = now - timedelta(days=7)
+    full_columns = """, p.channel, p.syndicate, a.language, a.x_post, a.x_article,
+        CASE WHEN p.channel = 'x' THEN tr.body_text END AS zh_text, qt.text_zh AS quoted_zh,
+        a.body_text, a.body_html, tr.body_html AS tr_html, tr.complete AS tr_complete"""
+    full_joins = """LEFT JOIN articles a ON a.id = p.article_id AND p.syndicate
+      LEFT JOIN translations tr ON tr.article_id = p.article_id AND tr.lang = 'zh' AND tr.revision >= a.revision
+      LEFT JOIN quote_translations qt ON p.channel = 'x' AND qt.tweet_id = substring(a.x_post->'quoted'->>'url' from '/status/([0-9]+)')"""
     with pool.connection() as conn:
         rows = conn.execute(
             f"""WITH page AS MATERIALIZED (
@@ -153,7 +203,9 @@ def item_feed(pool, kind: str, category: str | None, now: datetime | None = None
                   ORDER BY coalesce(p.published_at, p.discovered_at) DESC, p.article_id DESC LIMIT 50
                 )
                 SELECT p.article_id AS id, p.title, p.summary, p.url, p.category, p.published_at, s.name AS source_name
+                  {full_columns if full else ""}
                 FROM page JOIN publications p ON p.article_id = page.article_id JOIN sources s ON s.id = p.source_id
+                {full_joins if full else ""}
                 ORDER BY coalesce(p.published_at, p.discovered_at) DESC, p.article_id DESC""",
             params,
         ).fetchall()
@@ -163,13 +215,15 @@ def item_feed(pool, kind: str, category: str | None, now: datetime | None = None
         name = pack.site()["SITE"]["name"]
         label = feed_category_label(category)
         meta = {
-            "title": f"{name} — {label}",
-            "description": f"{name} 每日精選裡「{label}」這一類的摘要，按分類訂閱、不被全量精選刷屏。",
+            "title": f"{name} — {label}全文" if full else f"{name} — {label}",
+            "description": f"{name} 每日精選「{label}」分類全文源。僅對明確允許再分發的來源內聯正文。"
+            if full
+            else f"{name} 每日精選裡「{label}」這一類的摘要，按分類訂閱、不被全量精選刷屏。",
             "homePath": "/",
-            "selfPath": f"/feed/category/{category}.xml",
+            "selfPath": f"/feed/full/category/{category}.xml" if full else f"/feed/category/{category}.xml",
             "ttl": meta_src["pollHintMinutes"],
         }
-    return channel(meta, [item_xml(r) for r in rows])
+    return channel(meta, [item_xml(r, full) for r in rows])
 
 
 def feed_issues(pool, kind: str, limit: int) -> list[dict]:
