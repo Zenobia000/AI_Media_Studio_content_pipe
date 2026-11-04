@@ -139,9 +139,24 @@ def run_extraction(pool, article_id: str) -> dict:
 
 
 def register_source_jobs(worker) -> None:
-    """The handlers of the collection queues on a Worker, and the timers that keep them fed."""
+    """The handlers of the collection queues on a Worker, and the timers that keep them fed (source timers only with COLLECT_ENABLED=true, as in the original)."""
+    import os
+
     pool = worker.pool
     worker.work(QUEUES["fetchSource"], lambda data: collect_source(pool, data["sourceId"], bool(data.get("force"))), local_concurrency=8)
     worker.work(QUEUES["extractBody"], lambda data: run_extraction(pool, data["articleId"]), local_concurrency=4)
-    worker.schedule("sources.schedule", "* * * * *", lambda: schedule_due_sources(pool))
-    worker.schedule("sources.adapt-intervals", "20 4 * * *", lambda: adapt_intervals(pool))
+    if os.environ.get("COLLECT_ENABLED") == "true":
+        worker.schedule("sources.schedule", "* * * * *", lambda: schedule_due_sources(pool))
+        worker.schedule("sources.adapt-intervals", "20 4 * * *", lambda: adapt_intervals(pool))
+
+
+def register_processing_jobs(worker) -> None:
+    """The analysis queue, the sweep that queues articles waiting for their turn, and the hot-ranking timers."""
+    from newsroom.engine.events.hot import compute_hot_ranking, snapshot_heat
+    from newsroom.engine.jobs.content import process_article
+
+    pool = worker.pool
+    worker.work(QUEUES["analyze"], lambda data: process_article(pool, data["articleId"], data.get("attemptTag")), local_concurrency=6)
+    worker.schedule("content.sweep", "*/5 * * * *", lambda: sweep_unprocessed(pool))
+    worker.schedule("hot.rank", "*/5 * * * *", lambda: compute_hot_ranking(pool))
+    worker.schedule("hot.snapshot", "2 * * * *", lambda: snapshot_heat(pool))

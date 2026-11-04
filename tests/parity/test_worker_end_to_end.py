@@ -31,6 +31,11 @@ def feed(origin: str) -> str:
     return f'<?xml version="1.0"?><rss version="2.0"><channel><title>T</title>{items}</channel></rss>'
 
 
+def c_count(url: str, query: str) -> int:
+    with psycopg.connect(url, row_factory=dict_row) as c:
+        return c.execute(query).fetchone()["n"]
+
+
 def serve():
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -69,10 +74,14 @@ def database(database_url, settings_env):
     return url
 
 
-def test_collect_extract_and_queue_analysis(database):
+def test_collect_extract_analyse_and_publish(database, monkeypatch):
     from newsroom.engine.jobs.sources import schedule_due_sources
     from newsroom.engine.worker import build_worker, open_pool
+    from tests.parity.test_analyze import Fake
 
+    model = Fake()
+    for k, v in {"MODEL_CALLS_ENABLED": "true", "LLM_BASE_URL": model.url, "LLM_API_KEY": "secret-key", "LLM_MODEL": "fake", "COLLECT_ENABLED": "true"}.items():
+        monkeypatch.setenv(k, v)
     server = serve()
     origin = f"http://127.0.0.1:{server.server_port}"
     with psycopg.connect(database, autocommit=True) as c:
@@ -94,7 +103,9 @@ def test_collect_extract_and_queue_analysis(database):
                 queued = c.execute("SELECT name, count(*)::int AS n FROM jobs WHERE state IN ('created', 'active', 'retry') GROUP BY 1 ORDER BY 1").fetchall()
                 runs = c.execute("SELECT status, found_count, new_count FROM fetch_runs WHERE source_id = 'e2e-rss'").fetchall()
             state = {"arts": arts, "src": src, "queued": queued, "runs": runs}
-            if len(arts) == 3 and all(a["body_status"] == "ok" for a in arts) and any(q["name"] == "content.analyze" for q in queued):
+            analysed = c_count(database, "SELECT count(*) AS n FROM articles WHERE source_id = 'e2e-rss' AND processing_state IN ('analyzed', 'blocked')")
+            if len(arts) == 3 and all(a["body_status"] == "ok" for a in arts) and analysed == 3:
+                state["queued"] = queued
                 break
             time.sleep(1)
         else:
@@ -105,7 +116,11 @@ def test_collect_extract_and_queue_analysis(database):
         server.shutdown()
     assert state["src"]["health"] == "ok" and state["src"]["fail_count"] == 0 and state["src"]["cursor"]["initializedAt"]
     assert state["runs"] == [{"status": "ok", "found_count": 3, "new_count": 3}]
-    assert all(a["chars"] > 200 and a["queued"] for a in state["arts"])
-    analyses = next(q["n"] for q in state["queued"] if q["name"] == "content.analyze")
-    assert analyses == 3
-    assert not any(q["name"] == "content.extract-body" for q in state["queued"])
+    assert all(a["chars"] > 200 for a in state["arts"])
+    assert not any(q["name"] in ("content.analyze", "content.extract-body") for q in state["queued"])
+    with psycopg.connect(database, row_factory=dict_row) as c:
+        assert c.execute("SELECT count(*)::int AS n FROM analyses an JOIN articles a ON a.id = an.article_id WHERE a.source_id = 'e2e-rss'").fetchone()["n"] == 3
+        assert c.execute("SELECT count(*)::int AS n FROM publications p JOIN articles a ON a.id = p.article_id WHERE a.source_id = 'e2e-rss'").fetchone()["n"] == 3
+        groups = c.execute("SELECT count(*)::int AS n FROM jobs WHERE name = 'events.group'").fetchone()["n"]
+    assert groups >= 1  # what passed the analysis waits for event grouping, which is not ported yet
+    assert len(model.requests) >= 12  # prefilter, two scores, structure and the writing for each of the three

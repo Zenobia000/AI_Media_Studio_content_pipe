@@ -49,9 +49,21 @@ class Fake:
                 user = messages[-1]["content"]
                 user = user if isinstance(user, str) else json.dumps(user, ensure_ascii=False)
                 digest = int(hashlib.sha1(user.encode()).hexdigest(), 16)
+                for marker, status in (("FAIL429", 429), ("FAIL402", 402)):
+                    if marker in user:
+                        self.send_response(status)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": {"code": "x", "message": "no"}}).encode())
+                        return
+                if "CLOSE" in user:
+                    self.connection.close()
+                    return
                 has_system = messages[0]["role"] == "system"
                 tokens, temp = body["max_tokens"], body["temperature"]
-                if not has_system:  # the title/summary prompts are one user message
+                if "BADJSON" in user:
+                    content = "I will not answer in JSON."
+                elif not has_system:  # the title/summary prompts are one user message
                     content = "title_zh: 譯題 " + str(digest % 100) + "\nsummary_zh: 這是一段摘要，說明了事件的經過和影響，內容足夠長，方便檢查長度規則是否通過，並提到了數字" + str(digest % 7) + "。\nbody_zh: 正文翻譯"
                 elif tokens == 512 and temp == 0:  # prefilter
                     content = json.dumps({"label": "BLOCK" if "BLOCKME" in user else "PASS", "reason": "because"})

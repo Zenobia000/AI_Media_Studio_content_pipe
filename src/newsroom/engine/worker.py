@@ -13,7 +13,7 @@ from newsroom.core.db import _FloatNumeric
 from newsroom.engine.config import config
 from newsroom.engine.heartbeat import start_heartbeat
 from newsroom.engine.jobs.queue import Worker
-from newsroom.engine.jobs.sources import register_source_jobs
+from newsroom.engine.jobs.sources import register_processing_jobs, register_source_jobs
 from newsroom.engine.sources.collect import SHUTDOWN
 
 log = logging.getLogger("newsroom.worker")
@@ -34,6 +34,7 @@ def open_pool(database_url: str | None = None, size: int = 16) -> ConnectionPool
 def build_worker(pool) -> Worker:
     worker = Worker(pool)
     register_source_jobs(worker)
+    register_processing_jobs(worker)
     return worker
 
 
