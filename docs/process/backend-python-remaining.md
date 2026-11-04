@@ -10,7 +10,7 @@
 |---|---|
 | API 骨架 | 請求編號、重定向表、OAuth 探測、404／405／錯誤格式（problem+json）、`/api/health` |
 | 公開 API v1（全部） | `items`、`hot-topics`、`stories/:id`、`dailies`（含 latest、依日期）、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`，以及 `/api/v1/*` 的 404、405、CORS 預檢 |
-| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、文章頁與 Markdown 匯出、Agent 回答（`/api/v1/agent/*`）、MCP（`/api/mcp`，手寫 JSON-RPC，對照官方 SDK 的回應）、RSS（摘要、全文、全部、日報／週報／月報、分類）、`sitemap.xml`、`sitemaps/*`、`llms.txt`、報告索引／最新頁／導覽／月份／詳細頁 |
+| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、文章頁與 Markdown 匯出、回饋提交 `POST /api/site/feedback`（限流、封禁、去重；轉送到飛書留給 worker 的重送工作）、Agent 回答（`/api/v1/agent/*`）、MCP（`/api/mcp`，手寫 JSON-RPC，對照官方 SDK 的回應）、RSS（摘要、全文、全部、日報／週報／月報、分類）、`sitemap.xml`、`sitemaps/*`、`llms.txt`、報告索引／最新頁／導覽／月份／詳細頁 |
 | 靜態檔 | `robots.txt`、`security.txt`、`manifest.webmanifest`、`openapi-v1.json`、各種圖示、聯絡 QR、IndexNow 金鑰檔 |
 | 底層 | 時間、文字、ID、游標、設定與憑證、出站網路防護與請求、快取、稽核紀錄、簽名的圖片代理網址 |
 
@@ -26,6 +26,8 @@
 > 文章內文清理（sanitize-html、turndown、cheerio）是照 TypeScript 的設定重寫的，用 138 組由 Node 版產生的輸入對照過，但輸入很髒的網頁（壞掉的標籤、極少見的實體）可能還會有出入。
 
 > 站點地圖沒有算內容指紋（`revision`，給變更通知用）和落地到磁碟的備份，這兩個屬於通知器，歸 B 區。
+
+> 擷取推送 `POST /api/ingest/items` 從 A 區移到 B 區：它會寫入文章並排進處理佇列（`jobs/content`），佇列是 B 區的工作佇列。
 
 ## B. 做得了，但驗證不了（需要金鑰、外部服務或真實資料）
 

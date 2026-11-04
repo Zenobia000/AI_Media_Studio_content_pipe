@@ -11,9 +11,11 @@ from collections.abc import Callable
 from functools import wraps
 
 from fastapi import FastAPI, Request, Response
+from starlette.concurrency import run_in_threadpool
 
 from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_query, problem
 from newsroom.engine.lib.cursor import InvalidCursorError
+from newsroom.engine.operations_feedback import FeedbackRejected, submit_feedback
 from newsroom.engine.publication.detail import export_markdown, load_item_detail
 from newsroom.engine.publication.pool import SearchBusyError
 from newsroom.engine.publication.reports import (
@@ -55,6 +57,32 @@ def site_handler(fn: Callable[..., Response]) -> Callable[..., Response]:
             return problem(request, 503, "temporarily_unavailable", "temporarily unavailable", retry_after=10)
 
     return wrapper
+
+
+def parse_form(raw: bytes, content_type: str) -> dict:
+    """The feedback form: text fields and at most one screenshot file. Anything else in the form is a refusal."""
+    from email import message_from_bytes  # noqa: PLC0415
+    from email.policy import HTTP  # noqa: PLC0415
+
+    message = message_from_bytes(b"Content-Type: " + content_type.encode() + bytes([13, 10, 13, 10]) + raw, policy=HTTP)
+    if message.get_content_maintype() != "multipart":
+        raise FeedbackRejected(400, "invalid_request", "截圖上傳格式不正確，請重新提交。")
+    texts: dict[str, str] = {}
+    files: dict[str, dict] = {}
+    for part in message.iter_parts():
+        name = part.get_param("name", header="content-disposition")
+        if not name:
+            continue
+        if part.get_filename() is not None:
+            files.setdefault(name, {"mime": part.get_content_type(), "data": part.get_payload(decode=True) or b""})
+        else:
+            texts.setdefault(name, (part.get_payload(decode=True) or b"").decode("utf-8", "replace"))
+    for key in ("content", "email", "pageUrl"):
+        if key in files:
+            raise FeedbackRejected(400, "invalid_request", "反饋文字格式不正確。")
+    if "screenshot" in texts:
+        raise FeedbackRejected(400, "invalid_request", "截圖上傳格式不正確。")
+    return {"content": texts.get("content", ""), "email": texts.get("email"), "pageUrl": texts.get("pageUrl"), "screenshot": files.get("screenshot")}
 
 
 def parse_filters(q: dict[str, str]) -> dict:
@@ -288,3 +316,23 @@ def register_site(app: FastAPI) -> None:
                 "Link": f'<{item_url(item_id)}>; rel="canonical"',
             },
         )
+
+    # The feedback form as the site posts it: multipart, with at most one screenshot file.
+    @app.post("/api/site/feedback")
+    async def feedback(request: Request) -> Response:
+        raw = await request.body()
+        if len(raw) > 12 * 1024 * 1024:
+            return problem(request, 413, "invalid_request", "The request could not be processed.")
+        try:
+            form = parse_form(raw, request.headers.get("content-type") or "")
+            ip = request.headers.get("x-real-ip") or (request.client.host if request.client else "")
+            result = await run_in_threadpool(
+                submit_feedback, request.app.state.pool, form["content"], form["email"], form["pageUrl"], form["screenshot"], ip,
+                request.headers.get("user-agent") or "",
+            )  # fmt: skip
+            return Response(js_json(result), status_code=201, media_type="application/json", headers={"Cache-Control": "no-store"})
+        except FeedbackRejected as e:
+            return problem(request, e.status, e.code, str(e), retry_after=e.retry_after)
+        except Exception:
+            log.exception("feedback failed")
+            return problem(request, 503, "temporarily_unavailable", "暫時無法提交，請稍後再試。", retry_after=30)
