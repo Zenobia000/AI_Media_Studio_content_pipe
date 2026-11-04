@@ -39,17 +39,10 @@ from newsroom.engine.admin.auth import (
 )
 from newsroom.engine.audit import Conflict
 from newsroom.engine.config import config
+from newsroom.engine.errors import BadRequest, Invalid  # noqa: F401
 from newsroom.engine.publication.v1 import iso
 
 log = logging.getLogger("newsroom.api")
-
-
-class Invalid(Exception):
-    """A request body or parameter that failed validation (a ZodError in the TypeScript): a 400 naming what is wrong."""
-
-
-class BadRequest(Exception):
-    """An error the TypeScript raised with statusCode 400: also a 400."""
 
 
 def secure(request: Request) -> bool:
@@ -100,7 +93,8 @@ def admin_handler(fn: Callable[..., object]) -> Callable[..., Response]:
             if ctype != "application/json":
                 return problem(request, 415, "invalid_request", "The request could not be processed.")
             try:
-                request.state.body = json.loads(raw) or {}
+                parsed = json.loads(raw)
+                request.state.body = {} if parsed is None else parsed
             except ValueError:
                 return problem(request, 400, "invalid_request", "The request could not be processed.")
         admin = await run_in_threadpool(session_principal, request.app.state.pool, request.headers.get("cookie"))

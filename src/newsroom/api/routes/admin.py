@@ -12,6 +12,7 @@ from newsroom.api.respond import problem
 from newsroom.api.routes.admin_auth import BadRequest, admin_handler
 from newsroom.engine.admin import feedback as fb
 from newsroom.engine.admin import settings as st
+from newsroom.engine.admin import sources as src
 from newsroom.engine.admin.auth import Principal, actor_of
 from newsroom.engine.audit import list_audit
 
@@ -47,6 +48,46 @@ def decode_image(data_url) -> bytes:
 
 
 def register_admin(app: FastAPI) -> None:
+    # Sources
+    @app.get("/api/admin/sources", include_in_schema=False)
+    @admin_handler
+    def sources_list(request: Request, admin: Principal):
+        f = q(request)
+        return src.list_sources(
+            request.app.state.pool,
+            {"q": f.get("q"), "kind": f.get("kind"), "health": f.get("health"), "mode": f.get("mode"), "use": f.get("use"), "enabled": f.get("enabled"), "page": page_of(request)},
+        )
+
+    @app.post("/api/admin/sources", include_in_schema=False)
+    @admin_handler
+    def sources_create(request: Request, admin: Principal):
+        return src.create_source(request.app.state.pool, request.state.body, actor_of(admin))
+
+    @app.post("/api/admin/sources/preview", include_in_schema=False)
+    @admin_handler
+    def sources_preview(request: Request, admin: Principal):
+        return src.preview_source(request.app.state.pool, body(request))
+
+    @app.get("/api/admin/sources/{source_id}", include_in_schema=False)
+    @admin_handler
+    def sources_detail(request: Request, admin: Principal, source_id: str):
+        return or_not_found(request, src.source_detail(request.app.state.pool, source_id))
+
+    @app.patch("/api/admin/sources/{source_id}", include_in_schema=False)
+    @admin_handler
+    def sources_update(request: Request, admin: Principal, source_id: str):
+        return or_not_found(request, src.update_source(request.app.state.pool, source_id, body(request), actor_of(admin)))
+
+    @app.post("/api/admin/sources/{source_id}/preview", include_in_schema=False)
+    @admin_handler
+    def sources_preview_stored(request: Request, admin: Principal, source_id: str):
+        return or_not_found(request, src.preview_stored_source(request.app.state.pool, source_id))
+
+    @app.post("/api/admin/sources/{source_id}/fetch", include_in_schema=False)
+    @admin_handler
+    def sources_fetch(request: Request, admin: Principal, source_id: str):
+        return or_not_found(request, src.fetch_now(request.app.state.pool, source_id, actor_of(admin)))
+
     # Feedback
     @app.get("/api/admin/feedback", include_in_schema=False)
     @admin_handler

@@ -4,14 +4,24 @@ made against a view that has moved on since is refused with a Conflict, which th
 from __future__ import annotations
 
 import json
+from datetime import UTC
 
 
 class Conflict(Exception):
     code = "conflict"
 
 
+def _default(value):
+    """What JSON.stringify makes of a Date (ISO, milliseconds, Z); other values the column types can hold become text."""
+    from datetime import datetime
+
+    if isinstance(value, datetime):
+        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.") + f"{value.microsecond // 1000:03d}Z"
+    return float(value) if hasattr(value, "as_tuple") else str(value)
+
+
 def _json(value):
-    return None if value is None else json.dumps(value, ensure_ascii=False)
+    return None if value is None else json.dumps(value, ensure_ascii=False, default=_default)
 
 
 def audit(conn, actor: str, action: str, subject: str | None, reason: str | None, before, after, request_id: str | None = None) -> None:
