@@ -38,6 +38,7 @@
 | 後臺登入與守門（密碼登入、工作階段、CSRF、登出、飛書登入的狀態驗證）、後臺的回饋處理（列表、狀態、封禁、刪除）、設定（聯絡 QR、通知目標、預算）、稽核紀錄 | Node 與 Python 各連自己的資料庫複本，送同樣的請求、比對回應，最後比對兩份資料庫的結果。飛書登入的真實流程沒驗證（要真實飛書） |
 | RSS／Atom／RDF 收集器（含壞掉的 XML、ETag／304、強制重讀） | 本機架一個假網站放八種餵送，Node 的 `fetchRss` 與 Python 各讀一次，逐筆比對候選文章與快取驗證資訊。解析器自己寫，照 fast-xml-parser 的寬容行為 |
 | JSON 清單收集器（API、`__NEXT_DATA__`、Next.js flight、`window` 變數、POST 本文）、清單過濾（前綴、分類、雜訊詞、發布時間窗）、設定鍵檢查 | 假網站兩邊各讀一次比對候選文章；過濾與設定鍵檢查由 Node 產生答案逐項比對。經 Jina 讀取的清單要付費收據機制，尚未移植；超過西元 9999 年的時間（單位填錯）Python 當成未知 |
+| 網頁列表收集器（選擇器、Markdown、Docusaurus／Intercom 更新日誌、mimo 首頁）的列表讀取 | 假網站放六種頁面，Node 與 Python 各讀一次，逐筆比對。選擇器用 soupsieve、HTML 用 html5lib，對應 cheerio／parse5。詳情頁補抓（`fetchDetail`）要等 `content/extract.ts` 移植；經 Jina 的列表尚未移植 |
 
 ## B. 做得了，但驗證不了（需要金鑰、外部服務或真實資料）
 
