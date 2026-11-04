@@ -10,9 +10,11 @@ from functools import wraps
 
 from fastapi import FastAPI, Request, Response
 
-from newsroom.api.respond import QueryError, apply_public_headers, problem
+from newsroom.api.respond import QueryError, apply_public_headers, json_with_etag, problem, strict_query
 from newsroom.engine.config import config
 from newsroom.engine.lib.cursor import InvalidCursorError
+from newsroom.engine.publication.v1 import V1ItemsQuery, v1_items
+from newsroom.engine.taxonomy import public_api_category_keys
 
 log = logging.getLogger("newsroom.api")
 
@@ -128,8 +130,32 @@ def _not_found(request: Request, rest: str = "") -> Response:
     return response
 
 
+def send_v1(request: Request, body, etag_prefix: str, cache_control: str, etag_of=None) -> Response:
+    """Every v1 JSON answer: with a weak ETag, 304 when it matches."""
+    return json_with_etag(request, body, etag_prefix, cache_control, etag_of)
+
+
 def register_v1(app: FastAPI) -> None:
     """The operations (added with the publication layer they read)."""
+
+    @app.get("/api/v1/items")
+    @public_handler
+    def items(request: Request) -> Response:
+        q = strict_query(request, V1_OPERATIONS["items"]["queryKeys"])
+        mode = enum_param(q.get("mode"), "mode", ["selected", "all"], "selected")
+        window = enum_param(q.get("window"), "window", ["24h", "7d"], "7d")
+        by = enum_param(q.get("by"), "by", ["timeline", "published"], "timeline")
+        category = None if "category" not in q else enum_param(q["category"], "category", public_api_category_keys(), public_api_category_keys()[0])
+        search = None
+        if "q" in q:
+            search = q["q"].strip()
+            if len(search) < 2 or len(search) > 200:
+                raise QueryError("q must contain 2 to 200 characters.")
+        limit = int_param(q.get("limit"), "limit", 1, 100, 50)
+        if "cursor" in q and len(q["cursor"]) == 0:
+            raise InvalidCursorError("empty cursor")
+        body = v1_items(request.app.state.pool, V1ItemsQuery(mode, window, by, category, search, limit, q.get("cursor")))
+        return send_v1(request, body, "v1-items", V1_OPERATIONS["items"]["cacheControl"])
 
 
 def register_v1_fallbacks(app: FastAPI) -> None:

@@ -21,7 +21,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 AIHOT = Path(__file__).resolve().parents[2] / "AIHOT"
-PORT = int(os.environ.get("PARITY_NODE_PORT", "3901"))
+PORT = int(os.environ.get("PARITY_NODE_PORT", "3921"))
 ENV = {
     "SITE_URL": "http://127.0.0.1:3000", "API_BASE_URL": f"http://127.0.0.1:{PORT}", "SESSION_SECRET": "ci-session-secret-0123456789abcdef",
     "IMG_PROXY_SIGN_SECRET": "ci-img-secret-0123456789abcdef", "COLLECT_ENABLED": "false", "MODEL_CALLS_ENABLED": "false", "API_PORT": str(PORT),
