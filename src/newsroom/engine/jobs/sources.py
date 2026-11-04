@@ -8,6 +8,7 @@ import math
 from newsroom.engine.extract import extract_article_body
 from newsroom.engine.jobs.queue import QUEUES, enqueue
 from newsroom.engine.sources.collect import SHUTDOWN, collect_source, queue_processing
+from newsroom.engine.sources.icons import refresh_source_icons
 
 MAX_EXTRACT_FAILURES = 3  # extraction gives up after this many errors and the article is judged on what it has
 QUEUED_STALE = "30 minutes"  # an article queued this long ago is queued again, in case its job was lost
@@ -148,6 +149,8 @@ def register_source_jobs(worker) -> None:
     if os.environ.get("COLLECT_ENABLED") == "true":
         worker.schedule("sources.schedule", "* * * * *", lambda: schedule_due_sources(pool))
         worker.schedule("sources.adapt-intervals", "20 4 * * *", lambda: adapt_intervals(pool))
+        # Icons are read from the sources' own sites, so they stop with collection.
+        worker.schedule("sources.icons", "40 4 * * *", lambda: refresh_source_icons(pool), missed="once")
 
 
 def register_processing_jobs(worker) -> None:
@@ -156,7 +159,23 @@ def register_processing_jobs(worker) -> None:
     from newsroom.engine.jobs.content import process_article
 
     pool = worker.pool
+    from newsroom.engine.jobs.publication import run_republish
+
     worker.work(QUEUES["analyze"], lambda data: process_article(pool, data["articleId"], data.get("attemptTag")), local_concurrency=6)
+    worker.work(QUEUES["republishSource"], lambda data: run_republish(pool, data["sourceId"]), local_concurrency=1)
+    worker.work(QUEUES["prepareMedia"], lambda data: run_prepare_media(pool, data), local_concurrency=1)
     worker.schedule("content.sweep", "*/5 * * * *", lambda: sweep_unprocessed(pool))
     worker.schedule("hot.rank", "*/5 * * * *", lambda: compute_hot_ranking(pool))
     worker.schedule("hot.snapshot", "2 * * * *", lambda: snapshot_heat(pool))
+
+
+def run_prepare_media(pool, data: dict) -> dict:
+    """The media queue: an article's images, or one rendition's animation or AVIF conversion (jobs/notify.ts)."""
+    from newsroom.engine.media.images import convert_animated, convert_avif
+    from newsroom.engine.media.prepare import prepare_article_media
+
+    if "articleId" in data:
+        return prepare_article_media(pool, data["articleId"])
+    if data.get("format") == "avif":
+        return {"avifSaved": convert_avif(data["url"], data["mode"])}
+    return {"animatedSaved": convert_animated(data["url"], data["mode"])}

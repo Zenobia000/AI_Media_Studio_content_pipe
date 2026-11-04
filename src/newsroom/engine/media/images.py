@@ -382,3 +382,97 @@ def produce_avif(url: str, mode: str) -> PreparedImage:
     if _exists(f"{file}.prepared"):
         return image
     return PreparedImage(image.body, image.type, image.pending_animation, True)
+
+
+# ── background preparation (media.prepare): animations as WebP, AVIF variants ──────────────────────
+
+AVIF_QUALITIES = [50, 60, 70]  # qualities tried for an AVIF variant, lowest first; above the last one it is rarely smaller than the rendition
+
+
+def convert_animated(url: str, mode: str) -> int:
+    """Replaces a cached animated rendition (GIF passed through on the request path) with an animated WebP at the rendition's width, keeping every frame, its
+    timing and the loop count, when that is clearly smaller. Background work only: decoding all frames is too heavy for a request. Returns the bytes saved (0 when
+    nothing changed)."""
+    file = cache_file(url, mode)
+    try:
+        body, typ = file.read_bytes(), Path(f"{file}.type").read_text(encoding="utf-8")
+    except OSError:
+        return 0
+    if typ != "image/gif":
+        return 0
+    if _exists(f"{file}.prepared"):
+        return 0
+    try:
+        with Image.open(io.BytesIO(body)) as gif:
+            frames_n = _frames(gif)
+            if not gif.width or not gif.height or gif.width * gif.height * frames_n > ANIMATION_MAX_PIXELS:
+                return 0
+            width = IMAGE_WIDTHS.get(mode, 1600)
+            loop = gif.info.get("loop", 0)
+            frames, durations = [], []
+            for i in range(frames_n):
+                gif.seek(i)
+                frame = gif.convert("RGBA")
+                if frame.width > width:
+                    frame = frame.resize((width, max(1, round(frame.height * width / frame.width))), Image.LANCZOS)
+                frames.append(frame)
+                durations.append(gif.info.get("duration", 100))
+            out = io.BytesIO()
+            frames[0].save(out, "WEBP", save_all=True, append_images=frames[1:], duration=durations, loop=loop, quality=80, method=4)
+            webp = out.getvalue()
+    except Exception:
+        webp = None
+    if not webp or len(webp) > len(body) * 0.85:
+        # Preparation finished, but this GIF cannot be converted or the original is smaller. Keep it normally cached instead of repeatedly queueing the same source.
+        Path(f"{file}.prepared").write_text("original", encoding="utf-8")
+        return 0
+    _save(file, webp, "image/webp")
+    return len(body) - len(webp)
+
+
+def _opaque(img: Image.Image) -> bool:
+    if "A" not in img.getbands() and img.mode not in ("P", "LA", "RGBA"):
+        return True
+    alpha = img.convert("RGBA").getchannel("A")
+    return alpha.getextrema()[0] == 255
+
+
+def _avif(img: Image.Image, rendition: bytes) -> bytes | None:
+    from newsroom.engine.media.similarity import luma, ssim
+
+    reference = luma(img)
+    target = ssim(reference, luma(rendition))
+    if target is None:
+        return None
+    for quality in AVIF_QUALITIES:
+        out = io.BytesIO()
+        img.convert("RGB").save(out, "AVIF", quality=quality, speed=6)
+        avif = out.getvalue()
+        # A higher quality only adds bytes.
+        if len(avif) > len(rendition) * 0.9:
+            return None
+        if (ssim(reference, luma(avif)) or 0) >= target:
+            return avif
+    return None
+
+
+def convert_avif(url: str, mode: str) -> int:
+    """Prepares a rendition's AVIF variant (media.prepare; several encodes are too heavy for a request): from the original, at the lowest quality whose SSIM against
+    the lossless resize reaches the rendition's own, kept only when at least a tenth smaller. Pictures with transparency keep their rendition. Returns the bytes
+    saved; 0 when the rendition stays, which is recorded so the variant is not tried again."""
+    file = cache_file(url, f"{mode}{AVIF_MODE_SUFFIX}")
+    if _exists(file) or _exists(f"{file}.prepared"):
+        return 0
+    rendition = produce_image(url, mode)
+    avif = None
+    if not rendition.pending_animation and rendition.type in ("image/jpeg", "image/webp"):
+        res = original(url)
+        still = still_rendition(res.body, res.headers.get("content-type") or "", mode, True)
+        if "kept" not in still and _opaque(still["image"]):
+            avif = _avif(still["image"], rendition.body)
+    file.parent.mkdir(parents=True, exist_ok=True)
+    if not avif:
+        Path(f"{file}.prepared").write_text("original", encoding="utf-8")
+        return 0
+    _save(file, avif, "image/avif")
+    return len(rendition.body) - len(avif)

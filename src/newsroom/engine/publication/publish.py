@@ -446,3 +446,30 @@ def publish_article_tx(conn, article_id: str, now: datetime | None = None, relea
         "ledger": ledger,
         "reduced": reduced,
     }
+
+
+def republish_source(pool, source_id: str, on_progress=None, shutdown=None) -> dict:
+    """Re-derives every published article of one source (after its participation, licences, tier or name changed) without calling models. Runs in the worker;
+    progress goes to the callback."""
+    with pool.connection() as conn:
+        total = conn.execute("SELECT count(*)::int AS total FROM publications WHERE source_id = %s", (source_id,)).fetchone()["total"]
+    after, done, changed, reduced = "", 0, 0, 0
+    while True:
+        with pool.connection() as conn:
+            batch = conn.execute(
+                "SELECT article_id FROM publications WHERE source_id = %s AND article_id > %s ORDER BY article_id LIMIT 500", (source_id, after)
+            ).fetchall()
+        if not batch:
+            break
+        for row in batch:
+            # Stopping mid-way is safe: the job is retried after the restart and re-derives from the start.
+            if shutdown is not None and shutdown.is_set():
+                raise InterruptedError("worker is stopping; republish resumes after restart")
+            r = publish_article(pool, row["article_id"])
+            changed += 1 if r and r.get("changed") else 0
+            reduced += 1 if r and r.get("reduced") else 0
+        done += len(batch)
+        after = batch[-1]["article_id"]
+        if on_progress:
+            on_progress(done, total)
+    return {"total": total, "changed": changed, "reduced": reduced}

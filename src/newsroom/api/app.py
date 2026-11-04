@@ -19,6 +19,7 @@ from newsroom.api.routes.admin import register_admin
 from newsroom.api.routes.admin_auth import register_admin_auth
 from newsroom.api.routes.agent import register_agent
 from newsroom.api.routes.feeds import register_feeds
+from newsroom.api.routes.ingest import register_ingest
 from newsroom.api.routes.mcp import register_mcp
 from newsroom.api.routes.media import register_media
 from newsroom.api.routes.og import register_og
@@ -94,6 +95,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
     register_admin_auth(app)
     if pack.site().get("ADMIN"):
         register_admin(app)
+    register_ingest(app)
     register_feeds(app)
     register_static(app)
     register_mcp(app)

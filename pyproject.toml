@@ -21,6 +21,7 @@ dependencies = [
   "segno>=1.6",
   "croniter>=2",
   "tzdata",
+  "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
