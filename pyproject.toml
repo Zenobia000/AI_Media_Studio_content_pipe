@@ -38,7 +38,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-newsroom = ["collect/*.json", "fetch/*.json", "core/migrations/*.sql", "engine/pack/*.json"]
+newsroom = ["collect/*.json", "fetch/*.json", "core/migrations/*.sql", "engine/pack/*.json", "engine/pack/prompts/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

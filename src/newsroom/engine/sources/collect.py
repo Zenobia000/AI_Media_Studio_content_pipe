@@ -4,7 +4,6 @@ source's health reflects consecutive failures. Port of sources/collect.ts (RSS, 
 from __future__ import annotations
 
 import json
-import threading
 import time
 from datetime import UTC, datetime
 
@@ -26,6 +25,7 @@ from newsroom.engine.materials import (
     reuse_external_material_identities,
     upsert_material,
 )
+from newsroom.engine.shutdown import SHUTDOWN  # noqa: E402
 from newsroom.engine.sources.config_keys import unsupported_config
 from newsroom.engine.sources.dates import _iso as iso
 from newsroom.engine.sources.filters import admit_listing, filter_publication_window
@@ -33,7 +33,6 @@ from newsroom.engine.sources.json_list import fetch_json_list
 from newsroom.engine.sources.rss import FetchError, fetch_rss, reads_whole
 from newsroom.engine.sources.web_list import fetch_detail, fetch_web_list, is_call_to_action_title, needs_title
 
-SHUTDOWN = threading.Event()  # set when the process is stopping: a run in flight is abandoned, not recorded as the source's failure
 DAY_MS = 86_400_000
 HOUR_MS = 3_600_000
 FUTURE_TOLERANCE_MS = FUTURE_TOLERANCE.total_seconds() * 1000
