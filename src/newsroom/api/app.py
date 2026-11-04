@@ -14,6 +14,7 @@ from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from newsroom.api.respond import problem
+from newsroom.api.routes.site import register_site
 from newsroom.api.routes.v1 import register_v1, register_v1_fallbacks
 from newsroom.core.db import _FloatNumeric
 from newsroom.engine.config import config
@@ -75,6 +76,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
         body = f'{{"ok":true,"db":"ok","ms":{round((time.monotonic() - started) * 1000)},"release":"{os.environ.get("AIHOT_RELEASE", "dev")}"}}'
         return Response(body, media_type="application/json", headers={"Cache-Control": "no-store"})
 
+    register_site(app)
     register_v1(app)
     register_v1_fallbacks(app)
 
