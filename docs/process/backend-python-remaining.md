@@ -39,6 +39,7 @@
 | RSS／Atom／RDF 收集器（含壞掉的 XML、ETag／304、強制重讀） | 本機架一個假網站放八種餵送，Node 的 `fetchRss` 與 Python 各讀一次，逐筆比對候選文章與快取驗證資訊。解析器自己寫，照 fast-xml-parser 的寬容行為 |
 | JSON 清單收集器（API、`__NEXT_DATA__`、Next.js flight、`window` 變數、POST 本文）、清單過濾（前綴、分類、雜訊詞、發布時間窗）、設定鍵檢查 | 假網站兩邊各讀一次比對候選文章；過濾與設定鍵檢查由 Node 產生答案逐項比對。經 Jina 讀取的清單要付費收據機制，尚未移植；超過西元 9999 年的時間（單位填錯）Python 當成未知 |
 | 網頁列表收集器（選擇器、Markdown、Docusaurus／Intercom 更新日誌、mimo 首頁）的列表讀取 | 假網站放六種頁面，Node 與 Python 各讀一次，逐筆比對。選擇器用 soupsieve、HTML 用 html5lib，對應 cheerio／parse5。詳情頁補抓（`fetchDetail`）要等 `content/extract.ts` 移植；經 Jina 的列表尚未移植 |
+| 信源健康度（`sources/health`：連續失敗、反覆讀不出、缺時間、反覆修訂、詳情失敗、各信源自己的發文節奏與報告文字） | 一份資料庫放進合成的抓取紀錄、文章與修訂，Node 與 Python 在同一時刻各讀一次，比對分組與報告文字 |
 
 ## B. 做得了，但驗證不了（需要金鑰、外部服務或真實資料）
 
