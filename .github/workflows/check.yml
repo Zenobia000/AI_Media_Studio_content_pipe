@@ -5,12 +5,19 @@ name: Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
+    paths: ["AIHOT/**", ".github/workflows/check.yml"]
   pull_request:
+    paths: ["AIHOT/**", ".github/workflows/check.yml"]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# The app lives in AIHOT/ (the repo root also holds docs/, skills/ and spikes/).
+defaults:
+  run:
+    working-directory: AIHOT
 
 concurrency:
   group: check-${{ github.event.pull_request.number || github.ref }}
