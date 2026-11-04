@@ -4,6 +4,8 @@ v1; no cookies are read or set."""
 from __future__ import annotations
 
 import logging
+import math
+import time
 from collections.abc import Callable
 from functools import wraps
 
@@ -12,6 +14,8 @@ from fastapi import FastAPI, Request, Response
 from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_query, problem
 from newsroom.engine.lib.cursor import InvalidCursorError
 from newsroom.engine.publication.pool import SearchBusyError
+from newsroom.engine.publication.site_lists import hot_search_links, load_hot_strip, load_pool, load_timeline
+from newsroom.engine.publication.topics import topic_browse_links
 from newsroom.engine.site import item_availability, load_changelog, load_contact, load_maker_avatar, load_site_stats, site_meta
 from newsroom.engine.taxonomy import is_category_key, is_channel_key
 
@@ -51,6 +55,15 @@ def parse_filters(q: dict[str, str]) -> dict:
     return {"channel": channel, "category": category, "tag": tag}
 
 
+def js_number(value: str | None) -> float:
+    """Number(x): NaN becomes 0 here, since every caller uses `Number(x) || fallback`."""
+    try:
+        n = float(value) if value not in (None, "") else 0.0
+    except ValueError:
+        return 0.0
+    return 0.0 if math.isnan(n) else n
+
+
 def register_site(app: FastAPI) -> None:
     @app.get("/api/site/meta")
     @site_handler
@@ -81,3 +94,35 @@ def register_site(app: FastAPI) -> None:
         with request.app.state.pool.connection() as conn:
             body = item_availability(conn, ids)
         return Response(js_json(body), media_type="application/json", headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/site/timeline")
+    @site_handler
+    def timeline(request: Request) -> Response:
+        q = loose_query(request)
+        filters = parse_filters(q)
+        limit = int(min(max(js_number(q.get("limit")) or 20, 1), 40))
+        unfiltered = filters["channel"] == "all" and not filters["category"] and not filters["tag"] and not q.get("cursor")
+        pool = request.app.state.pool
+        data = load_timeline(pool, filters, q.get("cursor") or None, limit)
+        hot = load_hot_strip(pool) if unfiltered else None
+        response = json_with_etag(request, {**data, "hot": hot}, "tl", "public, max-age=60, s-maxage=60")
+        # Any cache in front and the home page built from this answer share one absolute deadline.
+        response.headers["X-Accel-Expires"] = f"@{int(time.time()) + 60}"
+        return response
+
+    @app.get("/api/site/pool")
+    @site_handler
+    def pool_route(request: Request) -> Response:
+        q = loose_query(request)
+        filters = parse_filters(q)
+        page = int(min(max(js_number(q.get("page")) or 1, 1), 50))
+        search = q["q"].strip()[:200] if q.get("q", "").strip() else None
+        tab = "relevance" if q.get("tab") == "relevance" else "time"
+        body = load_pool(request.app.state.pool, {**filters, "q": search, "tab": tab, "page": page})
+        return json_with_etag(request, body, "pool", "public, max-age=60, s-maxage=60")
+
+    @app.get("/api/site/search/suggestions")
+    @site_handler
+    def suggestions(request: Request) -> Response:
+        body = {"topics": topic_browse_links(), "hot": hot_search_links(request.app.state.pool)}
+        return json_with_etag(request, body, "suggestions", "public, max-age=30, s-maxage=30, must-revalidate")

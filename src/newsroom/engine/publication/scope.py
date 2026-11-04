@@ -14,7 +14,13 @@ from newsroom.engine import pack
 
 def scope_params(now: datetime) -> dict:
     """The parameters the fragments below use: %(now)s and %(browse_floor)s."""
-    return {"now": now, "browse_floor": pack.load("selection")["SELECTION"]["browseFloor"]}
+    return {"now": now, "browse_floor": pack.load("selection")["SELECTION"]["browseFloor"], "independent": []}
+
+
+def foldable_selection_condition() -> str:
+    """These reports share their fact's display slot; independent sources keep their own selected card. The site has no sources of its
+    own that are shown independently now, so the list (%(independent)s) is empty."""
+    return "(NOT p.selected OR p.source_id <> ALL(%(independent)s::text[]))"
 
 
 def released_condition() -> str:

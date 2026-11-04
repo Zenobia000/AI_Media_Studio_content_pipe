@@ -1,0 +1,338 @@
+{
+  "groups": [
+    {
+      "key": "company",
+      "name": "公司與模型",
+      "blurb": "按廠商追蹤模型、產品與公司動態"
+    },
+    {
+      "key": "field",
+      "name": "技術方向",
+      "blurb": "按技術領域深挖：Agent、多模態、具身智慧……"
+    },
+    {
+      "key": "genre",
+      "name": "內容型別",
+      "blurb": "按體裁瀏覽：論文、教程、觀點、政策……"
+    }
+  ],
+  "topics": [
+    {
+      "slug": "openai",
+      "name": "OpenAI / ChatGPT",
+      "group": "company",
+      "entityId": "openai",
+      "definition": "OpenAI 的 GPT 系列模型、ChatGPT 與 Sora 產品更新，以及公司戰略與人事變化。"
+    },
+    {
+      "slug": "anthropic",
+      "name": "Anthropic / Claude",
+      "group": "company",
+      "entityId": "anthropic",
+      "definition": "Anthropic 的 Claude 系列模型、Claude Code 更新，以及安全研究與公司動向。"
+    },
+    {
+      "slug": "google",
+      "name": "Google / Gemini",
+      "group": "company",
+      "entityId": "google",
+      "aliases": [
+        "DeepMind"
+      ],
+      "definition": "Google 與 DeepMind 的 Gemini 模型、Veo 影片生成、前沿研究與各條產品線的 AI 更新。"
+    },
+    {
+      "slug": "deepseek",
+      "name": "DeepSeek",
+      "group": "company",
+      "entityId": "deepseek",
+      "definition": "DeepSeek（深度求索）的模型發布、開源權重、技術報告與 API 價格變化。"
+    },
+    {
+      "slug": "qwen",
+      "name": "千問 Qwen",
+      "group": "company",
+      "entityId": "qwen",
+      "definition": "阿里千問 Qwen 系列的模型發布與開源更新，從旗艦大模型到能裝進手機的小模型。"
+    },
+    {
+      "slug": "kimi",
+      "name": "月之暗面 / Kimi",
+      "group": "company",
+      "entityId": "kimi",
+      "aliases": ["Kimi / 月之暗面"],
+      "definition": "月之暗面的 Kimi 產品更新、K 系列開源模型與長文本技術進展。"
+    },
+    {
+      "slug": "minimax",
+      "name": "MiniMax",
+      "group": "company",
+      "entityId": "minimax",
+      "definition": "MiniMax 的 M 系列大模型、語音與多模態能力，以及開源與商業化進展。"
+    },
+    {
+      "slug": "zhipu",
+      "name": "智譜 GLM",
+      "group": "company",
+      "entityId": "zhipu",
+      "definition": "智譜 GLM 系列模型的發布與開源更新，以及程式設計、推理能力和商業化進展。"
+    },
+    {
+      "slug": "xai",
+      "name": "xAI / Grok",
+      "group": "company",
+      "entityId": "xai",
+      "definition": "馬斯克旗下 xAI 的 Grok 模型更新、算力叢集建設與 X 平臺整合。"
+    },
+    {
+      "slug": "meta",
+      "name": "Meta / Llama",
+      "group": "company",
+      "entityId": "meta",
+      "definition": "Meta 的 Llama 與 Muse 系列模型、超級智慧實驗室與 Meta AI 產品。"
+    },
+    {
+      "slug": "microsoft",
+      "name": "Microsoft / Copilot",
+      "group": "company",
+      "entityId": "microsoft",
+      "definition": "微軟的 Copilot 系列產品、Azure AI 雲服務，以及與 OpenAI 的合作動向。"
+    },
+    {
+      "slug": "nvidia",
+      "name": "NVIDIA 輝達",
+      "group": "company",
+      "entityId": "nvidia",
+      "definition": "輝達的 GPU 新品、CUDA 軟體生態、機器人平臺與 AI 算力供需。"
+    },
+    {
+      "slug": "hugging-face",
+      "name": "Hugging Face",
+      "group": "company",
+      "entityId": "hugging-face",
+      "definition": "Hugging Face 社群的熱門開源模型、資料集、工具與榜單變化。"
+    },
+    {
+      "slug": "cursor",
+      "name": "Cursor",
+      "group": "company",
+      "entityId": "cursor",
+      "definition": "Cursor（Anysphere）的編輯器與編碼 Agent 更新、自研模型與定價變化。"
+    },
+    {
+      "slug": "openrouter",
+      "name": "OpenRouter",
+      "group": "company",
+      "entityId": "openrouter",
+      "definition": "OpenRouter 平臺的新模型上架、價格變化與開發者呼叫量排行。"
+    },
+    {
+      "slug": "agent",
+      "name": "Agent 智慧體",
+      "group": "field",
+      "tags": [
+        "Agent"
+      ],
+      "definition": "能自己拆解任務、呼叫工具、一步步把事辦完的 AI 智慧體：Claude Code、Manus 等應用，各家 Agent 框架與評測。"
+    },
+    {
+      "slug": "coding",
+      "name": "AI 編碼",
+      "group": "field",
+      "tags": [
+        "編碼"
+      ],
+      "definition": "用 AI 寫程式碼：程式設計助手、Vibe Coding、程式碼模型評測，以及開發方式的變化。"
+    },
+    {
+      "slug": "reasoning",
+      "name": "推理能力",
+      "group": "field",
+      "tags": [
+        "推理"
+      ],
+      "definition": "讓大模型先想再答的能力：思維鏈、推理模型，數學與邏輯評測上的突破和爭議。"
+    },
+    {
+      "slug": "multimodal",
+      "name": "多模態",
+      "group": "field",
+      "tags": [
+        "多模態"
+      ],
+      "definition": "文字之外的能力：看懂圖片、圖文混合理解、音影片輸入輸出的模型與產品進展。"
+    },
+    {
+      "slug": "image-gen",
+      "name": "影像生成",
+      "group": "field",
+      "tags": [
+        "影像生成"
+      ],
+      "definition": "AI 畫圖與修圖：文生圖模型更新、影像編輯能力與創作工具。"
+    },
+    {
+      "slug": "video",
+      "name": "AI 影片",
+      "group": "field",
+      "tags": [
+        "影片"
+      ],
+      "definition": "AI 生成和理解影片：文生影片模型、影片編輯工具，以及影視創作的新做法。"
+    },
+    {
+      "slug": "voice",
+      "name": "語音與音訊",
+      "group": "field",
+      "tags": [
+        "語音"
+      ],
+      "definition": "AI 語音與音訊：語音合成、即時語音對話、音樂生成與音訊理解的模型與產品。"
+    },
+    {
+      "slug": "embodied",
+      "name": "具身智慧",
+      "group": "field",
+      "tags": [
+        "具身智慧"
+      ],
+      "definition": "裝進機器人身體裡的 AI：人形機器人、具身基礎模型，以及在真實環境裡動手幹活的能力。"
+    },
+    {
+      "slug": "on-device",
+      "name": "端側 AI",
+      "group": "field",
+      "tags": [
+        "端側"
+      ],
+      "definition": "直接跑在手機、電腦等裝置上的 AI：小模型、在本機執行模型的工具與端側晶片。"
+    },
+    {
+      "slug": "open-source",
+      "name": "開源生態",
+      "group": "field",
+      "tags": [
+        "開源生態",
+        "開源/倉庫"
+      ],
+      "definition": "開放權重、能下載下來自己部署的模型，開源框架與 GitHub 上爆火的 AI 專案。"
+    },
+    {
+      "slug": "engineering",
+      "name": "部署工程",
+      "group": "field",
+      "tags": [
+        "部署/工程"
+      ],
+      "definition": "怎麼把模型跑得更快更省錢：推理加速、視訊記憶體與成本、服務部署與基礎設施選型。"
+    },
+    {
+      "slug": "data-training",
+      "name": "資料與訓練",
+      "group": "field",
+      "tags": [
+        "資料/訓練"
+      ],
+      "definition": "大模型是怎麼練出來的：資料集構建、合成數據、預訓練與後訓練方法、算力與訓練成本。"
+    },
+    {
+      "slug": "safety",
+      "name": "安全對齊",
+      "group": "field",
+      "tags": [
+        "安全/對齊"
+      ],
+      "definition": "讓 AI 可控、可信、不被濫用：越獄與防禦、模型行為研究、安全評測與治理框架。"
+    },
+    {
+      "slug": "mcp",
+      "name": "MCP 與工具呼叫",
+      "group": "field",
+      "tags": [
+        "MCP/工具呼叫"
+      ],
+      "definition": "讓 AI 連上外部軟體和資料：MCP 協議、function calling 工具呼叫與各類工具整合。"
+    },
+    {
+      "slug": "model-releases",
+      "name": "模型發布",
+      "group": "genre",
+      "tags": [
+        "模型發布"
+      ],
+      "definition": "各家新模型的發布、開源與迭代：旗艦更新、開源權重放出、能力與價格變化。"
+    },
+    {
+      "slug": "product-updates",
+      "name": "產品更新",
+      "group": "genre",
+      "tags": [
+        "產品更新"
+      ],
+      "definition": "AI 產品與應用的功能上新、改版與商業化——誰家的產品變強了、變貴了、能用了。"
+    },
+    {
+      "slug": "papers",
+      "name": "論文研究",
+      "group": "genre",
+      "tags": [
+        "論文/研究"
+      ],
+      "definition": "值得讀的 AI 論文與研究成果：架構創新、訓練方法、能力測量與理論進展。"
+    },
+    {
+      "slug": "benchmarks",
+      "name": "評測基準",
+      "group": "genre",
+      "tags": [
+        "評測/基準"
+      ],
+      "definition": "模型到底誰更強：Benchmark 評測成績、評測方法的爭議與排行榜變化。"
+    },
+    {
+      "slug": "tutorials",
+      "name": "教程實踐",
+      "group": "genre",
+      "tags": [
+        "教程/實踐"
+      ],
+      "definition": "拿來就能用的實操內容：提示詞技巧、工作流搭建、工具用法與踩坑經驗。"
+    },
+    {
+      "slug": "opinions",
+      "name": "大佬觀點",
+      "group": "genre",
+      "tags": [
+        "大佬觀點"
+      ],
+      "definition": "行業關鍵人物在想什麼：創始人訪談、研究者論戰與投資人判斷。"
+    },
+    {
+      "slug": "trends",
+      "name": "現象與趨勢",
+      "group": "genre",
+      "tags": [
+        "現象/趨勢"
+      ],
+      "definition": "AI 正在改變什麼：大家怎麼用 AI、新能力的出現、對社會與市場格局的影響。"
+    },
+    {
+      "slug": "industry",
+      "name": "行業動態",
+      "group": "genre",
+      "tags": [
+        "行業動態"
+      ],
+      "definition": "AI 圈的商業大事：融資併購、人事變動、合作與競爭、政策與市場變化。"
+    },
+    {
+      "slug": "policy",
+      "name": "政策監管",
+      "group": "genre",
+      "tags": [
+        "政策/監管"
+      ],
+      "definition": "AI 相關的政策法規與政府監管：立法進展、出口管制與全球治理。"
+    }
+  ]
+}
