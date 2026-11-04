@@ -11,6 +11,9 @@ from fastapi import FastAPI, Request, Response
 from newsroom.api.respond import problem
 from newsroom.api.routes.admin_auth import BadRequest, admin_handler
 from newsroom.engine.admin import feedback as fb
+from newsroom.engine.admin import models as md
+from newsroom.engine.admin import runs as rn
+from newsroom.engine.admin import selectbench as sb
 from newsroom.engine.admin import settings as st
 from newsroom.engine.admin import sources as src
 from newsroom.engine.admin.auth import Principal, actor_of
@@ -150,6 +153,58 @@ def register_admin(app: FastAPI) -> None:
     def feedback_unban(request: Request, admin: Principal, source_hash: str):
         fb.unban_source(request.app.state.pool, source_hash, actor_of(admin))
         return Response(status_code=204)
+
+    # Runs
+    @app.get("/api/admin/runs", include_in_schema=False)
+    @admin_handler
+    def runs(request: Request, admin: Principal):
+        return rn.runs_overview(request.app.state.pool)
+
+    @app.post("/api/admin/processing/requeue", include_in_schema=False)
+    @admin_handler
+    def requeue(request: Request, admin: Principal):
+        return rn.requeue_failed_articles(request.app.state.pool, body(request), actor_of(admin))
+
+    @app.get("/api/admin/nav-counts", include_in_schema=False)
+    @admin_handler
+    def nav_counts(request: Request, admin: Principal):
+        return rn.nav_counts(request.app.state.pool)
+
+    # Models
+    @app.get("/api/admin/models", include_in_schema=False)
+    @admin_handler
+    def models_overview(request: Request, admin: Principal):
+        try:
+            days = float(q(request).get("days") or 0) or 7
+        except ValueError:
+            days = 7
+        days = min(90, days)
+        return md.models_overview(request.app.state.pool, int(days) if float(days).is_integer() else days)
+
+    @app.post("/api/admin/models/{capability}", include_in_schema=False)
+    @admin_handler
+    def models_switch(request: Request, admin: Principal, capability: str):
+        b = body(request)
+        return md.switch_model(request.app.state.pool, capability, b.get("model"), str(b.get("reason") if b.get("reason") is not None else ""), actor_of(admin))
+
+    # SelectBench
+    @app.get("/api/admin/selectbench", include_in_schema=False)
+    @admin_handler
+    def selectbench_list(request: Request, admin: Principal):
+        return {"runs": sb.list_selectbench_runs(request.app.state.pool)}
+
+    @app.get("/api/admin/selectbench/{run_id}", include_in_schema=False)
+    @admin_handler
+    def selectbench_run(request: Request, admin: Principal, run_id: str):
+        f = q(request)
+        filters = {"model": f.get("model"), "outcome": f.get("outcome"), "stratum": f.get("stratum"), "disagree": f.get("disagree") == "1"}
+        return or_not_found(request, sb.selectbench_run(request.app.state.pool, run_id, filters))
+
+    @app.post("/api/admin/selectbench/import", include_in_schema=False)
+    @admin_handler
+    def selectbench_import(request: Request, admin: Principal):
+        b = body(request)
+        return sb.import_selectbench_run(request.app.state.pool, b.get("report"), str(b.get("label") or "匯入的對比執行"), actor_of(admin))
 
     # Settings
     @app.get("/api/admin/settings", include_in_schema=False)

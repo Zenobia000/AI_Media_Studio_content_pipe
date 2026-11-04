@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -27,6 +28,7 @@ from newsroom.api.routes.v1 import register_v1, register_v1_fallbacks
 from newsroom.core.db import _FloatNumeric
 from newsroom.engine import pack
 from newsroom.engine.config import config
+from newsroom.engine.heartbeat import start_heartbeat
 from newsroom.engine.http_policy import OAUTH_PROBE_PATHS, resolve_redirect
 
 log = logging.getLogger("newsroom.api")
@@ -49,9 +51,12 @@ def build_app(database_url: str | None = None) -> FastAPI:
         )  # fmt: skip
         pool.open()
         app.state.pool = pool
+        stop = threading.Event()
+        start_heartbeat(pool, f"api:{config().api_port}", stop)
         try:
             yield
         finally:
+            stop.set()
             pool.close()
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
