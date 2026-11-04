@@ -101,12 +101,12 @@ def topic_membership(param: str = "topic_rows") -> str:
     ORDER BY t.position)"""
 
 
-def topic_membership_params() -> dict:
+def topic_membership_params(subset: list[dict] | None = None) -> dict:
     import json  # noqa: PLC0415
 
     return {
         "topic_rows": json.dumps(
-            [{"slug": t["slug"], "tags": t["tags"], "pattern": t["pattern"], "position": _position(t["slug"])} for t in topics()]
+            [{"slug": t["slug"], "tags": t["tags"], "pattern": t["pattern"], "position": _position(t["slug"])} for t in subset or topics()]
         )
     }
 

@@ -33,7 +33,7 @@ async function article(opts: { source: string; hoursAgo: number; category: strin
     bodyStatus: "ok", via: "fetch", publishedAt: at, discoveredAt: at, language: "en", ...(opts.xPost ? { xPost: opts.xPost as never } : {}),
   });
   await sql`INSERT INTO analyses (article_id, input_revision, origin, relevance, category, tags, title_zh, summary_zh, reason_zh, score, selected, output)
-            VALUES (${articleId}, 1, 'rule', 'pass', ${opts.category}, ${opts.tags ?? ["AI", `tag${n % 4}`]}, ${`中文標題 ${n}`}, ${`這是第 ${n} 篇文章的公開摘要。`}, ${`入選理由 ${n}`},
+            VALUES (${articleId}, 1, 'rule', 'pass', ${opts.category}, ${opts.tags ?? ["AI", `tag${n % 4}`, ...(n % 5 === 0 ? ["entity:openai"] : []), ...(n % 7 === 0 ? ["Agent"] : [])]}, ${`中文標題 ${n}`}, ${`這是第 ${n} 篇文章的公開摘要。`}, ${`入選理由 ${n}`},
                     ${opts.score}, ${opts.selected}, ${sql.json({ scope: "single" } as never)})`;
   if (opts.story !== undefined) {
     const [fact] = await sql<{ id: number }[]>`INSERT INTO facts (public_id, story_id, title) VALUES (${randomUUID()}, ${opts.story}, ${title}) RETURNING id`;

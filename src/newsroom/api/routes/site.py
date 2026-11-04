@@ -24,6 +24,7 @@ from newsroom.engine.publication.reports import (
 )
 from newsroom.engine.publication.site_lists import hot_search_links, load_hot_strip, load_pool, load_timeline
 from newsroom.engine.publication.site_story import load_group_reports, load_hot, load_story_detail, load_story_followups
+from newsroom.engine.publication.site_topics import list_topic_summaries, load_topic_page
 from newsroom.engine.publication.stories import resolve_story
 from newsroom.engine.publication.topics import topic_browse_links
 from newsroom.engine.site import item_availability, load_changelog, load_contact, load_maker_avatar, load_site_stats, site_meta
@@ -72,6 +73,16 @@ def js_number(value: str | None) -> float:
     except ValueError:
         return 0.0
     return 0.0 if math.isnan(n) else n
+
+
+def js_page(raw: str | None) -> float:
+    """Number(query.page ?? 1): NaN stays invalid (the page check rejects it)."""
+    if raw is None:
+        return 1.0
+    try:
+        return float(raw) if raw.strip() else 0.0
+    except ValueError:
+        return float("nan")
 
 
 def register_site(app: FastAPI) -> None:
@@ -222,3 +233,16 @@ def register_site(app: FastAPI) -> None:
         if not data:
             return problem(request, 404, "not_found", "report not found", cache_control="public, max-age=60")
         return json_with_etag(request, data, "report", "public, max-age=120, s-maxage=120")
+
+    @app.get("/api/site/topics")
+    @site_handler
+    def topic_directory(request: Request) -> Response:
+        return json_with_etag(request, list_topic_summaries(request.app.state.pool), "topics", "public, max-age=300, s-maxage=300")
+
+    @app.get("/api/site/topics/{slug}")
+    @site_handler
+    def topic_page(request: Request, slug: str) -> Response:
+        data = load_topic_page(request.app.state.pool, slug, js_page(loose_query(request).get("page")))
+        if not data:
+            return problem(request, 404, "not_found", "topic page not found", cache_control="public, max-age=60")
+        return json_with_etag(request, data, "topic", "public, max-age=60, s-maxage=60")
