@@ -14,7 +14,7 @@ from fastapi import FastAPI, Request, Response
 
 from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_query, problem
 from newsroom.engine.lib.cursor import InvalidCursorError
-from newsroom.engine.publication.detail import load_item_detail
+from newsroom.engine.publication.detail import export_markdown, load_item_detail
 from newsroom.engine.publication.pool import SearchBusyError
 from newsroom.engine.publication.reports import (
     list_reports,
@@ -28,6 +28,7 @@ from newsroom.engine.publication.site_story import load_group_reports, load_hot,
 from newsroom.engine.publication.site_topics import list_topic_summaries, load_topic_page
 from newsroom.engine.publication.stories import resolve_story
 from newsroom.engine.publication.topics import topic_browse_links
+from newsroom.engine.publication.v1 import item_url
 from newsroom.engine.site import item_availability, load_changelog, load_contact, load_maker_avatar, load_site_stats, site_meta
 from newsroom.engine.taxonomy import is_category_key, is_channel_key
 
@@ -267,3 +268,23 @@ def register_site(app: FastAPI) -> None:
     @site_handler
     def item_detail(request: Request, item_id: str) -> Response:
         return item_route(request, item_id, "zh", "item")
+
+    # Markdown export: attachment, 404 when there is nothing to export (same predicate as the button).
+    @app.get("/items/{item_id}/markdown")
+    @site_handler
+    def item_markdown(request: Request, item_id: str) -> Response:
+        if not item_id_re.fullmatch(item_id):
+            return Response("Not found", status_code=404, media_type="text/plain; charset=utf-8")
+        md = export_markdown(request.app.state.pool, item_id)
+        if not md:
+            return Response("Not found", status_code=404, media_type="text/plain; charset=utf-8", headers={"Cache-Control": "public, max-age=60"})
+        return Response(
+            md["body"],
+            headers={
+                "Content-Type": "text/markdown; charset=utf-8",
+                "Content-Disposition": f'attachment; filename="{md["filename"]}"',
+                "Cache-Control": "public, max-age=300, s-maxage=300",
+                "X-Robots-Tag": "noindex",
+                "Link": f'<{item_url(item_id)}>; rel="canonical"',
+            },
+        )

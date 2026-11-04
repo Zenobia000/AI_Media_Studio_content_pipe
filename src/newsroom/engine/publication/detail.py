@@ -158,3 +158,56 @@ def load_item_detail(pool, item_id: str, language: str = "zh", now: datetime | N
 def _first(*values):
     """The first value that is not null (JavaScript's `??` chain)."""
     return next((v for v in values if v is not None), None)
+
+
+def export_markdown(pool, item_id: str) -> dict | None:
+    """The page as a Markdown file: what the export button and route both offer, under the same visibility and licence rules."""
+    from newsroom.engine import pack  # noqa: PLC0415
+    from newsroom.engine.http_policy import site_url  # noqa: PLC0415
+    from newsroom.engine.markdown import body_to_markdown  # noqa: PLC0415
+    from newsroom.engine.publication.stories import public_source_name  # noqa: PLC0415
+    from newsroom.engine.publication.v1 import iso, item_url  # noqa: PLC0415
+
+    with pool.connection() as conn:
+        row = load_row(conn, item_id)
+    if not row or not markdown_available(row):
+        return None
+    site = pack.site()
+    lines = [f"# {row['title']}", ""]
+    if row["original_title"]:
+        lines += [f"> 原標題：{row['original_title']}", ""]
+    lines.append(f"- 來源：{public_source_name(row['source_name'])}")
+    # Without a reliable date from the original, the time it was collected says so.
+    lines.append(f"- 發布時間：{iso(row['published_at'])}" if row["published_at"] else f"- 收錄時間：{iso(row['discovered_at'])}")
+    lines.append(f"- {site['SITE']['name']}：{item_url(row['id'])}")
+    lines += [f"- 原文：{row['url']}", ""]
+    if row["summary"]:
+        lines += ["## 摘要", "", row["summary"], ""]
+    if row["selected"] and row["seat"] and row["reason"]:
+        lines += [f"## {site['ITEM_COPY']['reasonLabel']}", "", row["reason"], ""]
+    if shows_post(row) and row.get("x_post"):
+        post = x_view(row)
+        if post and post["text"]:
+            lines += ["## 正文", "", post["text"], ""]
+        if post and post["translation"]:
+            lines += ["## 中文譯文", "", post["translation"], ""]
+        for media in (post or {}).get("media") or []:
+            url = site_url(media["url"]) if media["url"].startswith("/") else media["url"]
+            lines += [f"![{media.get('alt') if media.get('alt') is not None else ''}]({url})" if media["kind"] == "image" else f"[影片]({url})", ""]
+        q = (post or {}).get("quoted")
+        if q and q["text"]:
+            lines += [
+                f"## 引用 @{q['handle'] or ''}",
+                "",
+                *[f"> {line}" for line in str(q["text"]).split("\n")],
+                "",
+                *([q["url"], ""] if q["url"] else []),
+            ]
+        if q and q["text"] and q["translation"]:
+            lines += ["### 引用中文譯文", "", *[f"> {line}" for line in q["translation"].split("\n")], ""]
+    elif row["body_mode"] == "full" and row.get("body_html"):
+        translation = export_translation(row)
+        if translation:
+            lines += ["## 正文 · 中文譯文", "", body_to_markdown(translation, row["url"]), ""]
+        lines += ["## 正文" if is_chinese_body(row) else "## 正文 · 原文", "", body_to_markdown(row["body_html"], row["url"]), ""]
+    return {"filename": f"{site['SITE']['mcpPrefix']}-{row['id']}.md", "body": re.sub(r"\n{3,}", "\n\n", "\n".join(lines))}

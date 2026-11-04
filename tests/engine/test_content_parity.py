@@ -32,3 +32,17 @@ def test_normalize_videos(c):
     root = C._parse(c["in"])
     C.normalize_videos(root)
     assert C._serialize(root) == c["out"]
+
+
+@pytest.mark.parametrize("c", F["sanitizeBody"], ids=lambda c: c["in"][:50])
+def test_sanitize_body(c):
+    from newsroom.engine.sanitize import sanitize_body
+
+    assert sanitize_body(c["in"], c["base"]) == c["out"]
+
+
+@pytest.mark.parametrize("c", F["bodyToMarkdown"], ids=lambda c: c["in"][:50])
+def test_body_to_markdown(c):
+    from newsroom.engine.markdown import body_to_markdown
+
+    assert body_to_markdown(c["in"], c["base"]) == c["out"]

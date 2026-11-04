@@ -31,3 +31,12 @@ def test_every_item(compare, ids):
 @pytest.mark.parametrize("path", ["/api/site/items/nope", "/api/site/items/bad%20id", "/api/site/items/" + "x" * 81])
 def test_missing(compare, path):
     compare(path)
+
+
+def test_markdown_export(compare, ids):
+    statuses = set()
+    for item_id in ids:
+        got = compare(f"/items/{item_id}/markdown")
+        statuses.add(got["status"])
+    assert statuses == {200, 404}
+    compare("/items/bad%20id/markdown")

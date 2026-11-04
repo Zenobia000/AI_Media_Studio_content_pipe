@@ -109,7 +109,7 @@ def _serialize(root) -> str:
     walker = html5lib.getTreeWalker("etree")
     stream = html5lib.serializer.HTMLSerializer(
         quote_attr_values="always", omit_optional_tags=False, minimize_boolean_attributes=False, use_trailing_solidus=False,
-        escape_lt_in_attrs=False, resolve_entities=False,
+        escape_lt_in_attrs=False, resolve_entities=False, use_best_quote_char=False, quote_char=chr(34),
     )  # fmt: skip
     return stream.render(walker(root)).replace(" ", "&nbsp;")  # parse5 writes a no-break space as an entity, in text and values
 
@@ -234,3 +234,12 @@ def avif_candidates(src_set: str) -> str:
     from newsroom.engine.media.imgproxy import avif_candidates as impl  # noqa: PLC0415
 
     return impl(src_set)
+
+
+def _serialize_walker(node, tree: str) -> str:
+    """One node (and what is inside it) as HTML, from a tree built by html5lib in the given form ("etree" or "dom")."""
+    stream = html5lib.serializer.HTMLSerializer(
+        quote_attr_values="always", omit_optional_tags=False, minimize_boolean_attributes=False, use_trailing_solidus=False,
+        escape_lt_in_attrs=False, resolve_entities=False, use_best_quote_char=False, quote_char=chr(34),
+    )  # fmt: skip
+    return stream.render(html5lib.getTreeWalker(tree)(node)).replace(" ", "&nbsp;")

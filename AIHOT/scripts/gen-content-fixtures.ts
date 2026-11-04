@@ -32,6 +32,21 @@ const bodies = [
   '<p>Real paragraph.</p><p>Topics</p><p>Subscribe now</p>', '<ol><li>a</li><li>b</li></ol><hr><p><em>em</em> <del>gone</del></p>',
 ];
 
+const more = [
+  '<p>Unclosed paragraph<p>Second<div>in div</div>', '<ul><li>one<li>two</ul>', '<p>Tom &amp; Jerry &lt;3 &copy; &#x4e2d; &nbsp;x</p>',
+  '<a href="/relative/path?a=1&amp;b=2#frag">rel</a> <a href="HTTP://Example.COM:80/A B/../c">abs</a> <a href="javascript:alert(1)">js</a> <a href="//cdn.example.org/x">proto</a>',
+  '<img src="/img/a.png" alt="x"><img data-src="https://cdn.example.org/lazy.png" src="data:image/gif;base64,R0lGOD"><img src="https://example.org/p.gif" width="1" height="1">',
+  '<img src="/api/img-proxy?u=https%3A%2F%2Fexample.org%2Fa.png&mode=full&exp=1&sig=ab">', '<p>text<br>more<br/>text</p><hr/>', '<table><tr><td>a<td>b<tr><td>c</table>',
+  '<div><div><p>nested</p></div></div>', '<p><a href="https://a.example/x"><img src="https://a.example/i.png"></a></p>', '<a href="https://a.example/x"><div><picture><img src="https://a.example/i.png"></picture></div></a>',
+  '<script>bad()</script>visible<style>.x{}</style><noscript>ns</noscript>text', '<span class="promo-box">promo</span><p>kept</p><div class="msr-promo">gone</div><p class="promotion">stay</p>',
+  '<pre class="language-py hl"><code class="language-py extra">x = 1</code></pre>', '<p onclick="x()" style="color:red" class="c" id="i">attrs</p>', 'loose text<b>bold</b> more<p>para</p>tail',
+  '<video controls src="v.mp4" poster="p.jpg"></video>', '<p>emoji 😀 中文 &lt;tag&gt;</p>', '<h1>H1</h1><h6>H6</h6><h2 id="x">H2</h2>', '</p><p>stray close</p></br>',
+  '<svg><path d="M0"/></svg><p>after svg</p>', '<iframe src="https://x.example"><p>fallback</p></iframe><p>ok</p>', '<p>a</p><!-- comment --><p>b</p>', '<table><caption>cap</caption><thead><tr><th align="left">h</th></tr></thead></table>',
+  '<p>   </p><a href="https://e.example"> </a><p>kept</p>', '<ol start="3"><li>x</li></ol>', '<blockquote>plain quote</blockquote>', '<p>link <a href="https://e.example/a_(b)" title="T &quot;q&quot;">t</a></p>',
+  '<dl><dt>t</dt><dd>d</dd></dl>', '<p><b>bold <i>both</i></b> <s>s</s> <u>u</u> <sup>1</sup><sub>2</sub> <mark>m</mark></p>', '<figure><img src="https://e.example/f.png"><figcaption>cap</figcaption></figure>',
+];
+bodies.push(...more);
+
 const out = {
   generatedAtMs: Date.now(),
   textToHtml: texts.map((t) => ({ in: t, out: textToHtml(t) })),
