@@ -1,0 +1,64 @@
+# 後端改成 Python：還沒做的部分與原因
+
+日期 2026-11-04。總計畫在 [backend-python-plan.md](backend-python-plan.md)，這份只列**還沒做的**，並說明每一項為什麼還沒做、做的話要什麼。
+
+驗證方式一律是：同一個資料庫、同一個請求，Node 版與 Python 版各答一次，比對狀態碼、重要標頭和 JSON（含 ETag）。資料來源是 `AIHOT/scripts/seed-parity.ts` 造的固定資料（不需要模型金鑰）。
+
+## 已經完成（可以直接切換）
+
+| 範圍 | 內容 |
+|---|---|
+| API 骨架 | 請求編號、重定向表、OAuth 探測、404／405／錯誤格式（problem+json）、`/api/health` |
+| 公開 API v1（全部） | `items`、`hot-topics`、`stories/:id`、`dailies`（含 latest、依日期）、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`，以及 `/api/v1/*` 的 404、405、CORS 預檢 |
+| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions` |
+| 靜態檔 | `robots.txt`、`security.txt`、`manifest.webmanifest`、`openapi-v1.json`、各種圖示、聯絡 QR、IndexNow 金鑰檔 |
+| 底層 | 時間、文字、ID、游標、設定與憑證、出站網路防護與請求、快取、稽核紀錄、簽名的圖片代理網址 |
+
+## A. 做得了、也驗證得了，只是還沒做（照順序）
+
+這些只讀資料庫，現有的假資料就能比對。
+
+| 項目 | 規模 | 說明 |
+|---|---|---|
+| `GET /api/site/hot` | 約 100 行 | 事件熱榜卡片：每小時熱度曲線、封面圖、參與者；需要 `events/hot.ts` 的 `heatSeries`、`sourceClocks`、`behindSources`（約 150 行） |
+| `GET /api/site/stories/:id`、`/followups` | 約 200 行 | 事件頁：熱度曲線、為何熱門、發展脈絡；與 v1 共用的部分已經搬了 |
+| `GET /api/site/groups/:id/reports` | 41 行 | 閱讀群組 |
+| `GET /api/site/items/:id`、`/original`、`/items/:id/markdown` | 約 210 行 | 文章頁。需要內文 HTML 的清理與圖片改寫（`media/imgproxy.ts` 的 `proxyBodyImages`，用到 cheerio 的影片正規化 `content/video.ts`），Python 要用 lxml 重寫，細節多、最容易和 Node 版差一個字元 |
+| `GET /api/site/topics`、`/topics/:slug` | 約 370 行 | 主題目錄與主題頁；`topics.ts` 的定義已搬，頁面與計數沒搬 |
+| `GET /api/site/reports/:kind`、`latest-page`、`navigation`、`daily/months`、`:key` | 約 250 行 | 報告詳細頁與導覽，還要 `leadCover`（封面圖） |
+| RSS：`/feed.xml`、`/feed/*.xml`、`/feed/category/*` | 約 210 行 | `publication/feeds.ts`，XML 字串必須逐字元一致，否則訂閱器會重發舊文章 |
+| `/sitemap.xml`、`/sitemaps/*`、`/llms.txt` | 約 320 行 | 依賴上面的主題頁計數 |
+| `/og/*` 分享圖、`/api/img-proxy` 圖片代理、媒體路由 | 約 700 行 | 圖片轉檔與縮放（原本用 sharp），Python 要用 Pillow；像素層級的輸出沒辦法逐位元組比對，只能比尺寸與格式 |
+| Agent 回答（`/api/agent/*`）、MCP（`/api/mcp`） | 約 800 行 | 讀取層為主，MCP 是 JSON-RPC，可以用既有的 `scripts/mcp-check.ts` 對照 |
+| 回饋（`feedback`）、擷取推送（`ingest`） | 約 90 行 | 這兩個會寫資料庫，要小心別污染對照用的資料 |
+
+## B. 做得了，但驗證不了（需要金鑰、外部服務或真實資料）
+
+這些我可以寫，但寫出來的東西**沒有辦法證明和 TypeScript 版行為一致**，所以我沒有動。
+
+| 項目 | 規模 | 為什麼驗證不了 |
+|---|---|---|
+| 模型精選、評分、寫作、翻譯（`editorial/`、`providers/`） | 約 3,000 行 | 要呼叫付費的模型服務；沒有金鑰。可以用測試裡的假回應，但那只證明程式會跑，不證明提示詞與結果和原版一致 |
+| 事件聚類與熱度排行計算（`events/`） | 約 2,000 行 | 聚類靠嵌入向量與模型判斷（同事件、相關事件）；排行計算本身是純 SQL 可以比對，但輸入（聚類結果）要有模型 |
+| 信源收集器（`sources/`） | 約 2,700 行 | RSS、網頁清單、JSON、X、公眾號。要連真實網站；網站內容每天在變，無法逐條比對。可以用錄下來的回應測試 |
+| 文章入庫與原文擷取（`content/`） | 約 1,500 行 | 取代 `collect/materials.py` 的精簡版；Readability 清理的輸出要和 Node 版一致，需要一批真實網頁當樣本 |
+| 發布流程（`publication/publish.ts`） | 463 行 | 決定文章何時公開、精選席位、帳本；邏輯可以比對，但輸入要靠上面的分析結果 |
+| 日報／週報／月報產生（`reports/`） | 約 800 行 | 產生內容要呼叫模型寫稿 |
+| 通知（`notify/`）、營運警報（`operations/`） | 約 2,200 行 | 要飛書／Webhook 憑證；備份與心跳要 `pg_dump` 與排程環境 |
+| 後臺與後臺登入（`admin/`、`routes/admin*.ts`） | 約 1,900 行 | 登入有密碼與飛書 OAuth；後臺大多是寫入操作，要在拋棄式資料庫上逐項測 |
+| 工作佇列與排程（`jobs/`、`apps/worker`，取代 pg-boss） | 約 1,000 行 | 行為是並行、重試、排程與關機時的收尾，單元測試能涵蓋一部分，但真實環境的時序問題要實際跑幾天才看得出來 |
+
+## C. 不建議照搬
+
+- **Playwright 瀏覽器端的測試（`apps/web/tests`）**：是網站前端的測試，不屬於後端。
+- **`scripts/eval-*.ts`（精選／關係／故事摘要的評測）**：要金鑰與金標資料，且是模型評測用的，不是產品功能。
+
+## 要切換的時候
+
+網站前端（`apps/web`）依 `API_BASE_URL` 向 API 取資料，所以前端不用改。**切換條件**：A 區全部完成（網站才不會缺頁）。B 區沒做完之前，TypeScript 的 worker 還是要繼續跑，負責收集、聚類、精選、發布與日報，Python 的 API 讀同一個資料庫。這是「API 先換、引擎後換」的分段切換，不是一次全換。
+
+## 沒有驗證到的（目前已完成的部分也一樣）
+
+- 出站請求經過代理時，連線沒有固定在檢查過的位址（Node 版有），見 `src/newsroom/engine/lib/http_fetch.py` 開頭。
+- 全部對照都用同一份造出來的資料；沒有用過真實的大量資料、也沒有壓力測試（連線池大小、搜尋並行限制在高流量下的行為）。
+- Python 版的伺服器沒有在 Docker 裡跑過、沒有掛在網站前端後面實際瀏覽過頁面。
