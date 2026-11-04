@@ -45,14 +45,17 @@
 - API 回應的細節（欄位順序、日期格式、空值）網站前端可能依賴，所以才用逐條比對。
 - 其他人的資料表與程式（楊舒媁的狀態機、發布）會接在這個後端上，順序要在串接時一起確認，避免改兩次。
 
-## 進度（`src/newsroom/engine/`）
+## 進度（`src/newsroom/engine/`、`src/newsroom/api/`）
 
 | 階段 | 狀態 | 內容 |
 |---|---|---|
-| 0 底層 | ◐ 做了一半 | ✅ `time.py`、`lib/text.py`、`lib/ids.py`、`lib/cursor.py`、`lib/video_url.py`、`lib/image_url.py`（用 Node 版輸出做對照，68 個測試）、`config.py`（設定與憑證）、`pack.py`＋`pack/*.json`（網站與產業設定包，由 TypeScript 常數匯出成資料，之後以 JSON 為準）、`core/urls.py`、`core/db.py`（numeric 讀成 float，和 TypeScript 版一致）。⬜ `lib/http-fetch.ts`（出站請求防護、重定向、大小限制）、`egress-proxy`、`cache`、`page-content`、`audit`、`modules` |
-| 1 契約 | ⬜ | `packages/contracts/src/site.ts`（492 行）、`admin.ts`（441）、`http-policy.ts`（155）、`mcp.ts` 等，要改成 pydantic 模型 |
-| 2 唯讀公開 API | ⬜ | |
+| 0 底層 | ✅（除模組註冊） | `time.py`、`lib/{text,ids,cursor,video_url,image_url}.py`（用 Node 版輸出對照）、`lib/netguard.py`（出站位址防護，40 個位址對照）、`lib/http_fetch.py`（出站請求：逐跳檢查、固定連線位址、大小與時間上限）、`lib/page_content.py`、`lib/cache.py`、`audit.py`、`config.py`、`pack.py`＋`pack/*.json`、`http_policy.py`。`modules.ts` 沒搬：網站已經沒有自己的模組（inbox 已搬出去），註冊表是空的 |
+| 1 契約 | 併入階段 2 | Node 版的契約只是 TypeScript 型別，行為在各路由裡；Python 版在搬每條路由時定義回應結構，用對照測試確認 |
+| 2 唯讀公開 API | ◐ 剛開始 | ✅ FastAPI 骨架（`api/app.py`：請求編號、重定向表、OAuth 探測、404／錯誤格式、`/api/health`）、`api/respond.py`（problem+json、ETag／304、嚴格查詢解析）、`api/routes/v1.py` 的共用部分與 `/api/v1/*` 的 404／405／預檢。**24 條對照測試**（`tests/parity/`）。⬜ 各 v1 操作（`items`、`hot-topics`、`stories`、`dailies`、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`）、`/api/site/*`、feeds、sitemap、OG 圖、媒體、agent、MCP、靜態檔 |
 | 3～7 | ⬜ | |
+
+### 對照工具（`tests/parity/`）
+同一個資料庫、同一個請求，Node 版 API 與 Python 版各答一次，比對狀態碼、重要標頭與 JSON（請求編號除外）。需要：`PARITY_DATABASE_URL` 指向一份已用 `scripts/migrate.ts` 遷移過的真資料庫副本，與 Node。副本做法在 `tests/parity/conftest.py` 開頭。目前副本裡有 449 筆分析、448 筆公開文章，但**沒有事件（stories）、日報、週報**（要模型呼叫才會產生），而且 2026-11-02～04 的資料不在 24 小時視窗內，所以事件、報告相關的路由用這份副本只能比對到「空結果」。要比對有內容的結果，需要有金鑰跑一次模型流程，或由 TypeScript 的測試輔助函式造一份資料。
 
 ### 這輪發現的差異（TypeScript 版的行為，Python 版照搬並註明）
 - `lib/text.ts` 的 `cjkRatio` 想寫相容漢字區（U+F900），實際打成 `豈`（U+8C48），所以範圍是 U+3400–U+FAFF，**韓文也算 CJK**。Python 版保持一樣，並在程式註解寫明。如果這是 bug，兩邊要一起改。
