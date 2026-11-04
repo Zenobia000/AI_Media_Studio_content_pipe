@@ -47,6 +47,8 @@ def feeds() -> dict[str, dict]:
     return {
         "selected": {"path": "/feed.xml", "title": f"{name} — 精選", "homePath": "/", "pollHintMinutes": 30, **base,
                      "description": f"最新 50 條 {name} 精選摘要，保留標題、站內閱讀與原文入口；需要閱讀器內全文可改訂 /feed/full.xml。"},
+        "selected-full": {"path": "/feed/full.xml", "title": f"{name} — 精選全文", "homePath": "/", "pollHintMinutes": 30, **base,
+                          "description": "與精選摘要相同的最新 50 條；僅對明確允許再分發的來源內聯正文，其餘仍提供摘要和閱讀入口。"},
         "all": {"path": "/feed/all.xml", "title": f"{name} — {pack.subject_after('全部', '動態')}", "homePath": "/all", "pollHintMinutes": 30, **base,
                 "description": f"最近 7 天公開動態，按真實發布時間倒序；不含{'、'.join(left_out[:-1])}和{left_out[-1]}。"},
         "daily": {"path": "/feed/daily.xml", "title": f"{name} 日報", "homePath": "/daily", "pollHintMinutes": 30, **base,

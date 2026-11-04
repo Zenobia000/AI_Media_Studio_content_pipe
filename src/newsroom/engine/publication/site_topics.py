@@ -130,6 +130,19 @@ def list_topic_summaries(pool) -> dict:
     return {"groups": topic_groups(), "topics": [summarize(t, index["bySlug"][t["slug"]], index["at"], brands, live) for t in topics()]}
 
 
+def topic_page_counts(pool, now: datetime | None = None) -> list[dict]:
+    """For discovery: every topic's pages and whether they are indexed."""
+    index = topic_index(pool, now)
+    out = []
+    for t in topics():
+        seats = index["bySlug"][t["slug"]]
+        out.append({
+            "slug": t["slug"], "pages": max(1, math.ceil(len(seats) / TOPIC_PAGE_SIZE)),
+            "indexable": is_indexable(len(seats), _recent_count(seats, index["at"])),
+        })  # fmt: skip
+    return out
+
+
 _pool_counts: dict[tuple[int, str], object] = {}
 
 

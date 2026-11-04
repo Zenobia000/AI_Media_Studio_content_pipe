@@ -6,14 +6,17 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 
-from newsroom.api.respond import apply_public_headers
+from newsroom.api.respond import apply_public_headers, text_with_etag
 from newsroom.engine import pack
 from newsroom.engine.config import REPO_ROOT, config
 from newsroom.engine.http_policy import contact_aliases, public_interface_version
+from newsroom.engine.publication.llms import llms_txt, load_llms_availability
+from newsroom.engine.publication.sitemap import load_sitemap
 from newsroom.engine.site import load_contact
 from newsroom.engine.taxonomy import public_api_category_keys
 
@@ -109,6 +112,37 @@ def send_file(
 
 
 def register_static(app: FastAPI) -> None:
+    def send_sitemap(request: Request, file: str) -> Response:
+        try:
+            doc = load_sitemap(request.app.state.pool)
+        except Exception:
+            return Response(
+                "Sitemap temporarily unavailable", status_code=503,
+                headers={"Retry-After": "300", "Cache-Control": "no-store"},
+            )  # fmt: skip
+        xml = doc["files"].get(file)
+        if xml is None:
+            return Response("Not found", status_code=404, media_type="text/plain; charset=utf-8")
+        seconds = max(0, int((doc["expiresAt"] - time.time() * 1000) // 1000))
+        cache = f"public, max-age=0, s-maxage={seconds}, must-revalidate" if seconds > 0 else "no-store"
+        return text_with_etag(request, xml, "sitemap", cache, "application/xml")
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    def sitemap_index(request: Request) -> Response:
+        return send_sitemap(request, "sitemap.xml")
+
+    @app.get("/sitemaps/{file}", include_in_schema=False)
+    def sitemap_file(request: Request, file: str) -> Response:
+        return send_sitemap(request, file)
+
+    @app.get("/llms.txt", include_in_schema=False)
+    def llms(request: Request) -> Response:
+        text = llms_txt(load_llms_availability(request.app.state.pool))
+        # Cached like /openapi-v1.json: a release that adds an ability is described everywhere within minutes.
+        response = text_with_etag(request, text, "llms", "public, max-age=300, must-revalidate", "text/plain; charset=utf-8")
+        apply_public_headers(response, cors=False)
+        return response
+
     # The site's public files (site/public/), placeholders filled in; one the site does not have is a 404.
     def public_file(url: str, relative: str, cache: str, public_api: bool = False) -> None:
         def handler(request: Request) -> Response:
