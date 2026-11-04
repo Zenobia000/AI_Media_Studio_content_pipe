@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, Response
 
 from newsroom.api.respond import problem
 from newsroom.api.routes.admin_auth import BadRequest, admin_handler
+from newsroom.engine.admin import content as ct
 from newsroom.engine.admin import feedback as fb
 from newsroom.engine.admin import models as md
 from newsroom.engine.admin import runs as rn
@@ -90,6 +91,39 @@ def register_admin(app: FastAPI) -> None:
     @admin_handler
     def sources_fetch(request: Request, admin: Principal, source_id: str):
         return or_not_found(request, src.fetch_now(request.app.state.pool, source_id, actor_of(admin)))
+
+    # Content
+    @app.get("/api/admin/content", include_in_schema=False)
+    @admin_handler
+    def content_search(request: Request, admin: Principal):
+        return {"rows": ct.search_content(request.app.state.pool, q(request).get("q") or "")}
+
+    @app.get("/api/admin/content/{article_id}", include_in_schema=False)
+    @admin_handler
+    def content_chain(request: Request, admin: Principal, article_id: str):
+        return or_not_found(request, ct.content_chain(request.app.state.pool, article_id))
+
+    @app.post("/api/admin/content/{article_id}/visibility", include_in_schema=False)
+    @admin_handler
+    def content_visibility(request: Request, admin: Principal, article_id: str):
+        return ct.set_visibility(request.app.state.pool, article_id, request.state.body, actor_of(admin))
+
+    @app.post("/api/admin/content/{article_id}/seo", include_in_schema=False)
+    @admin_handler
+    def content_seo(request: Request, admin: Principal, article_id: str):
+        return or_not_found(request, ct.set_seo_indexed(request.app.state.pool, article_id, request.state.body, actor_of(admin)))
+
+    @app.post("/api/admin/content/{article_id}/override", include_in_schema=False)
+    @admin_handler
+    def content_override(request: Request, admin: Principal, article_id: str):
+        return ct.override_fields(request.app.state.pool, article_id, request.state.body, actor_of(admin))
+
+    @app.post("/api/admin/content/{article_id}/rerun", include_in_schema=False)
+    @admin_handler
+    def content_rerun(request: Request, admin: Principal, article_id: str):
+        b = body(request)
+        result = ct.rerun(request.app.state.pool, article_id, b.get("step"), request.headers.get("idempotency-key") or "", actor_of(admin), {"preview": b.get("preview"), "version": b.get("version")})
+        return or_not_found(request, result)
 
     # Feedback
     @app.get("/api/admin/feedback", include_in_schema=False)

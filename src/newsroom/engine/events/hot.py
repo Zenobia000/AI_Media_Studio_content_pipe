@@ -209,3 +209,9 @@ def snapshot_heat(pool, at: datetime | None = None) -> dict:
             again = heat_rows(conn, s["hour"], behind_sources(clocks, s["hour"].timestamp() * 1000, False), [int(x) for x in s["stories"]])
             repaired += _save_heat(conn, [r for r in again if int(r["behind_participants"]) == 0], s["hour"])
     return {"stories": len(rows), "repaired": repaired}
+
+
+def stored_hot_ranking(conn) -> dict | None:
+    """Administrative invalidation needs the saved references, including ones already hidden publicly."""
+    row = conn.execute("SELECT id, computed_at, rule_version, entries, evidence FROM hot_rankings WHERE published ORDER BY computed_at DESC LIMIT 1").fetchone()
+    return None if not row else {"id": row["id"], "computedAt": row["computed_at"], "ruleVersion": row["rule_version"], "entries": row["entries"], "coverage": row["evidence"]}

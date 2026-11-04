@@ -37,16 +37,18 @@ class Issues:
             raise Invalid("; ".join(f"{p or '請求'}: {m}" for p, m in self.items)[:300])
 
 
-def string(v, issues: Issues, path: str, *, min_len: int | None = None, max_len: int | None = None, pattern: re.Pattern | None = None):
+def string(v, issues: Issues, path: str, *, min_len: int | None = None, max_len: int | None = None, pattern: re.Pattern | None = None, trim: bool = False, message: str | None = None):
     if not isinstance(v, str):
         issues.add(path, f"Invalid input: expected string, received {received(v)}")
         return None
+    if trim:
+        v = v.strip()
     if min_len is not None and len(v) < min_len:
         issues.add(path, f"Too small: expected string to have >={min_len} characters")
     if max_len is not None and len(v) > max_len:
         issues.add(path, f"Too big: expected string to have <={max_len} characters")
     if pattern is not None and not pattern.search(v):
-        issues.add(path, f"Invalid string: must match pattern /{pattern.pattern}/")
+        issues.add(path, message or f"Invalid string: must match pattern /{pattern.pattern}/")
     return v
 
 
@@ -107,3 +109,14 @@ def object_input(data, issues: Issues) -> dict | None:
         issues.add("", f"Invalid input: expected object, received {received(data)}")
         return None
     return data
+
+
+def number(v, issues: Issues, path: str, lo: float | None = None, hi: float | None = None):
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        issues.add(path, f"Invalid input: expected number, received {received(v)}")
+        return None
+    if lo is not None and v < lo:
+        issues.add(path, f"Too small: expected number to be >={lo:g}")
+    if hi is not None and v > hi:
+        issues.add(path, f"Too big: expected number to be <={hi:g}")
+    return v
