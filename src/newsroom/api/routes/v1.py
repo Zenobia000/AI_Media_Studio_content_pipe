@@ -15,6 +15,7 @@ from newsroom.engine.config import config
 from newsroom.engine.lib.cursor import InvalidCursorError
 from newsroom.engine.publication.reports import is_period_key, v1_dailies, v1_daily, v1_period, v1_periods
 from newsroom.engine.publication.stories import resolve_story, v1_hot_topics, v1_story
+from newsroom.engine.publication.sync import SnapshotRequiredError, selected_changes, selected_snapshot
 from newsroom.engine.publication.v1 import V1ItemsQuery, v1_items
 from newsroom.engine.taxonomy import public_api_category_keys
 from newsroom.engine.time import is_valid_date
@@ -65,10 +66,6 @@ def enum_param(value: str | None, name: str, allowed: list[str], fallback: str) 
             f"{name} must be '{allowed[0]}' or '{allowed[1]}'." if len(allowed) == 2 else f"{name} must be one of: {', '.join(allowed)}."
         )
     return value
-
-
-class SnapshotRequiredError(Exception):
-    pass
 
 
 class SearchBusyError(Exception):
@@ -210,6 +207,29 @@ def register_v1(app: FastAPI) -> None:
         if not body:
             return problem(request, 404, "not_found", f"No daily report exists for {date}.", cache_control="public, max-age=60")
         return send_v1(request, body, "v1-daily", V1_OPERATIONS["dailyByDate"]["cacheControl"])
+
+    @app.get("/api/v1/selected/snapshot")
+    @public_handler
+    def snapshot(request: Request) -> Response:
+        q = strict_query(request, V1_OPERATIONS["selectedSnapshot"]["queryKeys"])
+        fields = None if "fields" not in q else enum_param(q["fields"], "fields", ["default", "minimal"], "default")
+        limit = int_param(q.get("limit"), "limit", 1, 1000, 500)
+        with request.app.state.pool.connection() as conn:
+            body = selected_snapshot(conn, fields, limit, q.get("page"))
+        # asOf (and the next-page token that carries it) differ per request; the page content does not.
+        etag_of = {"fields": body["fields"], "cursor": body["cursor"], "count": body["count"], "hasMore": body["hasMore"], "items": body["items"]}
+        return send_v1(request, body, "v1-snapshot", V1_OPERATIONS["selectedSnapshot"]["cacheControl"], etag_of)
+
+    @app.get("/api/v1/selected/changes")
+    @public_handler
+    def changes(request: Request) -> Response:
+        q = strict_query(request, V1_OPERATIONS["selectedChanges"]["queryKeys"])
+        limit = int_param(q.get("limit"), "limit", 1, 100, 100)
+        if not q.get("cursor"):
+            raise SnapshotRequiredError("missing cursor")
+        with request.app.state.pool.connection() as conn:
+            body = selected_changes(conn, q["cursor"], limit)
+        return send_v1(request, body, "v1-changes", V1_OPERATIONS["selectedChanges"]["cacheControl"])
 
     # Weeklies and monthlies: an index, the latest issue and one issue by ISO week or month.
     for kind, path, param, name, form, index_op, latest_op, key_op in (
