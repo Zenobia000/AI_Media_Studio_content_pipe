@@ -24,8 +24,8 @@ gates: []
 
 | 工具 | 指令 |
 |---|---|
-| `open-topic` | `node AIHOT/scripts/open-topic.ts <cand_id>... [--program] [--formats a,b] [--angle "..."] --json` |
-| `merge` | `node AIHOT/scripts/merge-candidates.ts <保留的 cand_id> <併進去的 cand_id> --json` |
+| `open-topic` | `newsroom open-topic <cand_id>... [--program] [--formats a,b] [--angle "..."] --json` |
+| `merge` | `newsroom merge-candidates <保留的 cand_id> <併進去的 cand_id> --json` |
 
 環境變數 `NEWSROOM_HOME` 指向工作區；`--json` 的輸出依 IF-020，結束碼 `2` 代表輸入有誤。
 

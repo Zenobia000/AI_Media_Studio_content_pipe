@@ -24,9 +24,9 @@ gates: []
 
 | 工具 | 指令 |
 |---|---|
-| `fetch` | `node AIHOT/scripts/fetch-topic.ts <topic_id> [--force] --json` |
-| `fetch-media` | `node AIHOT/scripts/fetch-media.ts <topic_id> [--layers 2,3] --json` |
-| `assets` | `node AIHOT/scripts/assets-topic.ts <topic_id> [--voiceover] --json` |
+| `fetch` | `newsroom fetch-topic <topic_id> [--force] --json` |
+| `fetch-media` | `newsroom fetch-media <topic_id> [--layers 1,2,3,4] --json` |
+| `assets` | `newsroom assets-topic <topic_id> [--voiceover] --json` |
 
 ## 步驟
 

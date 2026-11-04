@@ -16,8 +16,8 @@ gates: []
 
 | 工具 | 指令 |
 |---|---|
-| `set-title-zh` | `node AIHOT/scripts/set-title-zh.ts --list`（列出還沒中文標題的候選，輸出 JSON） |
-| | `node AIHOT/scripts/set-title-zh.ts <cand_id> "<中文標題>" [--force]` |
+| `set-title-zh` | `newsroom set-title-zh --list`（列出還沒中文標題的候選，輸出 JSON） |
+| | `newsroom set-title-zh <cand_id> "<中文標題>" [--force]` |
 
 ## 步驟
 
