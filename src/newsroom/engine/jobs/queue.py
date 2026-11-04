@@ -96,16 +96,18 @@ def enqueue(db, name: str, data: dict, *, singleton_key: str | None = None, star
 
 def fetch(conn, name: str, batch: int = 1) -> list[dict]:
     """Takes up to `batch` waiting jobs of a queue (highest priority, then oldest) and marks them active; other workers skip the rows taken."""
-    return conn.execute(
+    rows = conn.execute(
         """WITH next AS (
              SELECT j.id FROM jobs j WHERE j.name = %(name)s AND j.state IN ('created', 'retry') AND j.start_after <= now()
                AND NOT (j.policy = 'singleton' AND EXISTS (SELECT 1 FROM jobs a WHERE a.name = j.name AND a.state = 'active'
                                                             AND coalesce(a.singleton_key, '') = coalesce(j.singleton_key, '')))
              ORDER BY j.priority DESC, j.created_on, j.id LIMIT %(batch)s FOR UPDATE SKIP LOCKED)
            UPDATE jobs SET state = 'active', started_on = now() FROM next WHERE jobs.id = next.id
-           RETURNING jobs.id, jobs.name, jobs.data, jobs.retry_count, jobs.retry_limit""",
+           RETURNING jobs.id, jobs.name, jobs.data, jobs.retry_count, jobs.retry_limit, jobs.priority, jobs.created_on""",
         {"name": name, "batch": batch},
     ).fetchall()
+    # UPDATE ... RETURNING gives no order: serve the ones taken in the queue's own order.
+    return sorted(rows, key=lambda r: (-r["priority"], r["created_on"], str(r["id"])))
 
 
 def complete(conn, job_id, output=None) -> None:

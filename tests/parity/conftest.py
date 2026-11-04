@@ -26,8 +26,32 @@ PORT = int(os.environ.get("PARITY_NODE_PORT", "3921"))
 ENV = {
     "SITE_URL": "http://127.0.0.1:3000", "API_BASE_URL": f"http://127.0.0.1:{PORT}", "SESSION_SECRET": "ci-session-secret-0123456789abcdef",
     "IMG_PROXY_SIGN_SECRET": "ci-img-secret-0123456789abcdef", "COLLECT_ENABLED": "false", "MODEL_CALLS_ENABLED": "false", "API_PORT": str(PORT),
-    "LOG_LEVEL": "error", "ALLOW_PRIVATE_NETWORK_FETCH": "true",
+    "LOG_LEVEL": "error", "ALLOW_PRIVATE_NETWORK_FETCH": "true", "ADMIN_PASSWORD": "ci-admin-password-123",
 }  # fmt: skip
+
+
+@pytest.fixture(scope="module")
+def settings_env():
+    """The settings the parity tests run both servers with, for the tests of one module only (other tests read the environment too)."""
+    patch = pytest.MonkeyPatch()
+    for k, v in ENV.items():
+        patch.setenv(k, v)
+    yield
+    patch.undo()
+
+
+def clone_template(admin, database_url: str, tags: list[str]) -> dict[str, str]:
+    """Copies of the seeded database. A template must have no other sessions: `<name>_tpl`, a never-used copy made once, is used when it exists;
+    otherwise the sessions on the database itself are ended first."""
+    base = database_url.rsplit("/", 1)[1]
+    root = database_url.rsplit("/", 1)[0]
+    template = f"{base}_tpl" if admin.execute("SELECT 1 FROM pg_database WHERE datname = %s", (f"{base}_tpl",)).fetchone() else base
+    if template == base:
+        admin.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = %s AND pid <> pg_backend_pid()", (base,))
+    for tag in tags:
+        admin.execute(f"DROP DATABASE IF EXISTS {tag} WITH (FORCE)")
+        admin.execute(f"CREATE DATABASE {tag} TEMPLATE {template}")
+    return {tag: f"{root}/{tag}" for tag in tags}
 
 
 def _url() -> str | None:
@@ -63,14 +87,16 @@ def node_api(database_url):
 
 @pytest.fixture(scope="session")
 def py_api(database_url):
+    patch = pytest.MonkeyPatch()
     for k, v in ENV.items():
-        os.environ[k] = v
-    os.environ["DATABASE_URL"] = database_url
-    os.environ["AIHOT_DATA_DIR"] = tempfile.mkdtemp(prefix="parity-py-")
+        patch.setenv(k, v)
+    patch.setenv("DATABASE_URL", database_url)
+    patch.setenv("AIHOT_DATA_DIR", tempfile.mkdtemp(prefix="parity-py-"))
     from newsroom.api.app import build_app  # noqa: PLC0415
 
     with TestClient(build_app(), base_url=f"http://127.0.0.1:{PORT + 1}", follow_redirects=False) as client:
         yield client
+    patch.undo()
 
 
 # What differs per request, and is not part of the answer.

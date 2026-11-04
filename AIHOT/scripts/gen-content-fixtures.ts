@@ -6,6 +6,7 @@ import { textToHtml, sanitizeBody, trimTrailingChrome } from "@aihot/backend/con
 import { normalizeVideos } from "@aihot/backend/content/video";
 import { bodyToMarkdown } from "@aihot/backend/content/markdown";
 import { proxyBodyImages } from "@aihot/backend/media/imgproxy";
+import { safeReturn } from "@aihot/contracts/admin";
 
 const texts = [
   "Hello world", "Line one\nline two\n\nSecond paragraph", "# Title\n\nSome **bold** and `code` and [link](https://a.example/x)",
@@ -47,8 +48,11 @@ const more = [
 ];
 bodies.push(...more);
 
+const returns = ["/admin", "/admin/sources?page=2", "https://evil.example/x", "//evil.example/x", "/\evil.example", "/a/../b", "/a b?q=1 2#frag", "http://127.0.0.1:3000/admin/content?x=1",
+  "javascript:alert(1)", "", "admin", "/a?", "/%2e%2e/x", "/ä/中文?q=中", "/" + "x".repeat(2100), "/	/evil.example", "/a//b", "HTTPS://Example.com/Path?Q=1", "/a/./b/", "/?"];
 const out = {
   generatedAtMs: Date.now(),
+  safeReturn: returns.map((t) => ({ in: t, out: safeReturn(t) })),
   textToHtml: texts.map((t) => ({ in: t, out: textToHtml(t) })),
   proxyBodyImages: images.flatMap((h) => [false, true].map((absolute) => ({ in: h, absolute, out: proxyBodyImages(h, absolute) }))),
   normalizeVideos: videos.map((h) => {

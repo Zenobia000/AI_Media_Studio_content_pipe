@@ -15,9 +15,7 @@ import pytest
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from tests.parity.conftest import AIHOT, ENV
-
-os.environ.update(ENV)  # the Python side reads the same settings the TypeScript side is given (site address, secrets)
+from tests.parity.conftest import AIHOT, ENV, clone_template
 
 SCENARIOS = {
     "unchanged": "SELECT 1",
@@ -75,17 +73,9 @@ def _dump(url: str, started: datetime) -> dict:
 
 
 @pytest.fixture(scope="module")
-def copies(database_url):
-    admin = psycopg.connect(_admin(database_url), autocommit=True)
-    base = database_url.rsplit("/", 1)[1]
-    urls = {}
-    # A template database must have no other sessions (an earlier run's API server may still hold one).
-    admin.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = %s AND pid <> pg_backend_pid()", (base,))
-    for tag in ("pub_node", "pub_py"):
-        admin.execute(f"DROP DATABASE IF EXISTS {tag} WITH (FORCE)")
-        admin.execute(f"CREATE DATABASE {tag} TEMPLATE {base}")
-        urls[tag] = database_url.rsplit("/", 1)[0] + "/" + tag
-    yield urls
+def copies(database_url, settings_env):
+    admin = psycopg.connect(_admin(database_url), autocommit=True, row_factory=dict_row)
+    yield clone_template(admin, database_url, ["pub_node", "pub_py"])
     admin.close()
 
 

@@ -14,6 +14,8 @@ from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from newsroom.api.respond import problem
+from newsroom.api.routes.admin import register_admin
+from newsroom.api.routes.admin_auth import register_admin_auth
 from newsroom.api.routes.agent import register_agent
 from newsroom.api.routes.feeds import register_feeds
 from newsroom.api.routes.mcp import register_mcp
@@ -23,6 +25,7 @@ from newsroom.api.routes.site import register_site
 from newsroom.api.routes.static import register_static
 from newsroom.api.routes.v1 import register_v1, register_v1_fallbacks
 from newsroom.core.db import _FloatNumeric
+from newsroom.engine import pack
 from newsroom.engine.config import config
 from newsroom.engine.http_policy import OAUTH_PROBE_PATHS, resolve_redirect
 
@@ -42,7 +45,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
         # Keep connections through quiet minutes: a reconnect costs a SCRAM exchange on the next request.
         pool = ConnectionPool(
             database_url or config().database_url, min_size=1, max_size=int(os.environ.get("DATABASE_POOL_MAX") or 10), max_idle=600,
-            timeout=10, configure=_configure, kwargs={"autocommit": True}, open=False,
+            timeout=10, check=ConnectionPool.check_connection, configure=_configure, kwargs={"autocommit": True}, open=False,
         )  # fmt: skip
         pool.open()
         app.state.pool = pool
@@ -83,6 +86,9 @@ def build_app(database_url: str | None = None) -> FastAPI:
         return Response(body, media_type="application/json", headers={"Cache-Control": "no-store"})
 
     register_site(app)
+    register_admin_auth(app)
+    if pack.site().get("ADMIN"):
+        register_admin(app)
     register_feeds(app)
     register_static(app)
     register_mcp(app)

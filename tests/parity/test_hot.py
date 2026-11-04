@@ -12,10 +12,8 @@ import pytest
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from tests.parity.conftest import AIHOT, ENV
+from tests.parity.conftest import AIHOT, ENV, clone_template
 from tests.parity.test_publish import _admin
-
-os.environ.update(ENV)
 
 SCENARIOS = {
     "as seeded": "SELECT 1",
@@ -42,16 +40,9 @@ def _plain(rows: list[dict]) -> list[dict]:
 
 
 @pytest.fixture(scope="module")
-def copies(database_url):
-    admin = psycopg.connect(_admin(database_url), autocommit=True)
-    base = database_url.rsplit("/", 1)[1]
-    urls = {}
-    admin.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = %s AND pid <> pg_backend_pid()", (base,))
-    for tag in ("hot_node", "hot_py"):
-        admin.execute(f"DROP DATABASE IF EXISTS {tag} WITH (FORCE)")
-        admin.execute(f"CREATE DATABASE {tag} TEMPLATE {base}")
-        urls[tag] = database_url.rsplit("/", 1)[0] + "/" + tag
-    yield urls
+def copies(database_url, settings_env):
+    admin = psycopg.connect(_admin(database_url), autocommit=True, row_factory=dict_row)
+    yield clone_template(admin, database_url, ["hot_node", "hot_py"])
     admin.close()
 
 
@@ -86,4 +77,6 @@ def test_rankings_and_heat(copies):
             q = "SELECT story_id, hour, heat, participants, cohort, complete FROM story_heat_hourly ORDER BY story_id, hour"
             assert _plain(_rows(copies["hot_py"], q)) == _plain(_rows(copies["hot_node"], q)), f"{name}: story_heat_hourly differ"
     assert any(r["entries"] for r in node if r["computed_at"] >= base - timedelta(hours=6)), "the scenarios produced no ranking entries"
-    assert any(r["hour"] >= base - timedelta(hours=6) for r in _rows(copies["hot_node"], "SELECT hour FROM story_heat_hourly")), "no hourly heat was written"
+    assert any(r["hour"] >= base - timedelta(hours=6) for r in _rows(copies["hot_node"], "SELECT hour FROM story_heat_hourly")), (
+        "no hourly heat was written"
+    )
