@@ -70,3 +70,61 @@ def query_entity_tag(q: str) -> str | None:
         return None
     topic = next((t for t in topics() if t["entityId"] and any(_normalize_alias(a) == want for a in t["aliases"])), None)
     return f"entity:{topic['entityId']}" if topic else None
+
+
+# ── membership ──────────────────────────────────────────────────────────────────────────
+
+STORY_TOPICS = 6
+
+
+def _position(slug: str) -> int:
+    for i, t in enumerate(topics()):
+        if t["slug"] == slug:
+            return i
+    return 2**53 - 1
+
+
+def topic_match(tags: str, pattern: str) -> str:
+    """One membership rule for topic discovery and a single topic's page and count (`%` is doubled: the text carries parameters)."""
+    return (
+        f"p.tags && {tags} AND ({pattern} IS NULL OR p.title ~* {pattern} OR coalesce(p.original_title, '') ~* {pattern} "
+        "OR (SELECT count(*) FROM unnest(p.tags) AS e(tag) WHERE e.tag LIKE 'entity:%%') = 1)"
+    )
+
+
+def topic_membership(param: str = "topic_rows") -> str:
+    """The topics report `p` belongs to, in topic order: its tags meet the topic's and, for a company, the title names it or it is the report's
+    only subject company. The topics travel as one JSON parameter (`topic_rows`, from `topic_membership_params`)."""
+    return f"""ARRAY(
+    SELECT t.slug FROM jsonb_to_recordset(%({param})s::jsonb) AS t(slug text, tags text[], pattern text, position int)
+    WHERE {topic_match("t.tags", "t.pattern")}
+    ORDER BY t.position)"""
+
+
+def topic_membership_params() -> dict:
+    import json  # noqa: PLC0415
+
+    return {
+        "topic_rows": json.dumps(
+            [{"slug": t["slug"], "tags": t["tags"], "pattern": t["pattern"], "position": _position(t["slug"])} for t in topics()]
+        )
+    }
+
+
+def topics_of_story(conn, story_id: int, now) -> list[dict]:
+    """The topics of a story's reports, most reports first."""
+    from newsroom.engine.publication.scope import evidence_condition, scope_params, story_report_condition  # noqa: PLC0415
+
+    rows = conn.execute(
+        f"""SELECT DISTINCT ON (p.article_id) {topic_membership()} AS topics
+            FROM facts f JOIN fact_articles fa ON fa.fact_id = f.id JOIN publications p ON p.article_id = fa.article_id
+            JOIN sources s ON s.id = p.source_id
+            WHERE f.story_id = %(story)s AND {evidence_condition()} AND {story_report_condition()} ORDER BY p.article_id""",
+        {**scope_params(now), **topic_membership_params(), "story": story_id},
+    ).fetchall()
+    counts: dict[str, int] = {}
+    for r in rows:
+        for slug in r["topics"]:
+            counts[slug] = counts.get(slug, 0) + 1
+    ordered = sorted(counts.items(), key=lambda kv: (-kv[1], _position(kv[0])))
+    return topic_links([slug for slug, _ in ordered[:STORY_TOPICS]])

@@ -15,6 +15,8 @@ from newsroom.api.respond import QueryError, js_json, json_with_etag, loose_quer
 from newsroom.engine.lib.cursor import InvalidCursorError
 from newsroom.engine.publication.pool import SearchBusyError
 from newsroom.engine.publication.site_lists import hot_search_links, load_hot_strip, load_pool, load_timeline
+from newsroom.engine.publication.site_story import load_group_reports, load_hot, load_story_detail, load_story_followups
+from newsroom.engine.publication.stories import resolve_story
 from newsroom.engine.publication.topics import topic_browse_links
 from newsroom.engine.site import item_availability, load_changelog, load_contact, load_maker_avatar, load_site_stats, site_meta
 from newsroom.engine.taxonomy import is_category_key, is_channel_key
@@ -126,3 +128,41 @@ def register_site(app: FastAPI) -> None:
     def suggestions(request: Request) -> Response:
         body = {"topics": topic_browse_links(), "hot": hot_search_links(request.app.state.pool)}
         return json_with_etag(request, body, "suggestions", "public, max-age=30, s-maxage=30, must-revalidate")
+
+    @app.get("/api/site/hot")
+    @site_handler
+    def hot(request: Request) -> Response:
+        return json_with_etag(request, load_hot(request.app.state.pool), "hot", "public, max-age=30, s-maxage=30")
+
+    @app.get("/api/site/stories/{public_id}/followups")
+    @site_handler
+    def followups(request: Request, public_id: str) -> Response:
+        result = load_story_followups(request.app.state.pool, public_id)
+        if not result:
+            return problem(request, 404, "not_found", "story not found")
+        return Response(js_json(result), media_type="application/json", headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/site/groups/{fact_id}/reports")
+    @site_handler
+    def group_reports(request: Request, fact_id: str) -> Response:
+        f = parse_filters(loose_query(request))
+        data = load_group_reports(request.app.state.pool, fact_id, f["channel"], f["category"], f["tag"])
+        if not data:
+            return problem(request, 404, "not_found", "reading group unavailable")
+        return Response(js_json(data), media_type="application/json", headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/site/stories/{public_id}")
+    @site_handler
+    def story(request: Request, public_id: str) -> Response:
+        pool = request.app.state.pool
+        with pool.connection() as conn:
+            found = resolve_story(conn, public_id)
+        if found["kind"] == "merged":
+            return Response(js_json({"mergedInto": found["target"]}), status_code=308, media_type="application/json",
+                            headers={"Location": f"/api/site/stories/{found['target']}", "Cache-Control": "public, max-age=300"})  # fmt: skip
+        if found["kind"] == "not_found":
+            return problem(request, 404, "not_found", "story not found", cache_control="public, max-age=60")
+        data = load_story_detail(pool, found["storyId"])
+        if not data:
+            return problem(request, 404, "not_found", "story not public", cache_control="public, max-age=60")
+        return json_with_etag(request, data, "story", "public, max-age=60, s-maxage=60")
