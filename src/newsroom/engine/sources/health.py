@@ -6,6 +6,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
+from newsroom.engine.budget import budget_message
 from newsroom.engine.materials import SCHEDULED_AHEAD
 from newsroom.engine.sources.xmlparse import js_number_text
 
@@ -14,10 +15,6 @@ RHYTHM_MIN_DAYS = 4  # dated days a source needs before its median gap means any
 RHYTHM_MULTIPLE = 4  # how many times its own median gap a source may stay quiet before it looks broken rather than slow
 
 SOURCE_USE_NAMES = {"editorial": "編輯內容", "hot_signal": "熱度訊號"}
-
-
-def budget_message(service: str, window: str) -> str:
-    return f"Budget for {service} exhausted ({window})"
 
 
 # A run error that is the network or the origin's answer, not our reading of the page.

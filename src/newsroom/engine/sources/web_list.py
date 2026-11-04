@@ -438,3 +438,8 @@ def fetch_web_list(source: dict) -> list[dict]:
     if not out:
         raise FetchError(f"no items matched ({mode})")
     return out
+
+
+def fetch_detail(url: str, source: dict, need: dict) -> dict:
+    """What a listing's detail pages add (config.detail): the date, title and summary its rules find, and the body for a source that reads whole."""
+    raise NotImplementedError("detail pages need the article reader (content/extract.ts), which is not ported yet")

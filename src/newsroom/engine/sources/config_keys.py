@@ -64,7 +64,7 @@ def _preserve_rules(value) -> bool:
         if not isinstance(rule, dict):
             return False
 
-        def selector(key: str) -> bool:
+        def selector(key: str, rule=rule) -> bool:
             return isinstance(rule.get(key), str) and rule[key].strip() != ""
 
         parts = ["code", "caption"] if rule.get("as") == "pre" else [] if rule.get("as") == "table" else None

@@ -30,3 +30,16 @@ def is_sign_in_redirect(asked: str, landed: str) -> bool:
         return AUTH_PATH.search(_path(asked)) is None and AUTH_PATH.search(_path(landed)) is not None
     except ValueError:
         return False
+
+
+def page_fetchable(url: str, source_kind: str) -> bool:
+    """Ordinary article pages; player pages have no article body, and social posts arrive separately."""
+    from newsroom.engine.lib.video_url import is_video_page_url
+
+    if source_kind in ("x_search", "mp_account") or is_video_page_url(url):
+        return False
+    try:
+        u = urlsplit(url)
+    except ValueError:
+        return False
+    return u.scheme in ("http", "https") and bool(u.hostname) and re.search(r"(^|\.)(x\.com|twitter\.com|mp\.weixin\.qq\.com)$", u.hostname, re.I) is None
