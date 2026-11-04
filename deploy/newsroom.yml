@@ -1,0 +1,31 @@
+# Adds the Python collect/fetch scheduler to AIHOT's compose project (same database, same data volume, so the inbox the earlier
+# TypeScript worker wrote is carried on):
+#   docker compose -f AIHOT/docker-compose.yml -f deploy/newsroom.yml up -d --build
+# `newsroom migrate` runs first (it creates this part's tables); the scheduler then runs inbox-write, signals-snapshot, page-watch,
+# newsletter-split and the daily fetch self-test.
+services:
+  newsroom-migrate:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.newsroom
+    image: mediahot-newsroom
+    command: ["newsroom", "migrate"]
+    restart: "no"
+    environment: &newsroom-env
+      DATABASE_URL: postgres://mediahot:${POSTGRES_PASSWORD:-mediahot}@db:5432/mediahot
+      NEWSROOM_HOME: /data/workspace
+      AIHOT_DATA_DIR: /data
+    env_file: ../AIHOT/.env
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+  newsroom:
+    image: mediahot-newsroom
+    restart: unless-stopped
+    environment: *newsroom-env
+    env_file: ../AIHOT/.env
+    volumes:
+      - data:/data
+    depends_on:
+      newsroom-migrate:
+        condition: service_completed_successfully

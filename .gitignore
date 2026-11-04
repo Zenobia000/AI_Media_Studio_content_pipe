@@ -8,3 +8,9 @@ __pycache__/
 *.finalize-summary.json
 *.browser-check.json
 *.delivery.json
+
+# Python
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
