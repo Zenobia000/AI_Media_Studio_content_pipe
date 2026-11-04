@@ -115,9 +115,9 @@ def _strip(value, drop):
 
 @pytest.fixture()
 def compare(node_api, py_api):
-    def run(path: str, method: str = "GET", drop: tuple[str, ...] = (), headers: dict[str, str] | None = None):
-        node = httpx.request(method, node_api + path, headers=headers, follow_redirects=False, timeout=30)
-        py = py_api.request(method, path, headers=headers)
+    def run(path: str, method: str = "GET", drop: tuple[str, ...] = (), headers: dict[str, str] | None = None, content: str | bytes | None = None):
+        node = httpx.request(method, node_api + path, headers=headers, content=content, follow_redirects=False, timeout=30)
+        py = py_api.request(method, path, headers=headers, content=content)
         a, b = normalise(node, drop), normalise(py, drop)
         assert b == a, f"{method} {path}\nTypeScript: {a}\nPython:     {b}"
         return a

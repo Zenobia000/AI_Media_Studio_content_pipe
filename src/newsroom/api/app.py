@@ -16,6 +16,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from newsroom.api.respond import problem
 from newsroom.api.routes.agent import register_agent
 from newsroom.api.routes.feeds import register_feeds
+from newsroom.api.routes.mcp import register_mcp
 from newsroom.api.routes.site import register_site
 from newsroom.api.routes.static import register_static
 from newsroom.api.routes.v1 import register_v1, register_v1_fallbacks
@@ -82,6 +83,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
     register_site(app)
     register_feeds(app)
     register_static(app)
+    register_mcp(app)
     register_v1(app)
     register_agent(app)
     register_v1_fallbacks(app)

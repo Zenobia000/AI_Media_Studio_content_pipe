@@ -10,7 +10,7 @@
 |---|---|
 | API 骨架 | 請求編號、重定向表、OAuth 探測、404／405／錯誤格式（problem+json）、`/api/health` |
 | 公開 API v1（全部） | `items`、`hot-topics`、`stories/:id`、`dailies`（含 latest、依日期）、`weeklies`、`monthlies`、`selected/snapshot`、`selected/changes`，以及 `/api/v1/*` 的 404、405、CORS 預檢 |
-| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、文章頁與 Markdown 匯出、RSS（摘要、全文、全部、日報／週報／月報、分類）、`sitemap.xml`、`sitemaps/*`、`llms.txt`、報告索引／最新頁／導覽／月份／詳細頁 |
+| 網站專用 API | `meta`、`contact`、`stats`、`changelog`、`items/availability`、`timeline`、`pool`（含搜尋與相關度排序）、`search/suggestions`、`hot`、事件頁與 `followups`、閱讀群組、主題目錄與主題頁、文章頁與 Markdown 匯出、Agent 回答（`/api/v1/agent/*`）、MCP（`/api/mcp`，手寫 JSON-RPC，對照官方 SDK 的回應）、RSS（摘要、全文、全部、日報／週報／月報、分類）、`sitemap.xml`、`sitemaps/*`、`llms.txt`、報告索引／最新頁／導覽／月份／詳細頁 |
 | 靜態檔 | `robots.txt`、`security.txt`、`manifest.webmanifest`、`openapi-v1.json`、各種圖示、聯絡 QR、IndexNow 金鑰檔 |
 | 底層 | 時間、文字、ID、游標、設定與憑證、出站網路防護與請求、快取、稽核紀錄、簽名的圖片代理網址 |
 
@@ -21,7 +21,6 @@
 | 項目 | 規模 | 說明 |
 |---|---|---|
 | `/og/*` 分享圖、`/api/img-proxy` 圖片代理、媒體路由 | 約 700 行 | 圖片轉檔與縮放（原本用 sharp），Python 要用 Pillow；像素層級的輸出沒辦法逐位元組比對，只能比尺寸與格式 |
-| Agent 回答（`/api/agent/*`）、MCP（`/api/mcp`） | 約 800 行 | 讀取層為主，MCP 是 JSON-RPC，可以用既有的 `scripts/mcp-check.ts` 對照 |
 | 回饋（`feedback`）、擷取推送（`ingest`） | 約 90 行 | 這兩個會寫資料庫，要小心別污染對照用的資料 |
 
 > 文章內文清理（sanitize-html、turndown、cheerio）是照 TypeScript 的設定重寫的，用 138 組由 Node 版產生的輸入對照過，但輸入很髒的網頁（壞掉的標籤、極少見的實體）可能還會有出入。
