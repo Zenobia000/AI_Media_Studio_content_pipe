@@ -95,8 +95,9 @@ def _decode(s: str) -> str:
 _WS = " \n\t\f\r"
 
 
-def _scan(s: str):
-    """Yields ("text", str), ("open", name, attribs, self_closing) and ("close", name), as htmlparser2's tokenizer does for HTML."""
+def _scan(s: str, keep_case: bool = False, comments: bool = False):
+    """Yields ("text", str), ("open", name, attribs, self_closing) and ("close", name), as htmlparser2's tokenizer does for HTML. `keep_case` leaves
+    attribute names as written and `comments` yields ("comment", data) too (a DOM keeps them)."""
     i, n = 0, len(s)
     while i < n:
         j = s.find("<", i)
@@ -109,6 +110,8 @@ def _scan(s: str):
         nxt = s[i + 1 : i + 2]
         if s.startswith("<!--", i):
             end = s.find("-->", i + 4)
+            if comments:
+                yield "comment", s[i + 4 : n if end == -1 else end]
             i = n if end == -1 else end + 3
         elif s.startswith("<![CDATA[", i):
             end = s.find("]]>", i + 9)
@@ -153,7 +156,7 @@ def _scan(s: str):
                     pos += 1
                 else:
                     m2 = re.compile(r"[^\s=/>]+" if c != "=" else r"=[^\s=/>]*").match(s, pos)
-                    attr = m2.group(0).lower()
+                    attr = m2.group(0) if keep_case else m2.group(0).lower()
                     pos = m2.end()
                     value = ""
                     k = pos
@@ -192,7 +195,7 @@ def _scan(s: str):
             i += 1
 
 
-def _events(s: str):
+def _events(s: str, keep_case: bool = False, comments: bool = False):
     """The open and close events of htmlparser2's Parser: elements a start tag implies closed, void elements, a stray </p> and </br>."""
     stack: list[str] = []
     foreign: list[bool] = []
@@ -217,9 +220,11 @@ def _events(s: str):
                 stack.pop(0)
                 yield "close", name, True
 
-    for ev in _scan(s):
+    for ev in _scan(s, keep_case, comments):
         if ev[0] == "text":
             yield "text", ev[1]
+        elif ev[0] == "comment":
+            yield "comment", ev[1]
         elif ev[0] == "open":
             yield from open_(ev[1], ev[2], ev[3])
         else:
