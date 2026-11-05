@@ -159,6 +159,8 @@
 1. 來源穩不穩的長期統計：整套網站已在跑，14 天後（約 11-17）執行 `newsroom source-stats --days 14`（要先 `docker compose -f AIHOT/docker-compose.yml -f deploy/newsroom.yml up -d --build`，或在本機 `pip install -e .` 後執行）（新增的工具，從 `fetch_runs` 算每個來源的成功率；映像已重建，內含此工具）
 2. changedetection.io 已在 http://localhost:5000 跑起來，但**還沒加 20 個頁面**：要在網頁介面挑 20 頁加進去，並把 Settings > API 的金鑰填進 `.env` 的 `CHANGEDETECTION_API_KEY`（我這邊被擋下，不能自己去讀金鑰）。14 天後再數假警報
 
+**前端版面（2026-11-06 已決定）：** 老師說維持原樣，不改版面。三個設計方向示意在 `docs/design/frontend-directions/`，不採用，只留作參考。沒有受影響的事：站名、Logo 和圖示還沒換成我們自己的（這不是版面，見第 5 節），仍待處理。
+
 **要先決定，或需要別人**
 
 | 事情 | 需要什麼 |
