@@ -155,6 +155,7 @@ def register_source_jobs(worker) -> None:
 
 def register_processing_jobs(worker) -> None:
     """The analysis queue, the sweep that queues articles waiting for their turn, and the hot-ranking timers."""
+    from newsroom.engine.events.digest import compose_story_digest
     from newsroom.engine.events.hot import compute_hot_ranking, snapshot_heat
     from newsroom.engine.jobs.content import process_article
     from newsroom.engine.jobs.publication import run_republish
@@ -163,6 +164,7 @@ def register_processing_jobs(worker) -> None:
     pool = worker.pool
 
     worker.work(QUEUES["analyze"], lambda data: process_article(pool, data["articleId"], data.get("attemptTag")), local_concurrency=6)
+    worker.work(QUEUES["digest"], lambda data: compose_story_digest(pool, data["storyId"]), local_concurrency=3)
     worker.work(QUEUES["republishSource"], lambda data: run_republish(pool, data["sourceId"]), local_concurrency=1)
     worker.work(QUEUES["prepareMedia"], lambda data: run_prepare_media(pool, data), local_concurrency=1)
     worker.schedule("content.sweep", "*/5 * * * *", lambda: sweep_unprocessed(pool))
