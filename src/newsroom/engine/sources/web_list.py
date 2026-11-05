@@ -156,13 +156,22 @@ def needs_title(title: str) -> bool:
 # --- reading a listing ---------------------------------------------------------------------------------------------------------------------------
 
 
-def fetch_listing_text(source: dict) -> tuple[str, bool, str]:
+def fetch_listing_text(source: dict, pool=None) -> tuple[str, bool, str]:
     cfg = source["config"]
     url = "" if cfg.get("url") is None else str(cfg["url"])
     if not url:
         raise FetchError("url missing")
     if url.startswith(JINA_PREFIX):
-        raise NotImplementedError("reading a listing through Jina needs the paid-request receipts, which are not ported yet")
+        from newsroom.engine.jina import jina_read
+
+        target = url[len(JINA_PREFIX) :]
+        # A listing parsed with selectors asks Jina for the rendered HTML (a site our resolver cannot reach still gets its dates and titles from the markup); otherwise
+        # Jina's Markdown.
+        page = jina_read(
+            pool, target, "source_listing", f"source:{source['id']}", fmt="html" if cfg.get("parseMode") == "html" else None,
+            cache_tolerance_seconds=cfg.get("cacheToleranceSeconds"), per_read=True,
+        )  # fmt: skip
+        return page["markdown"], True, cfg["baseUrl"] if cfg.get("baseUrl") is not None else target
     headers = {"accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8", **language_headers(cfg.get("acceptLanguage"))}
     res = require_ok(fetch_listing(url, headers=headers, timeout_ms=25_000))
     text = res.text()
@@ -421,8 +430,8 @@ def from_mimo_home(html: str, base: str, source: dict) -> list[dict]:
     raise FetchError("mimo_home: no Blog list in the homepage's chunks")
 
 
-def fetch_web_list(source: dict) -> list[dict]:
-    text, via_jina, base = fetch_listing_text(source)
+def fetch_web_list(source: dict, pool=None) -> list[dict]:
+    text, via_jina, base = fetch_listing_text(source, pool)
     cfg = source["config"]
     mode = "mimo_home" if cfg.get("adapter") == "mimo_home" else cfg["parseMode"] if cfg.get("parseMode") is not None else "markdown" if via_jina else "html"
     if mode == "mimo_home":
@@ -440,7 +449,7 @@ def fetch_web_list(source: dict) -> list[dict]:
     return out
 
 
-def fetch_detail(url: str, source: dict, need: dict) -> dict:
+def fetch_detail(url: str, source: dict, need: dict, pool=None) -> dict:
     """What a listing's detail pages add (config.detail): the date, title and summary its rules find, and the body for a source that reads whole. Each
     rule reads the rendering it was written for; a regex over a Jina rendering needs the paid reader, which is not ported."""
     from newsroom.engine.extract import is_sign_in_redirect
@@ -453,8 +462,11 @@ def fetch_detail(url: str, source: dict, need: dict) -> dict:
     jina_listing = str(cfg["url"] if cfg.get("url") is not None else "").startswith(JINA_PREFIX)
     date_in_jina = need.get("date") and jina_listing and bool(d.get("publishedAtRegex"))
     title_in_jina = need.get("title") and jina_listing and bool(d.get("titleRegex"))
+    jina = None
     if date_in_jina or title_in_jina:
-        raise NotImplementedError("reading a detail page through Jina needs the paid-request receipts, which are not ported yet")
+        from newsroom.engine.jina import jina_read
+
+        jina = jina_read(pool, url, "source_detail", f"source:{source['id']}")["raw"]
     html = None
     page = None
     if (need.get("date") and not date_in_jina) or (need.get("title") and not title_in_jina) or need.get("summary"):
@@ -472,10 +484,11 @@ def fetch_detail(url: str, source: dict, need: dict) -> dict:
     if need.get("date"):
         # The source's rule first. An authoritative rule is the only source of the date: when its byline is missing, no other timestamp on the page
         # (an update time, a related post) stands in for it.
-        if soup is not None and d.get("publishedAtSelector"):
+        date_text = jina if date_in_jina else html
+        if soup is not None and not date_in_jina and d.get("publishedAtSelector"):
             date = element_date((soup.select(d["publishedAtSelector"]) or [None])[0], offset)
-        if not date.published_at and d.get("publishedAtRegex") and html is not None:
-            m = re.search(d["publishedAtRegex"], html)
+        if not date.published_at and d.get("publishedAtRegex") and date_text is not None:
+            m = re.search(d["publishedAtRegex"], date_text)
             date = read_publication_date(m.group(1) if m and m.re.groups >= 1 else None, _offset(offset))
         authoritative = d.get("publishedAtAuthoritative") is True and bool(d.get("publishedAtSelector") or d.get("publishedAtRegex"))
         if not date.published_at and page and not authoritative:
@@ -483,8 +496,9 @@ def fetch_detail(url: str, source: dict, need: dict) -> dict:
 
     title = None
     if need.get("title"):
-        if d.get("titleRegex") and html is not None:
-            m = re.search(d["titleRegex"], html, re.M)
+        title_text = jina if title_in_jina else html
+        if d.get("titleRegex") and title_text is not None:
+            m = re.search(d["titleRegex"], title_text, re.M)
             title = collapse_whitespace(m.group(1) if m and m.re.groups >= 1 and m.group(1) is not None else "") or None
         elif d.get("titleSelector") and soup is not None:
             title = collapse_whitespace(text_of((soup.select(d["titleSelector"]) or [None])[0])) or None

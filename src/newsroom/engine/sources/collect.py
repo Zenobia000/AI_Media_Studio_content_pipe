@@ -25,6 +25,8 @@ from newsroom.engine.materials import (
     reuse_external_material_identities,
     upsert_material,
 )
+from newsroom.engine.presentation import PresentationMismatch
+from newsroom.engine.receipts import complete_receipt
 from newsroom.engine.shutdown import SHUTDOWN  # noqa: E402
 from newsroom.engine.sources.config_keys import unsupported_config
 from newsroom.engine.sources.dates import _iso as iso
@@ -32,6 +34,7 @@ from newsroom.engine.sources.filters import admit_listing, filter_publication_wi
 from newsroom.engine.sources.json_list import fetch_json_list
 from newsroom.engine.sources.rss import FetchError, fetch_rss, reads_whole
 from newsroom.engine.sources.web_list import fetch_detail, fetch_web_list, is_call_to_action_title, needs_title
+from newsroom.engine.sources.x import fetch_x_search, plan_x_shards, read_x_search, self_thread_handle, shard_handle, shard_query, tweet_to_candidate
 
 DAY_MS = 86_400_000
 HOUR_MS = 3_600_000
@@ -188,7 +191,7 @@ def _apply_detail(c: dict, got: dict, rules: str) -> None:
         c["publication_time"] = got.get("publication_time")
 
 
-def enrich_details(candidates: list[dict], source: dict, known: dict, *, budget: int, after: str | None, dated_out: dict, retries: dict, admits) -> dict:
+def enrich_details(candidates: list[dict], source: dict, known: dict, *, budget: int, after: str | None, dated_out: dict, retries: dict, admits, pool=None) -> dict:
     """Detail pages (config.detail) fill what a listing lacks, reading at most `budget` pages; the rest finish on a later run. A page read under the
     rules in force is not read again, and another source's material takes nothing from this listing."""
     rules = detail_rules_of(source)
@@ -224,7 +227,7 @@ def enrich_details(candidates: list[dict], source: dict, known: dict, *, budget:
         reads["attempts"] += 1
         reads["after"] = key
         try:
-            got = fetch_detail(c["url"], source, need)
+            got = fetch_detail(c["url"], source, need, pool)
             if got.get("published_at"):
                 c["published_at"] = datetime.fromisoformat(listed.replace("Z", "+00:00")) if listed else None
             _apply_detail(c, got, rules)
@@ -315,7 +318,12 @@ def _queue_processing(conn, article_id: str, step: str | None, attempt_tag: str 
 def store(pool, source_id: str, candidates: list[dict], backfill: str | None) -> dict:
     created = revised = 0
     for c in candidates:
-        res = upsert_material(pool, _material_of(c, source_id, backfill=backfill))
+        try:
+            res = upsert_material(pool, _material_of(c, source_id, backfill=backfill))
+        except PresentationMismatch:
+            # Same wording, a layout the translation cannot follow: the article's transaction retained the consistent original and translation, which is the outcome;
+            # later articles are still stored.
+            continue
         # A successful page with no matching field is complete too. Otherwise an undated article at the front of a listing would consume the detail
         # budget forever and strand the remaining ones.
         if c.get("detail_rules"):
@@ -371,7 +379,8 @@ def _result(source_id: str, status: str, found=0, created=0, revised=0, error: s
     return out
 
 
-def collect_source(pool, source_id: str, force: bool = False) -> dict:
+def collect_source(pool, source_id: str, force: bool = False, x_since: str | None = None) -> dict:
+    """`x_since` reads an X account again from that post, without moving its watermark back."""
     source = load_source(pool, source_id)
     if not source:
         return _result(source_id, "skipped", error="missing")
@@ -379,13 +388,12 @@ def collect_source(pool, source_id: str, force: bool = False) -> dict:
         return _result(source_id, "skipped", error="paused")
     if source["kind"] in ("mp_account", "external"):
         return _result(source_id, "skipped")  # WeChat accounts are reconciled by the mp job; external sources only receive reports
-    if source["kind"] == "x_search":
-        return _result(source_id, "skipped", error="X searches are not ported yet")
     with pool.connection() as conn:
         run_id = conn.execute("INSERT INTO fetch_runs (source_id) VALUES (%s) RETURNING id", (source_id,)).fetchone()["id"]
     cursor = source["cursor"] or {}
     first_import = not cursor.get("initializedAt")
     created = revised = found = 0
+    paid_receipt_ids: list[int] = []
     try:
         # A config entry this kind does not implement fails the run, visibly, instead of being ignored.
         bad = unsupported_config(source["kind"], source["config"])
@@ -408,14 +416,26 @@ def collect_source(pool, source_id: str, force: bool = False) -> dict:
             if rss["notModified"]:
                 detail = {"notModified": True, "httpStatus": 304}
         elif source["kind"] == "web_list":
-            candidates = fetch_web_list(source)
+            candidates = fetch_web_list(source, pool)
+        elif source["kind"] == "json_list":
+            candidates = fetch_json_list(source, pool)
         else:
-            candidates = fetch_json_list(source)
+            x = fetch_x_search(pool, source, x_since)
+            candidates = x["candidates"]
+            paid_receipt_ids = x["receiptIds"]
+            if x["lastId"] and not (next_cursor.get("lastTweetId") and int(str(next_cursor["lastTweetId"])) > int(x["lastId"])):
+                next_cursor["lastTweetId"] = x["lastId"]
+            # A search longer than one run keeps its position for the next runs (shown in the admin).
+            if x["backlog"]:
+                next_cursor["xBacklog"] = x["backlog"]
+            else:
+                next_cursor.pop("xBacklog", None)
+            detail = {"pages": x["pages"], "truncated": x["truncated"], "backlog": len(x["backlog"]), "backlogPages": x["backlogPages"], "dropped": x["dropped"]}
         found = len(candidates)
         with pool.connection() as conn:
             candidates = listing_entries(conn, source, candidates)
             # Admission of old archive entries and detail recovery both need the same stored identities.
-            known = stored_details(conn, [c["identity_key"] for c in candidates]) if d or not first_import else {}
+            known = stored_details(conn, [c["identity_key"] for c in candidates]) if d or (not first_import and source["kind"] != "x_search") else {}
         by_listing, admits = admission(source, known, first_import)
         candidates = [c for c in candidates if by_listing(c)]
         # First import of a new source: bounded, and archived by source time (never "today", never pushed).
@@ -427,6 +447,7 @@ def collect_source(pool, source_id: str, force: bool = False) -> dict:
             after=cursor.get("detailAfter") if same_rules else None,
             dated_out=(cursor.get("detailDatedOut") or {}) if same_rules else {},
             retries=(cursor.get("detailRetries") or {}) if same_rules else {},
+            pool=pool,
         )  # fmt: skip
         if d:
             detail = {**(detail or {}), "detailAttempts": reads["attempts"], "detailFailures": len(reads["failures"]), "detailPending": reads["pending"],
@@ -474,11 +495,100 @@ def collect_source(pool, source_id: str, force: bool = False) -> dict:
         next_cursor["lastOkAt"] = now_iso()
         with pool.connection() as conn, conn.transaction():
             record_fetch(conn, source_id, run_id, found=found, created=created, detail=detail, cursor=next_cursor)
+            for receipt_id in paid_receipt_ids:
+                complete_receipt(conn, receipt_id)
         return _result(source_id, "ok", found, created, revised)
     except Exception as error:
-        if SHUTDOWN.is_set() or isinstance(error, NotImplementedError):
+        if SHUTDOWN.is_set():
             raise
         message = str(error)[:1000]
         with pool.connection() as conn:
             record_fetch(conn, source_id, run_id, found=found, created=created, detail=None, error=message, budget=isinstance(error, BudgetExceededError))
         return _result(source_id, "failed", found, created, revised, message)
+
+
+# ── X accounts read together ────────────────────────────────────────────────────
+
+X_EPOCH_MS = 1288834974657
+
+
+def x_id_at(ms: float) -> int:
+    """X ids begin with their millisecond timestamp (since 2010-11-04): the smallest id of a post made at `ms`."""
+    return max(0, int(ms) - X_EPOCH_MS) << 22
+
+
+def covered_to(m: dict) -> int:
+    """Where an account's posts are known to be read up to. A quiet account's newest post can be months old, but its last successful check read everything up to then;
+    bounding a shard's search by the post alone would re-read months of the other accounts' posts. Ten minutes before the check allows for posts that reach the search
+    late."""
+    own = int(m["cursor"]["lastTweetId"])
+    checked = parse_iso(str((m["cursor"] or {}).get("lastOkAt") or ""))
+    if checked is None:
+        return own
+    by_time = x_id_at(checked - 10 * 60_000)
+    return by_time if by_time > own else own
+
+
+def collect_x_shard(pool, key: str, source_ids: list[str]) -> dict:
+    """One search for a shard of X accounts (plan_x_shards). Each post goes to the source whose handle wrote it, and every account keeps its own fetch run, health and
+    cursor. The oldest watermark bounds the search, so no account misses a post (the others only see posts they already have again); afterwards each account's watermark
+    moves to its own newest post the search saw, and the stretches still unread are kept in each account's cursor, so they survive a change of shards."""
+    with pool.connection() as conn:
+        rows = conn.execute(f"SELECT {SOURCE_COLUMNS} FROM sources WHERE id = ANY(%s) ORDER BY id", (source_ids,)).fetchall()
+    members = [m for m in rows if m["enabled"] and shard_handle(m)]
+    if not members:
+        return {"key": key, "status": "skipped", "accounts": 0, "found": 0, "created": 0}
+    with pool.connection() as conn:
+        runs = {m["id"]: conn.execute("INSERT INTO fetch_runs (source_id) VALUES (%s) RETURNING id", (m["id"],)).fetchone()["id"] for m in members}
+    found = created = 0
+    try:
+        since = min(covered_to(m) for m in members)
+        backlog: list[dict] = []
+        stretches: set[str] = set()
+        for m in members:
+            for b in (m["cursor"].get("xBacklog") if isinstance(m["cursor"].get("xBacklog"), list) else []):
+                if f"{b['query']} {b['next']}" not in stretches:
+                    backlog.append(b)
+                stretches.add(f"{b['query']} {b['next']}")
+        read = read_x_search(
+            pool, shard_query([shard_handle(m) for m in members], [h for h in (self_thread_handle(m) for m in members) if h]), str(since), backlog, f"x-shard:{key}"
+        )  # fmt: skip
+        detail = {"shard": key, "accounts": len(members), "pages": read["pages"], "truncated": read["truncated"], "backlog": len(read["backlog"]), "backlogPages": read["backlogPages"], "dropped": read["dropped"]}
+        counts: dict[str, dict] = {}
+        for m in members:
+            handle = shard_handle(m).lower()
+            mine = [t for t in read["tweets"] if t["user"]["screen_name"].lower() == handle]
+            stored = store(pool, m["id"], admit_listing([tweet_to_candidate(t) for t in mine], m), None)
+            found += len(mine)
+            created += stored["created"]
+            newest = str(m["cursor"]["lastTweetId"])
+            for t in mine:
+                if int(t["id_str"]) > int(newest):
+                    newest = t["id_str"]
+            counts[m["id"]] = {"found": len(mine), "created": stored["created"], "newest": newest}
+        # Only a fully stored search advances coverage. A failed write can replay every paid page; material already committed is idempotent, and no member is left half-finished.
+        with pool.connection() as conn, conn.transaction():
+            for m in members:
+                count = dict(counts[m["id"]])
+                newest = count.pop("newest")
+                cursor = {**m["cursor"], "lastTweetId": newest, "lastOkAt": now_iso()}
+                if read["backlog"]:
+                    cursor["xBacklog"] = read["backlog"]
+                else:
+                    cursor.pop("xBacklog", None)
+                record_fetch(conn, m["id"], runs[m["id"]], found=count["found"], created=count["created"], detail=detail, cursor=cursor)
+            for receipt_id in read["receiptIds"]:
+                complete_receipt(conn, receipt_id)
+        return {"key": key, "status": "ok", "accounts": len(members), "found": found, "created": created}
+    except Exception as error:
+        if SHUTDOWN.is_set():
+            raise
+        message = str(error)[:1000]
+        budget = isinstance(error, BudgetExceededError)
+        with pool.connection() as conn:
+            for m in members:
+                record_fetch(conn, m["id"], runs[m["id"]], found=0, created=0, detail={"shard": key, "accounts": len(members)}, error=message, budget=budget)
+        return {"key": key, "status": "failed", "accounts": len(members), "found": found, "created": created, "error": message}
+
+
+__all__ = ["plan_x_shards", "self_thread_handle"]

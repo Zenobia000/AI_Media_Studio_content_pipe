@@ -48,9 +48,9 @@ def page_fetchable(url: str, source_kind: str) -> bool:
 # ── fetching and storing an article's body ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 
-def extract_from_url(url: str, rules=None, paid_fallback: bool = True):
-    """The article an address serves, read under the source's rules. A page that does not read as an article falls back to the paid browser renderer
-    (Jina) in the original; that fallback is not ported, so such a page is None here."""
+def extract_from_url(url: str, rules=None, paid_fallback: bool = True, pool=None, subject: str = ""):
+    """The article an address serves, read under the source's rules. A page that does not read as an article falls back to the paid browser renderer (Jina) when the
+    caller allows it (`paid_fallback`)."""
     from newsroom.engine.lib.http_fetch import guarded_fetch, language_headers
     from newsroom.engine.lib.video_url import is_video_page_url
     from newsroom.engine.page_reader import PageRules, readable
@@ -68,7 +68,24 @@ def extract_from_url(url: str, rules=None, paid_fallback: bool = True):
                 return got
     except Exception:
         pass  # falls through to the paid fallback
-    return None
+    if not paid_fallback:
+        return None
+    from newsroom.engine.budget import BudgetExceededError
+    from newsroom.engine.jina import jina_read
+    from newsroom.engine.lib.page_content import UnavailablePageError
+    from newsroom.engine.lib.text import strip_tags
+    from newsroom.engine.markdown import markdown_body
+    from newsroom.engine.page_reader import MIN_BODY_CHARS, ExtractedBody
+
+    try:
+        page = jina_read(pool, url, "body_fallback", subject)
+        html = markdown_body(page["markdown"], url)
+        text = strip_tags(html)
+        if len(text) < MIN_BODY_CHARS:
+            return None
+        return ExtractedBody(html=html, text=text, images=[], via="jina")
+    except (BudgetExceededError, UnavailablePageError):
+        return None
 
 
 def _mark_unconfirmed(conn, article_id: str, revision: int) -> str:
@@ -94,8 +111,8 @@ def extract_article_body(pool, article_id: str) -> str:
     if not a or a["body_status"] == "ok":
         return "skipped"
     if (a["x_post"] or {}).get("tweetId"):
-        raise NotImplementedError("the X Article of a post needs SocialData, which is not ported yet")
-    got = extract_from_url(a["url"], page_rules(a["config"]))
+        return extract_x_article(pool, article_id, a["x_post"]["tweetId"], a["revision"])
+    got = extract_from_url(a["url"], page_rules(a["config"]), pool=pool, subject=f"article:{article_id}")
     with pool.connection() as conn:
         if not got:
             return _mark_unconfirmed(conn, article_id, a["revision"])
@@ -121,3 +138,47 @@ def extract_article_body(pool, article_id: str) -> str:
                 (got.html, got.text, Jsonb(got.images)), h, row["title"], got.text,
             )  # fmt: skip
             return "ok"
+
+
+def extract_x_article(pool, article_id: str, tweet_id: str, revision: int) -> str:
+    """The X Article a post published (SocialData, paid, by the post's own id). The article joins the post's body as a new revision; a post that is only the article's
+    link takes the article's title. No article (the link points at someone else's, or X has none) leaves the post "unconfirmed", and the judging steps are told the
+    article was not fetched."""
+    from psycopg.types.json import Jsonb
+
+    from newsroom.engine.materials import content_hash, revise_material
+    from newsroom.engine.socialdata import get_article
+    from newsroom.engine.sources.x import only_x_article_link, x_article_text
+
+    found = get_article(pool, tweet_id, "x_article", f"article:{article_id}")
+    got = x_article_text(found) if found else None
+    if not got:
+        with pool.connection() as conn:
+            return _mark_unconfirmed(conn, article_id, revision)
+    with pool.connection() as conn, conn.transaction():
+        row = conn.execute(
+            """SELECT title, excerpt, body_text, x_post, x_article FROM articles WHERE id = %s AND revision = %s AND body_status <> 'ok' FOR UPDATE""", (article_id, revision)
+        ).fetchone()
+        if not row:
+            return "skipped"
+
+        def block(a: dict | None) -> str:
+            return "\n\n".join(x for x in ((f"# {a['title']}" if a and a.get("title") else ""), (a or {}).get("text") or "") if x) if a else ""
+
+        # The post's own text, without an article appended by an earlier extraction (an admin re-run extracts again from the post; appending once more would repeat the
+        # article).
+        previous = block(row["x_article"])
+        base = row["body_text"] or ""
+        if previous and base.endswith(previous):
+            base = re.sub(r"\s+$", "", base[: len(base) - len(previous)])
+        title = got["title"] if got["title"] and only_x_article_link((row["x_post"] or {}).get("text")) else row["title"]
+        body_text = "\n\n".join(x for x in (base, block(got)) if x)
+        if body_text == row["body_text"] and title == row["title"]:
+            # The same article again: nothing new, no new revision.
+            conn.execute("UPDATE articles SET body_status = 'ok', x_article = %s, updated_at = now() WHERE id = %s", (Jsonb(got), article_id))
+            return "ok"
+        revise_material(
+            conn, article_id, "title = %s, body_text = %s, x_article = %s, body_status = 'ok'", (title, body_text, Jsonb(got)),
+            content_hash(title, body_text, row["excerpt"]), title, body_text,
+        )  # fmt: skip
+        return "ok"

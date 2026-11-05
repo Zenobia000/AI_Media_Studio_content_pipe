@@ -203,7 +203,7 @@ def embedded_json(html: str, source: dict):
     raise FetchError(f"embedded key {key} not found")
 
 
-def fetch_json_list(source: dict) -> list[dict]:
+def fetch_json_list(source: dict, pool=None) -> list[dict]:
     c = source["config"]
     url = js_str(c.get("url") if c.get("url") is not None else "")
     headers = {"accept": "application/json, text/html;q=0.9", **language_headers(c.get("acceptLanguage")), **(c.get("headers") or {})}
@@ -212,18 +212,25 @@ def fetch_json_list(source: dict) -> list[dict]:
         if token:
             headers["authorization"] = f"Bearer {token}"
     embedded = c.get("mode") in ("html_json_key", "html_window_var")
+    jina_html = None
     if embedded and url.startswith(JINA_PREFIX):
-        raise NotImplementedError("reading a listing through Jina needs the paid-request receipts, which are not ported yet")
+        # A page that blocks our addresses can be read through Jina's rendered HTML, which keeps its scripts.
+        from newsroom.engine.jina import jina_read
+
+        jina_html = jina_read(pool, url[len(JINA_PREFIX) :], "source_listing", f"source:{source['id']}", fmt="html", per_read=True)["markdown"]
     body_json = c.get("bodyJson")
-    res = fetch_listing(
-        url,
-        redirect_policy="same-origin",
-        method=c.get("method") or "GET",
-        headers={**headers, "content-type": "application/json"} if body_json else headers,
-        body=json.dumps(body_json, ensure_ascii=False, separators=(",", ":")) if body_json else None,
-        timeout_ms=25_000,
-    )
-    text = require_ok(res).text()
+    if jina_html is not None:
+        text = jina_html
+    else:
+        res = fetch_listing(
+            url,
+            redirect_policy="same-origin",
+            method=c.get("method") or "GET",
+            headers={**headers, "content-type": "application/json"} if body_json else headers,
+            body=json.dumps(body_json, ensure_ascii=False, separators=(",", ":")) if body_json else None,
+            timeout_ms=25_000,
+        )
+        text = require_ok(res).text()
     if embedded:
         data = embedded_json(text, source)
     else:

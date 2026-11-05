@@ -436,8 +436,12 @@ def update_presentation(conn, article_id: str, html: str | None, media: list | N
             "SELECT body_html, origin FROM translations WHERE article_id = %s AND lang = 'zh' AND revision = %s FOR UPDATE",
             (article_id, a["revision"]),
         ).fetchone()
+        # A publisher's translation is independently supplied, so only model translations share the source layout.
         if tr and tr["origin"] == "model" and tr["body_html"]:
-            raise NotImplementedError("rebasing a model translation onto a changed layout is not ported (content/presentation.ts rebaseTranslation)")
+            from newsroom.engine.presentation import rebase_translation
+
+            translated = rebase_translation(a["body_html"] or "", new_html or "", tr["body_html"])
+            conn.execute("UPDATE translations SET body_html = %s WHERE article_id = %s AND lang = 'zh'", (translated, article_id))
     conn.execute("UPDATE articles SET body_html = %s, media = %s, updated_at = now() WHERE id = %s", (new_html, Jsonb(new_media), article_id))
     return True
 

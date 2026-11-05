@@ -1,6 +1,6 @@
 """Content diagnostics and corrections. Find any item by id, URL or title and see its whole chain: source → discoveries → revisions → model receipts → decisions →
 publication and sync ledger → grouping → deliveries. Visibility changes and manual corrections go through editorial overrides with a version check, are
-re-projected to every public exit, and are audited. Port of admin/content.ts (without the publication-date correction and the presentation refresh)."""
+re-projected to every public exit, and are audited. Port of admin/content.ts (without the publication-date correction)."""
 
 from __future__ import annotations
 
@@ -47,7 +47,11 @@ def search_content(pool, q: str) -> list[dict]:
                 return found
         url = normalize_url(term) if re.match(r"^https?://", term, re.I) else None
         if url:
-            return read(conn, "a.url IN (%s, %s) OR a.identity_key IN (%s, %s)", (term, url, identity_key_for_url(term), identity_key_for_url(term, keep_fragment=True)))
+            return read(
+                conn,
+                "a.url IN (%s, %s) OR a.identity_key IN (%s, %s)",
+                (term, url, identity_key_for_url(term), identity_key_for_url(term, keep_fragment=True)),
+            )
         return read(conn, "a.title ILIKE %s OR p.title ILIKE %s", (f"%{term}%", f"%{term}%"))
 
 
@@ -64,7 +68,9 @@ def content_chain(pool, article_id: str) -> dict | None:
             return None
         one = lambda sql: conn.execute(sql, (article_id,)).fetchall()  # noqa: E731
         discoveries = one("SELECT source_id, via, discovered_at FROM article_discoveries WHERE article_id = %s ORDER BY discovered_at")
-        revisions = one("SELECT revision, title, content_hash, created_at FROM article_revisions WHERE article_id = %s ORDER BY revision DESC LIMIT 10")
+        revisions = one(
+            "SELECT revision, title, content_hash, created_at FROM article_revisions WHERE article_id = %s ORDER BY revision DESC LIMIT 10"
+        )
         analyses = one(
             """SELECT an.id, an.origin, an.model, an.prompt_version, an.input_revision, an.relevance, an.category, an.score, an.selected, an.title_zh, an.reason_zh,
                       an.created_at,
@@ -79,9 +85,12 @@ def content_chain(pool, article_id: str) -> dict | None:
             """SELECT fa.fact_id, fa.role, fa.manual, f.public_id AS fact_public_id, f.title AS fact_title, st.id AS story_id, st.public_id AS story_public_id, st.title AS story_title
                FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id LEFT JOIN stories st ON st.id = f.story_id WHERE fa.article_id = %s"""
         )
-        decisions = one("SELECT verdict, fact_id, story_id, receipt_id, candidates, created_at FROM grouping_decisions WHERE article_id = %s ORDER BY created_at DESC LIMIT 5")
+        decisions = one(
+            "SELECT verdict, fact_id, story_id, receipt_id, candidates, created_at FROM grouping_decisions WHERE article_id = %s ORDER BY created_at DESC LIMIT 5"
+        )
         deliveries = conn.execute(
-            "SELECT target_key, dedupe_key, status, attempts, response, created_at, sent_at FROM deliveries WHERE subject_id = %s ORDER BY created_at DESC", (article_id,)
+            "SELECT target_key, dedupe_key, status, attempts, response, created_at, sent_at FROM deliveries WHERE subject_id = %s ORDER BY created_at DESC",
+            (article_id,),
         ).fetchall()
         history = audit_history(conn, f"content:{article_id}")
     return {
@@ -142,11 +151,20 @@ def set_visibility(pool, article_id: str, inp, actor: str):
         if (published or {}).get("reduced") or (before["visibility"] or "public") != inp["visibility"]:
             hot = _in_hot_ranking(conn, article_id)
             stories = conn.execute(
-                "SELECT DISTINCT f.story_id FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE fa.article_id = %s AND f.story_id IS NOT NULL", (article_id,)
+                "SELECT DISTINCT f.story_id FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE fa.article_id = %s AND f.story_id IS NOT NULL",
+                (article_id,),
             ).fetchall()
             for s in stories:
                 enqueue(conn, QUEUES["digest"], {"storyId": s["story_id"]}, singleton_key=f"story:{s['story_id']}")
-        audit(conn, actor, "content.visibility", f"content:{article_id}", inp["reason"], {"visibility": before["visibility"]}, {"visibility": inp["visibility"]})
+        audit(
+            conn,
+            actor,
+            "content.visibility",
+            f"content:{article_id}",
+            inp["reason"],
+            {"visibility": before["visibility"]},
+            {"visibility": inp["visibility"]},
+        )
     if hot:  # ranking reads committed publications
         compute_hot_ranking(pool)
     return published
@@ -250,7 +268,7 @@ def rerun(pool, article_id: str, step, request_id: str, actor: str, options: dic
         issues.add("", "a stable request id is required")
     issues.raise_if_any()
     if step == "presentation":
-        raise NotImplementedError("refreshing a body's presentation needs the translation rebase, which is not ported yet")
+        return refresh_presentation(pool, article_id, options or {}, request_id, actor)
     with pool.connection() as conn, conn.transaction():
         if not conn.execute("SELECT id FROM articles WHERE id = %s FOR UPDATE", (article_id,)).fetchone():
             return None
@@ -272,5 +290,110 @@ def rerun(pool, article_id: str, step, request_id: str, actor: str, options: dic
                 (step == "extract", article_id),
             )
             job = queue_processing(conn, article_id, step=step, attempt_tag=f"admin:{request_id}" if step == "analyze" else None)
-        audit(conn, actor, f"content.rerun.{step}", f"content:{article_id}", None, None, {"jobId": job, "requestId": request_id}, request_id=request_id)
+        audit(
+            conn, actor, f"content.rerun.{step}", f"content:{article_id}", None, None, {"jobId": job, "requestId": request_id}, request_id=request_id
+        )
         return {"jobId": job}
+
+
+def _presentation_snapshot(conn, article_id: str, lock: bool = False) -> dict | None:
+    return conn.execute(
+        f"""SELECT a.revision, a.title, a.body_text, a.excerpt, a.body_html, a.media, a.source_id, a.identity_key, a.url, s.kind, s.config,
+              tr.body_html AS tr_html, tr.origin AS tr_origin
+            FROM articles a JOIN sources s ON s.id = a.source_id
+            LEFT JOIN translations tr ON tr.article_id = a.id AND tr.lang = 'zh' AND tr.revision = a.revision
+            WHERE a.id = %s {"FOR UPDATE OF a" if lock else ""}""",
+        (article_id,),
+    ).fetchone()
+
+
+def refresh_presentation(pool, article_id: str, options: dict, request_id: str, actor: str) -> dict | None:
+    """Preview and apply through the existing audited command, without analysis, date changes or paid extraction."""
+    from newsroom.engine.extract import extract_from_url, page_fetchable
+    from newsroom.engine.lib.ids import sha256, stable_json
+    from newsroom.engine.materials import content_hash, update_presentation
+    from newsroom.engine.page_reader import page_rules
+    from newsroom.engine.presentation import PresentationMismatch, presentation_counts, rebase_translation
+    from newsroom.engine.sources.collect import listing_entries, load_source
+    from newsroom.engine.sources.rss import fetch_rss
+
+    preview, version = options.get("preview"), options.get("version")
+    issues = V.Issues()
+    if preview is not None and not isinstance(preview, bool):
+        issues.add("preview", "expected boolean")
+    if version is not None and not (isinstance(version, str) and re.fullmatch(r"[a-f0-9]{64}", version)):
+        issues.add("version", "invalid")
+    issues.raise_if_any()
+    if not preview and not version:
+        raise Conflict("請先預覽正文展示變化")
+    if not preview:
+        with pool.connection() as conn:
+            prior = conn.execute(
+                "SELECT after FROM audit_log WHERE subject = %s AND action = 'content.rerun.presentation' AND actor = %s AND request_id = %s ORDER BY id DESC LIMIT 1",
+                (f"content:{article_id}", actor, request_id),
+            ).fetchone()
+        if prior:
+            return prior["after"]["result"]
+    with pool.connection() as conn:
+        a = _presentation_snapshot(conn, article_id)
+    if not a:
+        return None
+    # A feed can publish different wording from its web page. Refresh the same source material first.
+    got = None
+    if a["kind"] == "rss" and a["config"].get("feedUrl"):
+        source = load_source(pool, a["source_id"])
+        with pool.connection() as conn:
+            entries = listing_entries(conn, source, fetch_rss(source, True)["candidates"])
+        entry = next((c for c in entries if c["identity_key"] == a["identity_key"]), None)
+        if entry and entry.get("body_html") and entry.get("body_text"):
+            got = {"html": entry["body_html"], "text": entry["body_text"], "images": entry.get("media") or []}
+    if not got and page_fetchable(a["url"], a["kind"]):
+        page = extract_from_url(a["url"], page_rules(a["config"]), paid_fallback=False, pool=pool, subject=f"article:{article_id}")
+        # Match normal extraction: the publisher's existing cover has precedence over body images.
+        if page:
+            got = {"html": page.html, "text": page.text, "images": a["media"] if a["media"] else page.images}
+    before, after = presentation_counts(a["body_html"]), presentation_counts(got["html"] if got else a["body_html"])
+    if not got:
+        reason = "當前原文未能直接抽取，請使用正常正文抽取處理"
+    elif content_hash(a["title"], a["body_text"], a["excerpt"]) != content_hash(a["title"], got["text"], a["excerpt"]):
+        reason = "正文文字已經變化，需要正常抽取和評估，不能只重新整理展示"
+    else:
+        reason = None
+    translation = "source" if a["tr_origin"] == "source" else "reused" if a["tr_html"] else "absent"
+    if not reason and got and got["html"] != a["body_html"] and a["tr_html"] and a["tr_origin"] == "model":
+        try:
+            rebase_translation(a["body_html"] or "", got["html"], a["tr_html"])
+        except PresentationMismatch as error:
+            reason = str(error)
+            translation = "blocked"
+    snapshot_key = {"before": a, "html": got["html"] if got else None, "media": got["images"] if got else None}
+    version_now = sha256(stable_json({k: v for k, v in snapshot_key.items() if v is not None}))
+    result = {
+        "revision": a["revision"], "version": version_now, "ready": reason is None, "applied": False,
+        "changed": bool(got) and (got["html"] != a["body_html"] or stable_json(got["images"]) != stable_json(a["media"])), "reason": reason,
+        "images": {"before": before["images"], "after": after["images"]}, "links": {"before": before["links"], "after": after["links"]}, "translation": translation,
+    }  # fmt: skip
+    if preview:
+        return result
+    if version != version_now:
+        raise Conflict("正文或原網頁在預覽後變化，請重新預覽")
+    if reason or not got:
+        raise Conflict(reason or "正文未能抽取")
+    with pool.connection() as conn, conn.transaction():
+        current = _presentation_snapshot(conn, article_id, True)
+        prior = conn.execute(
+            "SELECT after FROM audit_log WHERE subject = %s AND action = 'content.rerun.presentation' AND actor = %s AND request_id = %s ORDER BY id DESC LIMIT 1",
+            (f"content:{article_id}", actor, request_id),
+        ).fetchone()
+        if prior:
+            return prior["after"]["result"]
+        if stable_json(current) != stable_json(a):
+            raise Conflict("材料在預覽後變化，請重新預覽")
+        update_presentation(conn, article_id, got["html"], got["images"])
+        applied = {**result, "applied": True}
+        audit(
+            conn, actor, "content.rerun.presentation", f"content:{article_id}", "僅重新整理正文展示",
+            {"revision": a["revision"], "bodyHtml": a["body_html"], "media": a["media"], "translationHtml": a["tr_html"]}, {"result": applied, "bodyHtml": got["html"], "media": got["images"]},
+            request_id=request_id,
+        )  # fmt: skip
+        return applied

@@ -224,11 +224,13 @@ def preview_source(pool, draft: dict) -> dict:
     if source["kind"] == "rss":
         found = fetch_rss(source, True)["candidates"]
     elif source["kind"] == "web_list":
-        found = fetch_web_list(source)
+        found = fetch_web_list(source, pool)
     elif source["kind"] == "json_list":
-        found = fetch_json_list(source)
+        found = fetch_json_list(source, pool)
     elif source["kind"] == "x_search":
-        raise NotImplementedError("previewing an X search needs SocialData, which is not ported yet")
+        from newsroom.engine.sources.x import fetch_x_search
+
+        found = fetch_x_search(pool, source)["candidates"]
     else:
         raise RuntimeError(f"preview is not available for {source['kind']} sources")
     # The listing and its detail pages as collection reads them, within the fixed publication boundary; the limits of a first import and of later runs
@@ -241,7 +243,7 @@ def preview_source(pool, draft: dict) -> dict:
         return len(filter_publication_window([c], source["config"].get("publishedAfter"))) > 0
 
     max_fetches = (source["config"].get("detail") or {}).get("maxFetches")
-    reads = enrich_details(candidates, source, known, budget=int(max_fetches or 0), after=None, dated_out={}, retries={}, admits=admits)
+    reads = enrich_details(candidates, source, known, budget=int(max_fetches or 0), after=None, dated_out={}, retries={}, admits=admits, pool=pool)
     # A page that fails keeps its listing data, as in collection; when none can be read, the rules are what fails.
     if reads["failures"] and len(reads["failures"]) == reads["attempts"]:
         raise FetchError(f"原文頁全部讀取失敗（{len(reads['failures'])} 頁）：{'；'.join(f'{f['url']}（{f['error']}）' for f in reads['failures'])}")

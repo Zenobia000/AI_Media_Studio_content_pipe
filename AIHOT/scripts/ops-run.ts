@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { closeDb } from "@aihot/backend/db";
 import { ensureQueue, QUEUES, stopBoss } from "@aihot/backend/jobs/queue";
 import { checkAlerts, collectFindings, dismissFollowUp, holdAlert, restoreFollowUp, sendDigest } from "@aihot/backend/operations/alerts";
+import { submitIndexNow } from "@aihot/backend/operations/indexnow";
+import { loadDiscoveryEntries } from "@aihot/backend/publication/sitemap";
 import { runBackup } from "@aihot/backend/operations/backup";
 import { checkWorkerHeartbeat } from "@aihot/backend/operations/watch";
 import { sourceHealthWeekly } from "@aihot/backend/operations/reports";
@@ -17,6 +19,8 @@ for (const [name, ...args] of input.calls) {
   try {
     if (name === "dailyRetention") out.push(await dailyRetention(new Date(args[0])));
     else if (name === "recoverStaleWork") out.push(await recoverStaleWork());
+    else if (name === "submitIndexNow") out.push(await submitIndexNow(new Date(args[0])));
+    else if (name === "discovery") out.push((await loadDiscoveryEntries(new Date(args[0]))).map((e) => ({ loc: e.loc, revision: e.revision ?? null, lastmod: e.lastmod ? e.lastmod.toISOString() : null })));
     else if (name === "checkAlerts") out.push(await checkAlerts(args[0]));
     else if (name === "sendDigest") out.push(await sendDigest(args[0]));
     else if (name === "collectFindings") out.push((await collectFindings(args[0])).map((f) => ({ key: f.key, level: f.level, title: f.title, impact: f.impact ?? null, heals: f.heals ?? null, action: f.action ?? null, detail: f.detail ?? null, owner: f.owner ?? null })));

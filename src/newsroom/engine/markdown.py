@@ -455,3 +455,24 @@ def turndown(html: str) -> str:
 def body_to_markdown(html: str, base_url: str | None = None) -> str:
     """Export the same safe body as the web and RSS without flattening its structure."""
     return js_trim(turndown(sanitize_body(html, base_url)))
+
+
+def markdown_body(markdown: str, url: str) -> str:
+    """Jina returns page Markdown, which can include the publisher's navigation and recommendations. The Markdown is turned into HTML (CommonMark with tables and
+    strikethrough; the TypeScript used marked, whose HTML differs in small ways that the sanitiser then mostly removes), kept to the safe body, and the page's
+    trailing chrome trimmed."""
+    from urllib.parse import urlsplit
+
+    from markdown_it import MarkdownIt
+
+    from newsroom.engine.page_reader import trim_trailing_chrome
+    from newsroom.engine.sanitize import sanitize_body
+
+    page = urlsplit(url)
+    openai_article = page.hostname == "openai.com" and page.path.startswith("/index/")
+    if openai_article:
+        # Reader splits an italic caption around its link; the invisible window hint makes its adjacent underscores intraword delimiters. Join the caption without
+        # changing the link.
+        markdown = re.sub(r"_\[_([^\]\n]+?)_([\u2060\s]*\(opens in a new window\))\]\((https?://[^\s)]+)\)_", r" [\1\2](\3)", markdown)
+    html = MarkdownIt("commonmark").enable(["table", "strikethrough"]).render(markdown)
+    return trim_trailing_chrome(sanitize_body(html, url))

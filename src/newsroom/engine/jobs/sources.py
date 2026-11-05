@@ -27,19 +27,47 @@ def use_pace(uses) -> float:
 _PAID_LISTING = "coalesce(config->>'url', '') LIKE 'https://r.jina.ai/%'"
 
 
-def schedule_due_sources(pool) -> dict:
-    """Every minute: enqueue due sources (enabled, not WeChat/external), oldest due first. X accounts read by shard are not scheduled here yet."""
+_SHARDED = "kind = 'x_search' AND config->>'query' ~* %(shardable)s AND coalesce(config->>'searchType', 'Latest') = 'Latest' AND cursor->>'lastTweetId' IS NOT NULL"
+
+
+def schedule_x_shards(pool) -> int:
+    """Every minute: a shard is read when any of its accounts is due, all of them at once."""
+    from newsroom.engine.sources.x import SHARDABLE_SQL, plan_x_shards
+
     enqueued = 0
     with pool.connection() as conn:
         rows = conn.execute(
-            """SELECT id FROM sources WHERE enabled AND kind IN ('rss', 'web_list', 'json_list') AND (next_fetch_at IS NULL OR next_fetch_at <= now())
-               ORDER BY next_fetch_at NULLS FIRST LIMIT 40"""
+            f"""SELECT id, kind, config, cursor, participation_mode, (next_fetch_at IS NULL OR next_fetch_at <= now()) AS due
+                FROM sources WHERE enabled AND {_SHARDED}""",
+            {"shardable": SHARDABLE_SQL},
+        ).fetchall()
+        due = {r["id"] for r in rows if r["due"]}
+        for shard in plan_x_shards(rows):
+            if not any(i in due for i in shard["sourceIds"]):
+                continue
+            if enqueue(conn, QUEUES["fetchXShard"], {"key": shard["key"], "sourceIds": shard["sourceIds"]}, singleton_key=shard["key"]) is not None:
+                enqueued += 1
+            conn.execute("UPDATE sources SET next_fetch_at = now() + interval '10 minutes' WHERE id = ANY(%s)", (shard["sourceIds"],))
+    return enqueued
+
+
+def schedule_due_sources(pool) -> dict:
+    """Every minute: enqueue due sources (enabled, not WeChat/external), oldest due first; X accounts by shard."""
+    from newsroom.engine.sources.x import SHARDABLE_SQL
+
+    enqueued = 0
+    with pool.connection() as conn:
+        rows = conn.execute(
+            f"""SELECT id FROM sources
+                WHERE enabled AND kind IN ('rss', 'web_list', 'json_list', 'x_search') AND (next_fetch_at IS NULL OR next_fetch_at <= now()) AND NOT ({_SHARDED})
+                ORDER BY next_fetch_at NULLS FIRST LIMIT 40""",
+            {"shardable": SHARDABLE_SQL},
         ).fetchall()
         for r in rows:
             if enqueue(conn, QUEUES["fetchSource"], {"sourceId": r["id"]}, singleton_key=r["id"]) is not None:
                 enqueued += 1
             conn.execute("UPDATE sources SET next_fetch_at = now() + interval '10 minutes' WHERE id = %s", (r["id"],))
-    return {"enqueued": enqueued, "shards": 0}
+    return {"enqueued": enqueued, "shards": schedule_x_shards(pool)}
 
 
 def adapt_intervals(pool) -> dict:
@@ -144,13 +172,25 @@ def register_source_jobs(worker) -> None:
     import os
 
     pool = worker.pool
+    from newsroom.engine.dajiala import dajiala_configured
+    from newsroom.engine.sources.collect import collect_x_shard
+    from newsroom.engine.sources.mp import check_mp_account, schedule_mp_reconcile
+    from newsroom.engine.sources.x_renames import follow_x_renames
+
     worker.work(QUEUES["fetchSource"], lambda data: collect_source(pool, data["sourceId"], bool(data.get("force"))), local_concurrency=8)
+    worker.work(QUEUES["fetchXShard"], lambda data: collect_x_shard(pool, data["key"], data["sourceIds"]), local_concurrency=2)
+    worker.work(QUEUES["mpCheck"], lambda data: check_mp_account(pool, data["sourceId"], data.get("reason") or "schedule"), local_concurrency=1)
     worker.work(QUEUES["extractBody"], lambda data: run_extraction(pool, data["articleId"]), local_concurrency=4)
     if os.environ.get("COLLECT_ENABLED") == "true":
         worker.schedule("sources.schedule", "* * * * *", lambda: schedule_due_sources(pool))
         worker.schedule("sources.adapt-intervals", "20 4 * * *", lambda: adapt_intervals(pool))
         # Icons are read from the sources' own sites, so they stop with collection.
         worker.schedule("sources.icons", "40 4 * * *", lambda: refresh_source_icons(pool), missed="once")
+        # X accounts quiet for a day: a renamed one is followed to its new handle (SocialData, paid per lookup).
+        worker.schedule("sources.x-renames", "50 4 * * *", lambda: follow_x_renames(pool), missed="once")
+        # WeChat official accounts through Dajiala (paid), each once per its interval; only with its key.
+        if dajiala_configured():
+            worker.schedule("sources.mp-reconcile", "*/15 * * * *", lambda: schedule_mp_reconcile(pool))
 
 
 def register_processing_jobs(worker) -> None:
@@ -164,6 +204,7 @@ def register_processing_jobs(worker) -> None:
     from newsroom.engine.operations import daily_retention, forward_pending_feedback, recover_stale_work
     from newsroom.engine.operations_alerts import check_alerts, send_digest
     from newsroom.engine.operations_backup import backup_configured, run_backup
+    from newsroom.engine.operations_indexnow import submit_index_now
     from newsroom.engine.operations_reports import source_health_weekly
     from newsroom.engine.reports_compose import compose_due_reports
     from newsroom.engine.translate import translate_pending
@@ -183,6 +224,8 @@ def register_processing_jobs(worker) -> None:
     # requests get their one automatic release.
     worker.schedule("ops.retention", "30 3 * * *", lambda: daily_retention(pool), missed="once")
     # Operations: alerts every ten minutes, the 09:00 follow-up list, the nightly backup where an object store is set up, and Monday's source-health report.
+    # IndexNow for added, changed and removed discovery URLs, hourly so a new story or report reaches Bing within the hour (off unless INDEXNOW_SUBMIT_ENABLED).
+    worker.schedule("seo.indexnow", "50 * * * *", lambda: submit_index_now(pool), missed="once")
     worker.schedule("ops.alerts", "*/10 * * * *", lambda: check_alerts(pool))
     worker.schedule("ops.digest", "0 9 * * *", lambda: send_digest(pool), missed="once")
     if backup_configured():
