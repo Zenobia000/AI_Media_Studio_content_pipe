@@ -1,10 +1,11 @@
 """Content diagnostics and corrections. Find any item by id, URL or title and see its whole chain: source → discoveries → revisions → model receipts → decisions →
 publication and sync ledger → grouping → deliveries. Visibility changes and manual corrections go through editorial overrides with a version check, are
-re-projected to every public exit, and are audited. Port of admin/content.ts (without the publication-date correction)."""
+re-projected to every public exit, and are audited. Port of admin/content.ts, including the publication-date correction."""
 
 from __future__ import annotations
 
 import re
+from datetime import UTC, datetime, timedelta
 
 from psycopg.types.json import Jsonb
 
@@ -14,7 +15,10 @@ from newsroom.engine.admin import validation as V
 from newsroom.engine.audit import Conflict, audit, audit_history
 from newsroom.engine.errors import BadRequest
 from newsroom.engine.events.hot import compute_hot_ranking, stored_hot_ranking
+from newsroom.engine.jobs.content import needs_grouping
 from newsroom.engine.jobs.queue import QUEUES, enqueue
+from newsroom.engine.lib.ids import sha256, stable_json
+from newsroom.engine.materials import decide_timeline, explicit_backfill, is_historical
 from newsroom.engine.publication.publish import publish_article_tx
 from newsroom.engine.reports_correct import correct_report_classification
 from newsroom.engine.sources.collect import queue_processing
@@ -397,3 +401,201 @@ def refresh_presentation(pool, article_id: str, options: dict, request_id: str, 
             request_id=request_id,
         )  # fmt: skip
         return applied
+
+
+# --- Publication-date correction -----------------------------------------------------------------------------------------------------------------------------
+
+RECENT = timedelta(days=7)  # dates within this window are recent; older ones are history's to correct
+_ISO = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$")
+
+
+def _iso(value: datetime | None) -> str | None:
+    """What JSON.stringify makes of a Date (ISO, milliseconds, Z)."""
+    return None if value is None else value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.") + f"{value.microsecond // 1000:03d}Z"
+
+
+def _ms(value: datetime) -> int:
+    """Whole milliseconds since the epoch: Node's Date holds no finer time than that."""
+    return (value - datetime(1970, 1, 1, tzinfo=UTC)) // timedelta(milliseconds=1)
+
+
+def _parse_iso(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _historical_date(article: dict, published: datetime, date: datetime, now: datetime) -> dict:
+    """An old date replaced by an older verified one keeps every decision of the material, history or not: its discovery time may be an import's estimate, so
+    the date is not judged against it. The sort follows only where it was that date."""
+    if date >= now - RECENT:
+        raise ValueError("歷史日期校正的真實發布時間須早於七天視窗")
+    iso = _iso(date)
+    timeline_at = iso if _ms(article["timeline_at"]) == _ms(published) else _iso(article["timeline_at"])
+    return {
+        "publishedAt": iso,
+        "publishedAtClaim": iso,
+        "timelineAt": timeline_at,
+        "backfill": article["backfill"],
+        "backfillReason": article["backfill_reason"],
+    }
+
+
+def _live_date(article: dict, date: datetime | None) -> tuple[dict, bool]:
+    """News gets its verified date, or loses an untrusted one, through the timeline rule against its first discovery; a first import or reported backfill keeps
+    that nature. `archive`: the new date makes it history, so it leaves automatic events and heat."""
+    if is_historical(article["published_at"], article["discovered_at"], article["backfill"]):
+        raise ValueError("近期日期只校正剛收錄的非歷史內容" if date else "歷史內容只校正有明確原文證據的日期")
+    t = decide_timeline(date, article["discovered_at"], explicit_backfill(article["backfill_reason"]))
+    if date and not t.published_at:
+        raise ValueError("發布時間超過首次收錄的一小時容差，不能據此校正")
+    iso = _iso(t.published_at)
+    after = {
+        "publishedAt": iso,
+        "publishedAtClaim": iso,
+        "timelineAt": _iso(t.timeline_at),
+        "backfill": t.backfill,
+        "backfillReason": t.backfill_reason,
+    }
+    return after, is_historical(t.published_at, article["discovered_at"], t.backfill)
+
+
+def publication_date_correction_plan(article: dict, published_at: str | None, now: datetime | None = None) -> dict:
+    """Correct a verified date, or retract an untrusted live one (None). Replacing a date from before the recent window with another is history's correction;
+    anything else is news."""
+    now = now or datetime.now(UTC)
+    date = None
+    if published_at is not None:
+        try:
+            date = _parse_iso(published_at) if _ISO.match(published_at) else None
+        except ValueError:
+            date = None
+        if date is None:
+            raise ValueError("發布時間必須是完整、有效的 UTC ISO 日期")
+    if date and date > now:
+        raise ValueError("發布時間不能是未來日期")
+    published = article["published_at"]
+    if not published:
+        raise ValueError("只校正有既有日期的內容")
+    before = {
+        "publishedAt": _iso(published), "publishedAtClaim": _iso(article["published_at_claim"]), "timelineAt": _iso(article["timeline_at"]),
+        "backfill": article["backfill"], "backfillReason": article["backfill_reason"],
+    }  # fmt: skip
+    if date and published < now - RECENT:
+        mode, after, archive = "history", _historical_date(article, published, date, now), False
+    else:
+        mode = "live"
+        after, archive = _live_date(article, date)
+    digest = sha256(stable_json({
+        "id": article["id"], "identity": article["identity_key"], "source": article["source_id"], "url": article["url"], "version": article["revision"],
+        "contentHash": article["content_hash"], "updatedAt": _iso(article["updated_at"]), "discoveredAt": _iso(article["discovered_at"]),
+        "backfill": article["backfill"], "backfillReason": article["backfill_reason"], "before": before, "requested": published_at,
+    }))  # fmt: skip
+    return {
+        "articleId": article["id"], "version": article["revision"], "hash": digest, "mode": mode, "before": before, "after": after, "archive": archive,
+        "changed": before["publishedAt"] != published_at,
+    }  # fmt: skip
+
+
+_DATED_MATERIAL = "SELECT a.*, s.participation_mode FROM articles a JOIN sources s ON s.id = a.source_id WHERE a.id = %s"
+
+
+def preview_publication_date_correction(pool, article_id: str, published_at: str | None) -> dict | None:
+    """Read-only plan for the operator's evidence and exact version/hash approval."""
+    with pool.connection() as conn:
+        article = conn.execute(_DATED_MATERIAL, (article_id,)).fetchone()
+    return publication_date_correction_plan(article, published_at) if article else None
+
+
+def _processing_settled(conn, a: dict) -> bool:
+    """Processing has ended: judged or skipped, and grouped where the pipeline groups such material. A running processor's result is still bound to this
+    revision, so news waits for it."""
+    if a["processing_state"] not in ("analyzed", "blocked", "skipped"):
+        return False
+    if a["grouping_status"] == "complete":
+        return True
+    analysis = conn.execute(
+        "SELECT relevance FROM analyses WHERE article_id = %s AND input_revision = %s ORDER BY id DESC LIMIT 1", (a["id"], a["revision"])
+    ).fetchone()
+    return not needs_grouping(
+        a["participation_mode"], is_historical(a["published_at"], a["discovered_at"], a["backfill"]), analysis["relevance"] if analysis else None
+    )
+
+
+_DECISION = (
+    "SELECT to_jsonb(p) - ARRAY['published_at','timeline_at','sort_at','revision','updated_at'] AS decision FROM publications p WHERE article_id = %s"
+)
+
+
+def correct_publication_date(pool, article_id: str, inp: dict, actor: str) -> dict:
+    """Correct or retract dates without revising material or buying analysis; archived news leaves automatic events."""
+    issues = V.Issues()
+    version, digest, published_at, request_id, reason = (inp.get(k) for k in ("version", "hash", "publishedAt", "requestId", "reason"))
+    if not (isinstance(version, int) and not isinstance(version, bool) and version > 0):
+        issues.add("version", "expected positive integer")
+    if not (isinstance(digest, str) and re.fullmatch(r"[0-9a-f]{64}", digest)):
+        issues.add("hash", "invalid")
+    if published_at is not None and not isinstance(published_at, str):
+        issues.add("publishedAt", "expected string")
+    if not (isinstance(request_id, str) and REQUEST_ID.search(request_id)):
+        issues.add("requestId", "invalid")
+    if not (isinstance(reason, str) and reason.strip()):
+        issues.add("reason", "too small")
+    issues.raise_if_any()
+    with pool.connection() as conn, conn.transaction():
+        article = conn.execute(_DATED_MATERIAL + " FOR UPDATE OF a", (article_id,)).fetchone()
+        if not article:
+            raise Conflict("內容不存在")
+        prior = conn.execute(
+            """SELECT after FROM audit_log WHERE subject = %s AND action = 'content.correct-publication-date' AND actor = %s AND request_id = %s
+               ORDER BY id LIMIT 1""",
+            (f"content:{article_id}", actor, request_id),
+        ).fetchone()
+        if prior:
+            if prior["after"]["publishedAt"] != published_at:
+                raise Conflict("同一個請求不能批准不同的發布時間")
+            return prior["after"]["result"]
+        plan = publication_date_correction_plan(article, published_at)
+        if article["revision"] != version or plan["hash"] != digest:
+            raise Conflict("材料或日期已被修改，請重新核對日期校正預覽")
+        if not plan["changed"]:
+            return {"articleId": article_id, "revision": article["revision"], "status": "unchanged", "publishedAt": published_at}
+        if plan["mode"] == "live" and not _processing_settled(conn, article):
+            raise Conflict("內容仍在處理中，請處理結束後重新核對日期")
+        previous_story_ids: list[int] = []
+        if plan["archive"]:
+            # An editor's grouping is never discarded by date repair.
+            if conn.execute(
+                "SELECT 1 FROM grouping_overrides WHERE article_id = %s UNION ALL SELECT 1 FROM fact_articles WHERE article_id = %s AND manual LIMIT 1",
+                (article_id, article_id),
+            ).fetchone():
+                raise Conflict("這條內容有人工歸組，請先核對其歸屬")
+            from newsroom.engine.events.group import reset_automatic
+
+            previous_story_ids = reset_automatic(conn, article_id)
+            for story_id in previous_story_ids:
+                enqueue(conn, QUEUES["digest"], {"storyId": story_id}, singleton_key=f"story:{story_id}")
+        # Every editorial decision is kept; archiving also changes freshness and the automatic event projection.
+        previous = conn.execute(_DECISION, (article_id,)).fetchone()
+        after = plan["after"]
+        conn.execute(
+            """UPDATE articles SET publication_time = %s, published_at = %s, published_at_claim = %s, timeline_at = %s, backfill = %s, backfill_reason = %s,
+                 updated_at = now() WHERE id = %s""",
+            (
+                after["publishedAt"], _parse_iso(after["publishedAt"]) if after["publishedAt"] else None,
+                _parse_iso(after["publishedAtClaim"]) if after["publishedAtClaim"] else None, _parse_iso(after["timelineAt"]), after["backfill"],
+                after["backfillReason"], article_id,
+            ),
+        )  # fmt: skip
+        if previous:
+            publish_article_tx(conn, article_id)
+            nxt = conn.execute(_DECISION, (article_id,)).fetchone()
+            if not plan["archive"] and stable_json(previous["decision"]) != stable_json(nxt["decision"] if nxt else None):
+                old, fresh = previous["decision"], (nxt["decision"] if nxt else None) or {}
+                changed = [k for k in old if stable_json(old[k]) != stable_json(fresh.get(k))]
+                raise Conflict(f"公開決定已變化，日期校正不能改變選稿、範圍、內容或歸組：{'、'.join(changed)}")
+        # (emit("articleChanged") has no listener here: the engine runs without site modules)
+        result = {"articleId": article_id, "revision": article["revision"], "status": "corrected", "publishedAt": published_at}
+        audit(
+            conn, actor, "content.correct-publication-date", f"content:{article_id}", reason, plan["before"],
+            {**after, "previousStoryIds": previous_story_ids, "result": result}, request_id=request_id,
+        )  # fmt: skip
+        return result
