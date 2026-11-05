@@ -1,14 +1,18 @@
 """Sitemap from the same public metadata as pages: /sitemap.xml is an index of one file per section, so Search Console reports indexing section by
 section. Port of the sitemap half of publication/sitemap.ts. Content identities (revisions, for change notifications) belong to the notifier and
-are not computed here; the files carry only locations, dates, frequencies and priorities. One copy is kept five minutes in this process (the
-TypeScript also saves one on disk to bridge a restart; this does not)."""
+are not computed here; the files carry only locations, dates, frequencies and priorities. One copy is kept five minutes in this process (like the
+TypeScript, a copy is also saved on disk to bridge a failure after a restart)."""
 
 from __future__ import annotations
 
+import json
+import os
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 
+from newsroom.engine.config import config
 from newsroom.engine.http_policy import site_url
 from newsroom.engine.lib.text import escape_xml
 from newsroom.engine.publication.items import ITEM_FROM
@@ -143,6 +147,38 @@ def load_sitemap(pool) -> dict:
         except Exception:
             if last and last["expiresAt"] > time.time() * 1000:
                 return last
+            # A copy saved by an earlier process bridges a failure, for the rest of its own lifetime.
+            saved = _read_saved()
+            if saved:
+                _last[id(pool)] = saved
+                return saved
             raise
         _last[id(pool)] = {"files": files, "expiresAt": started + TTL_MS}
+        _save(files, started)
         return _last[id(pool)]
+
+
+def _cache_file() -> Path:
+    return config().data_dir / "sitemap-last.json"
+
+
+def _save(files: dict[str, str], started_ms: float) -> None:
+    """The file's timestamp preserves the same deadline when another process loads it after a restart."""
+    try:
+        path = _cache_file()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(files, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        os.utime(path, (started_ms / 1000, started_ms / 1000))
+    except OSError:
+        pass
+
+
+def _read_saved() -> dict | None:
+    try:
+        path = _cache_file()
+        mtime = path.stat().st_mtime * 1000
+        if mtime + TTL_MS > time.time() * 1000:
+            return {"files": json.loads(path.read_text(encoding="utf-8")), "expiresAt": mtime + TTL_MS}
+    except (OSError, ValueError):
+        pass
+    return None
