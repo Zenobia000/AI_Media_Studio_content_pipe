@@ -78,11 +78,12 @@ def test_many_sources_failing(world, monkeypatch, tmp_path):  # noqa: F811
     detail = next(f["detail"] for f in found if f["key"] == "content.fetch")
     assert "失敗信源佔 100%" in detail
 
-    # fifteen of the 60 recover with a newer run: 51 left failing, and 51 < 15% is false, so it stays
-    run(world, "ok", None, at(NOW - 30 * MIN), f"{N} BETWEEN 1 AND 15")
+    # fourteen of the 60 recover with a newer run: 52 left failing, which is both 50 or more and over 15%, so the finding stays; the errors now count 16, 15, 10, 6
+    # and 5, still all different (a tie has no order)
+    run(world, "ok", None, at(NOW - 30 * MIN), f"{N} BETWEEN 1 AND 14")
     assert keys(findings(side), "content.fetch") == ["content.fetch"]
     # ten more: 41 failing, below the count of 50
-    run(world, "ok", None, at(NOW - 20 * MIN), f"{N} BETWEEN 16 AND 25")
+    run(world, "ok", None, at(NOW - 20 * MIN), f"{N} BETWEEN 15 AND 25")
     assert keys(findings(side), "content.fetch") == []
     # a run in the future of the instant asked about changes nothing, and neither does a run that is still going
     both(
