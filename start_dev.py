@@ -129,6 +129,9 @@ def main() -> None:
     # 本機模型（Ollama）一次只處理很少的請求，worker 同時送 6 個時後面的排隊太久會逾時（ReadTimeout，結果未知）；改成同時 2 個
     if args.models and "ANALYZE_CONCURRENCY" not in env and env.get("LLM_STRUCTURED_OUTPUT") == "true":
         env["ANALYZE_CONCURRENCY"] = "2"
+    # 本機模型常常不管提示詞，直接用簡體字寫；網站是繁體，在提示詞最後加一句明確的指示（engine/output_language.py）
+    if args.models and "LLM_TRADITIONAL" not in env and env.get("LLM_STRUCTURED_OUTPUT") == "true":
+        env["LLM_TRADITIONAL"] = "true"
     if args.models and not env.get("LLM_API_KEY"):
         sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
     database(args.db)

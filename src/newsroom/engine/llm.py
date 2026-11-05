@@ -14,6 +14,7 @@ from newsroom.engine import models as M
 from newsroom.engine.circuit import enter_model_circuit, record_model_health
 from newsroom.engine.config import config, credential
 from newsroom.engine.lib.ids import sha256
+from newsroom.engine.output_language import apply as with_output_language
 from newsroom.engine.receipts import (
     ModelOutputError,
     ModelUnavailableError,
@@ -108,6 +109,7 @@ def request_for(opts: dict, spec: dict):
 def chat_json(pool, opts: dict) -> dict:
     """With a backup (opts["fallback_model"]: models.fallback_model_for picks one at another provider), a primary whose outcome is unknown, or that the
     provider turns away for now, is continued by the backup at once. Returns {"data", "receiptId", "reused", "model", "usage"}."""
+    opts = with_output_language(opts)
     if not opts.get("fallback_model"):
         return _chat_once(pool, opts)
     registry = M.models()
