@@ -12,7 +12,9 @@ from pathlib import Path
 
 from newsroom.engine import pack
 
-REPO_ROOT = Path(__file__).resolve().parents[3] / "AIHOT"  # where the TypeScript engine's paths were relative to: AIHOT/
+# Where the TypeScript engine's paths were relative to: AIHOT/ (its migrations, the site's static files and pages, the fonts). From a source checkout that is
+# next to src/; an installed package (the Docker image) is not in the checkout, so AIHOT_ROOT names the folder.
+REPO_ROOT = Path(os.environ["AIHOT_ROOT"]) if os.environ.get("AIHOT_ROOT") else Path(__file__).resolve().parents[3] / "AIHOT"
 CREDENTIAL_GROUPS = ("models", "collectors", "integrations", "auth")
 _PLACEHOLDER = re.compile(r"^(changeme|placeholder|dummy|test|xxx+|your[-_ ].*|<.*>)$", re.I)
 

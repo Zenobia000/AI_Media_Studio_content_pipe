@@ -1,15 +1,23 @@
-# The collect and fetch part (src/newsroom): the scheduler and the tools. Build from the repository root:
-#   docker compose -f AIHOT/docker-compose.yml -f deploy/newsroom.yml up -d --build newsroom
+# The Python backend (src/newsroom): the API, the worker, the migrations, the scheduler and the tools. Build from the repository root:
+#   docker compose -f AIHOT/docker-compose.yml -f deploy/python-backend.yml up -d --build   (the whole backend in Python; the website stays as it is)
+#   docker compose -f AIHOT/docker-compose.yml -f deploy/newsroom.yml up -d --build newsroom   (only the collect and fetch scheduler, next to the TypeScript backend)
+# pg_dump for the database backups (trixie's client is PostgreSQL 17, the server's version in compose).
 # WITH_BROWSER=1 also installs Chromium for fetch layer 4 (page recording); it adds several hundred MB.
-FROM python:3.12-slim
+FROM python:3.12-slim-trixie
 ARG WITH_BROWSER=0
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates postgresql-client && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pyproject.toml ./
 COPY src ./src
 COPY skills ./skills
+# What the Python backend reads from AIHOT/ at run time: the engine's migrations, the site's static files, pages and brand files, the share-image fonts.
 COPY AIHOT/database ./AIHOT/database
+COPY AIHOT/site/public ./AIHOT/site/public
+COPY AIHOT/site/brand ./AIHOT/site/brand
+COPY AIHOT/site/pages ./AIHOT/site/pages
+COPY AIHOT/site/changelog.json ./AIHOT/site/changelog.json
+COPY AIHOT/assets ./AIHOT/assets
 RUN pip install --no-cache-dir . yt-dlp gallery-dl \
  && if [ "$WITH_BROWSER" = "1" ]; then pip install --no-cache-dir ".[record]" && playwright install --with-deps chromium; fi
-ENV PYTHONUNBUFFERED=1 NEWSROOM_HOME=/data/workspace
+ENV PYTHONUNBUFFERED=1 NEWSROOM_HOME=/data/workspace AIHOT_ROOT=/app/AIHOT
 CMD ["newsroom", "run-scheduler"]

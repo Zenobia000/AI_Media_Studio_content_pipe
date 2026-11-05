@@ -1,0 +1,14 @@
+# The build context of deploy/Dockerfile.newsroom is the repository root; what is not named by a COPY there stays out of the image, and what is big or secret is not even sent.
+.git
+**/node_modules
+**/.data
+**/.env
+**/.env.*
+!**/.env.example
+AIHOT/apps/web/build
+AIHOT/apps/web/.react-router
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+spikes
+docs

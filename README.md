@@ -58,6 +58,7 @@
 | 分支怎麼開、怎麼合併 | [分支策略](docs/process/branching-strategy.md) |
 | 我這個 Sprint 要做哪幾張票 | [票的總表](docs/tickets/README.md) |
 | 某件事要怎麼操作 | [操作手冊](docs/runbooks/)，例如 [Reddit API 申請](docs/runbooks/reddit-api-access.md) |
+| 後端（Python）怎麼跑起來、和原本 TypeScript 後端一致到什麼程度 | [交付說明](docs/process/backend-python-handover.md)；本機一次全開用根目錄的 `start-dev.ps1`（停止用 `stop-dev.ps1`），Docker 用 `deploy/python-backend.yml`（見該檔開頭） |
 
 **各模組規格**
 

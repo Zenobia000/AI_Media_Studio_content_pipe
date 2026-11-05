@@ -1,0 +1,34 @@
+# The whole backend in Python, with the website as it was: the TypeScript api and worker are replaced, the database, the data volume and the website stay.
+#   docker compose -f AIHOT/docker-compose.yml -f deploy/python-backend.yml up -d --build
+# `setup` runs `newsroom migrate`, which builds the whole database from empty (the engine's migrations and the Python port's own) and is safe on a database
+# the TypeScript backend has used: the Python queue and schedule tables are added next to pg-boss's. Do not add deploy/newsroom.yml: the worker runs
+# the collect and fetch schedules itself. Jobs still waiting in pg-boss's tables are not carried over: stop the TypeScript worker and let it drain first.
+x-python: &python
+  image: mediahot-newsroom
+  build: !override
+    context: ..
+    dockerfile: deploy/Dockerfile.newsroom
+
+services:
+  setup:
+    <<: *python
+    command: !override ["newsroom", "migrate"]
+  api:
+    <<: *python
+    command: !override ["python", "-m", "uvicorn", "--factory", "newsroom.api.app:build_app", "--host", "0.0.0.0", "--port", "3001"]
+    environment: !override
+      DATABASE_URL: postgres://mediahot:${POSTGRES_PASSWORD:-mediahot}@db:5432/mediahot
+      AIHOT_DATA_DIR: /data
+      API_BASE_URL: http://api:3001
+      API_PORT: "3001"
+      INGEST_RATE_LIMIT: ${INGEST_RATE_LIMIT:-10}
+      PYTHONUNBUFFERED: "1"
+  worker:
+    <<: *python
+    command: !override ["newsroom", "worker"]
+    environment: !override
+      DATABASE_URL: postgres://mediahot:${POSTGRES_PASSWORD:-mediahot}@db:5432/mediahot
+      AIHOT_DATA_DIR: /data
+      API_BASE_URL: http://api:3001
+      INGEST_RATE_LIMIT: ${INGEST_RATE_LIMIT:-10}
+      PYTHONUNBUFFERED: "1"
