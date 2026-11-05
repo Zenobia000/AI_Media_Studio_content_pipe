@@ -156,3 +156,10 @@ def guess_language(s: str) -> str:
     if re.search(r"[a-z]", s, re.I):
         return "en"
     return "other"
+
+
+def js_slice(s: str, start: int = 0, end: int | None = None) -> str:
+    """String.prototype.slice for non-negative bounds: UTF-16 code units, so an emoji counts for two and may be cut in half (the half is dropped here,
+    where JavaScript keeps a lone surrogate)."""
+    units = s.encode("utf-16-le", "surrogatepass")
+    return units[start * 2 : None if end is None else end * 2].decode("utf-16-le", "ignore")
