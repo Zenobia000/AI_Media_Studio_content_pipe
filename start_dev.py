@@ -126,6 +126,9 @@ def main() -> None:
     # 結構抽取的輸出上限是 1,200 個 token，本機模型平均就用掉約 1,170，稍長就被截斷；LLM_REASONING_TOKENS 在每一步的上限上再加這麼多（只是上限，沒用到不花時間）
     if args.models and "LLM_REASONING_TOKENS" not in env and env.get("LLM_STRUCTURED_OUTPUT") == "true":
         env["LLM_REASONING_TOKENS"] = "1500"
+    # 本機模型（Ollama）一次只處理很少的請求，worker 同時送 6 個時後面的排隊太久會逾時（ReadTimeout，結果未知）；改成同時 2 個
+    if args.models and "ANALYZE_CONCURRENCY" not in env and env.get("LLM_STRUCTURED_OUTPUT") == "true":
+        env["ANALYZE_CONCURRENCY"] = "2"
     if args.models and not env.get("LLM_API_KEY"):
         sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
     database(args.db)

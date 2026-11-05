@@ -88,7 +88,9 @@ def adapt_intervals(pool) -> dict:
             own = top if per_day <= 0.15 else math.floor(min(top, max(low, (24 * 60) / (per_day * 3))) + 0.5)
             # Another use may want the source sooner, never later, and a paid listing still waits its hour.
             target = int(max(low, min(own, use_pace(r["uses"]))))
-            updated += conn.execute("UPDATE sources SET interval_minutes = %s WHERE id = %s AND interval_minutes <> %s", (target, r["id"], target)).rowcount
+            updated += conn.execute(
+                "UPDATE sources SET interval_minutes = %s WHERE id = %s AND interval_minutes <> %s", (target, r["id"], target)
+            ).rowcount
     return {"updated": updated}
 
 
@@ -138,7 +140,9 @@ def run_extraction(pool, article_id: str) -> dict:
         # Extraction's failures do not count against the analysis that follows (a new revision starts over anyway).
         if state != "skipped":
             with pool.connection() as conn:
-                conn.execute("UPDATE articles SET processing_attempts = 0, processing_retry_at = NULL WHERE id = %s AND revision = %s", (article_id, revision))
+                conn.execute(
+                    "UPDATE articles SET processing_attempts = 0, processing_retry_at = NULL WHERE id = %s AND revision = %s", (article_id, revision)
+                )
         queue_processing(pool, article_id)  # a newer revision may still need a body after this task's result was discarded
         return {"state": state}
     except NotImplementedError:
@@ -195,6 +199,8 @@ def register_source_jobs(worker) -> None:
 
 def register_processing_jobs(worker) -> None:
     """The analysis queue, the sweep that queues articles waiting for their turn, and the hot-ranking timers."""
+    import os
+
     from newsroom.engine.events.consolidate import link_related_stories
     from newsroom.engine.events.hot import compute_hot_ranking, snapshot_heat
     from newsroom.engine.jobs.content import process_article
@@ -211,7 +217,10 @@ def register_processing_jobs(worker) -> None:
 
     pool = worker.pool
 
-    worker.work(QUEUES["analyze"], lambda data: process_article(pool, data["articleId"], data.get("attemptTag")), local_concurrency=6)
+    # How many analyses run at once. A hosted model takes them in parallel; a local one (Ollama) works through requests one after another, so with six at a time
+    # the later ones wait in its queue until the client gives up (a ReadTimeout, which leaves the outcome unknown): start_dev.py sets fewer for a local model.
+    analyze_at_once = int(os.environ.get("ANALYZE_CONCURRENCY") or 6)
+    worker.work(QUEUES["analyze"], lambda data: process_article(pool, data["articleId"], data.get("attemptTag")), local_concurrency=analyze_at_once)
     register_event_jobs(worker)
     worker.work(QUEUES["republishSource"], lambda data: run_republish(pool, data["sourceId"]), local_concurrency=1)
     worker.work(QUEUES["prepareMedia"], lambda data: run_prepare_media(pool, data), local_concurrency=1)
