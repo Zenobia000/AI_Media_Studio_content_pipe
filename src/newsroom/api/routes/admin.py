@@ -125,6 +125,13 @@ def register_admin(app: FastAPI) -> None:
         result = ct.rerun(request.app.state.pool, article_id, b.get("step"), request.headers.get("idempotency-key") or "", actor_of(admin), {"preview": b.get("preview"), "version": b.get("version")})
         return or_not_found(request, result)
 
+    @app.post("/api/admin/receipts/{receipt_id}/release", include_in_schema=False)
+    @admin_handler
+    def receipt_release(request: Request, admin: Principal, receipt_id: int):
+        from newsroom.engine.operations import release_receipt
+
+        return or_not_found(request, release_receipt(request.app.state.pool, receipt_id, body(request), actor_of(admin)))
+
     @app.post("/api/admin/content/{article_id}/detach", include_in_schema=False)
     @admin_handler
     def content_detach(request: Request, admin: Principal, article_id: str):

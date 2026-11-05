@@ -160,6 +160,7 @@ def register_processing_jobs(worker) -> None:
     from newsroom.engine.jobs.content import process_article
     from newsroom.engine.jobs.events import register_event_jobs
     from newsroom.engine.jobs.publication import run_republish
+    from newsroom.engine.operations import daily_retention, recover_stale_work
     from newsroom.engine.reports_compose import compose_due_reports
     from newsroom.engine.translate import translate_pending
 
@@ -174,6 +175,10 @@ def register_processing_jobs(worker) -> None:
     worker.schedule("content.translate", "*/5 * * * *", lambda: translate_pending(pool))
     # Every issue that is due and not written yet, each from its edition time at the next half hour; a missed or failed one at the next run.
     worker.schedule("reports.compose", "0,30 * * * *", lambda: compose_due_reports(pool), missed="once")
+    # The deletions the privacy notice promises, once their retention periods are over; work a stopped process left half way becomes visible, and unknown paid
+    # requests get their one automatic release.
+    worker.schedule("ops.retention", "30 3 * * *", lambda: daily_retention(pool), missed="once")
+    worker.schedule("ops.recover", "*/10 * * * *", lambda: recover_stale_work(pool))
     worker.schedule("stories.links", "12 * * * *", lambda: link_related_stories(pool))
     worker.schedule("hot.rank", "*/5 * * * *", lambda: compute_hot_ranking(pool))
     worker.schedule("hot.snapshot", "2 * * * *", lambda: snapshot_heat(pool))

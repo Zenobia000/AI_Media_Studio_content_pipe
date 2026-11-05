@@ -93,7 +93,7 @@ def _decodes(data: bytes) -> bool:
         return False
 
 
-def _expire_bans(conn, now: datetime, keys: list[str] | None = None) -> None:
+def _expire_bans(conn, now: datetime, keys: list[str] | None = None) -> int:
     rows = conn.execute(
         "DELETE FROM feedback_bans WHERE expires_at <= %s AND (%s::text[] IS NULL OR source_hash = ANY(%s)) RETURNING source_hash, reason, expires_at",
         (now, keys, keys),
@@ -101,6 +101,7 @@ def _expire_bans(conn, now: datetime, keys: list[str] | None = None) -> None:
     for row in rows:
         audit(conn, "feedback-auto", "feedback.unban", f"feedback-source:{row['source_hash']}", "臨時封禁到期",
               {"source_hash": row["source_hash"], "reason": row["reason"], "expires_at": iso(row["expires_at"])}, None)  # fmt: skip
+    return len(rows)
 
 
 def _active_ban(conn, keys: list[str], now: datetime) -> FeedbackRejected | None:

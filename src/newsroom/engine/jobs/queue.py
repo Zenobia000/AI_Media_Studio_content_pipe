@@ -117,7 +117,7 @@ def complete(conn, job_id, output=None) -> None:
     )
 
 
-def fail(conn, job_id, error: str) -> str:
+def fail(conn, job_id, error: str, receipt_id: int | None = None) -> str:
     """An attempt failed: waiting for another when retries are left (the delay doubles with backoff, with jitter), else failed for good.
     Returns the state it ended in."""
     row = conn.execute(
@@ -129,7 +129,7 @@ def fail(conn, job_id, error: str) -> str:
              completed_on = CASE WHEN retry_count < retry_limit THEN NULL ELSE now() END,
              output = CASE WHEN retry_count < retry_limit THEN output ELSE %(output)s END
            WHERE id = %(id)s AND state = 'active' RETURNING state""",
-        {"id": job_id, "jitter": random.random(), "output": Jsonb({"message": error[:4000]})},
+        {"id": job_id, "jitter": random.random(), "output": Jsonb({"message": error[:4000], **({"receiptId": receipt_id} if receipt_id is not None else {})})},
     ).fetchone()
     return row["state"] if row else "gone"
 
@@ -263,7 +263,7 @@ class Worker:
         except BaseException as error:
             log.warning("job %s %s failed: %s", job["name"], job["id"], "".join(traceback.format_exception_only(type(error), error)).strip())
             with self.pool.connection() as conn:
-                fail(conn, job["id"], str(error) or type(error).__name__)
+                fail(conn, job["id"], str(error) or type(error).__name__, getattr(error, "receipt_id", None))
             if isinstance(error, (KeyboardInterrupt, SystemExit)):
                 raise
             return
