@@ -91,6 +91,9 @@ def receipts(url: str):
     return rs, at, stop
 
 
+# more request fields for the provider and room for reasoning on every step: both engines must send the same bodies, field order included
+PROVIDER_SETTINGS = {"LLM_EXTRA_JSON": '{"enable_thinking": false}', "LLM_REASONING_TOKENS": "256"}
+
 @pytest.fixture(scope="module")
 def world(database_url, settings_env):
     admin = psycopg.connect(_admin(database_url), autocommit=True, row_factory=dict_row)
@@ -113,11 +116,11 @@ def test_calls_requests_and_receipts(world, tmp_path, monkeypatch):
     node_fake, py_fake = Fake(), Fake()
     path = tmp_path / "cases.json"
     path.write_text(json.dumps(CASES), encoding="utf-8")
-    env = {**os.environ, **ENV, "DATABASE_URL": world["llm_node"], "TZ": "UTC", "MODEL_CALLS_ENABLED": "true", "LLM_BASE_URL": node_fake.url, "LLM_API_KEY": "secret-key", "LLM_MODEL": "fake-model"}
+    env = {**os.environ, **ENV, "DATABASE_URL": world["llm_node"], "TZ": "UTC", "MODEL_CALLS_ENABLED": "true", "LLM_BASE_URL": node_fake.url, "LLM_API_KEY": "secret-key", "LLM_MODEL": "fake-model", **PROVIDER_SETTINGS}
     out = subprocess.run(["node", "scripts/llm-run.ts", str(path)], cwd=AIHOT, env=env, check=True, capture_output=True, timeout=300)
     node = json.loads(next(line for line in reversed(out.stdout.decode().splitlines()) if line.startswith("[")))
 
-    for k, v in {"MODEL_CALLS_ENABLED": "true", "LLM_BASE_URL": py_fake.url, "LLM_API_KEY": "secret-key", "LLM_MODEL": "fake-model"}.items():
+    for k, v in {"MODEL_CALLS_ENABLED": "true", "LLM_BASE_URL": py_fake.url, "LLM_API_KEY": "secret-key", "LLM_MODEL": "fake-model", **PROVIDER_SETTINGS}.items():
         monkeypatch.setenv(k, v)
     config.cache_clear() if hasattr(config, "cache_clear") else None
 

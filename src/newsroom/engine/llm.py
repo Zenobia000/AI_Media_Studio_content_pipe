@@ -83,6 +83,8 @@ def extract_json(text: str):
 
 
 def request_for(opts: dict, spec: dict):
+    if spec.get("envError"):
+        raise RuntimeError(spec["envError"])
     temperature = opts["temperature"] if opts.get("temperature") is not None else 0.2
     # Never below 512: a smaller cap cut short structured answers down to an empty response.
     max_tokens = max(opts["max_tokens"] if opts.get("max_tokens") is not None else 1500, 512) + (spec.get("reasoningTokens") or 0)

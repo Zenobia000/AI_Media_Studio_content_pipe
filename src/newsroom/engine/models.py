@@ -4,7 +4,9 @@ providers/llm.ts."""
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import time
 
 from newsroom.engine import pack
@@ -17,7 +19,14 @@ def _wording() -> list:
 
 
 def _cap(label: str, env: str, key: str, purposes: list[str], vision: bool = False, idle=None) -> dict:
-    return {"label": label, "env": env, "default": pack.load("models").get("DEFAULTS", {}).get(key) or "default", "purposes": purposes, "vision": vision, "idle": idle}
+    return {
+        "label": label,
+        "env": env,
+        "default": pack.load("models").get("DEFAULTS", {}).get(key) or "default",
+        "purposes": purposes,
+        "vision": vision,
+        "idle": idle,
+    }
 
 
 def capabilities() -> dict[str, dict]:
@@ -37,11 +46,30 @@ def capabilities() -> dict[str, dict]:
     }  # fmt: skip
 
 
+def _env_settings() -> dict:
+    """What LLM_EXTRA_JSON (more request fields for the provider, e.g. {"enable_thinking": false}) and LLM_REASONING_TOKENS (output room added to every step for a
+    model that reasons first) say. A bad value is reported when a call is made (`envError`), as in the original, where the settings were read when used."""
+    out: dict = {}
+    extra, reasoning = os.environ.get("LLM_EXTRA_JSON"), os.environ.get("LLM_REASONING_TOKENS")
+    if extra:
+        try:
+            parsed = json.loads(extra)
+            out["extra"] = parsed if isinstance(parsed, dict) else {}
+        except ValueError:
+            out["envError"] = 'LLM_EXTRA_JSON must be a JSON object, e.g. {"enable_thinking": false}'
+    if reasoning:
+        if re.fullmatch(r"[0-9]+", reasoning):
+            out["reasoningTokens"] = int(reasoning)
+        else:
+            out.setdefault("envError", "LLM_REASONING_TOKENS must be a non-negative integer, e.g. 4000")
+    return out
+
+
 def models() -> dict[str, dict]:
     """The registered models: `default` (named by the environment) and the pack's presets."""
     default = {
         "key": "default", "service": "llm", "baseUrlEnv": "LLM_BASE_URL", "apiKeyEnv": "LLM_API_KEY", "model": os.environ.get("LLM_MODEL", ""),
-        "jsonMode": os.environ.get("LLM_JSON_MODE") != "false", "vision": os.environ.get("LLM_VISION") == "true",
+        "jsonMode": os.environ.get("LLM_JSON_MODE") != "false", "vision": os.environ.get("LLM_VISION") == "true", **_env_settings(),
     }  # fmt: skip
     return {"default": default, **{key: {"key": key, **preset} for key, preset in pack.load("models").get("PRESETS", {}).items()}}
 

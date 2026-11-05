@@ -123,6 +123,9 @@ def main() -> None:
     # 本機的模型（Ollama 等）常常不照提示詞的規則填值；讓伺服器直接限制它能寫的值（engine/structured.py）。.env 裡自己設了就照它。
     if args.models and "LLM_STRUCTURED_OUTPUT" not in env and any(h in env.get("LLM_BASE_URL", "") for h in ("//127.0.0.1", "//localhost")):
         env["LLM_STRUCTURED_OUTPUT"] = "true"
+    # 結構抽取的輸出上限是 1,200 個 token，本機模型平均就用掉約 1,170，稍長就被截斷；LLM_REASONING_TOKENS 在每一步的上限上再加這麼多（只是上限，沒用到不花時間）
+    if args.models and "LLM_REASONING_TOKENS" not in env and env.get("LLM_STRUCTURED_OUTPUT") == "true":
+        env["LLM_REASONING_TOKENS"] = "1500"
     if args.models and not env.get("LLM_API_KEY"):
         sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
     database(args.db)
