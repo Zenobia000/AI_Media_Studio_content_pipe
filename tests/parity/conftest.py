@@ -143,10 +143,23 @@ def _strip(value, drop):
 
 @pytest.fixture()
 def compare(node_api, py_api):
-    def run(path: str, method: str = "GET", drop: tuple[str, ...] = (), headers: dict[str, str] | None = None, content: str | bytes | None = None):
+    def run(
+        path: str,
+        method: str = "GET",
+        drop: tuple[str, ...] = (),
+        headers: dict[str, str] | None = None,
+        content: str | bytes | None = None,
+        aged: bool = False,
+    ):
+        """`aged`: the answer says how long it stays fresh (s-maxage is what is left of the cache's five minutes), and the two servers are asked one after the other,
+        so the number can differ by a second when the clock turns between them: it is not compared."""
         node = httpx.request(method, node_api + path, headers=headers, content=content, follow_redirects=False, timeout=30)
         py = py_api.request(method, path, headers=headers, content=content)
         a, b = normalise(node, drop), normalise(py, drop)
+        if aged:
+            for answer in (a, b):
+                if "cache-control" in answer["headers"]:
+                    answer["headers"]["cache-control"] = re.sub(r"s-maxage=\d+", "s-maxage=<left>", answer["headers"]["cache-control"])
         assert b == a, f"{method} {path}\nTypeScript: {a}\nPython:     {b}"
         return a
 
