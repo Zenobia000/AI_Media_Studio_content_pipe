@@ -18,32 +18,54 @@ AIHOT = Path(__file__).parents[2] / "AIHOT"
 URL = "https://www.example.org/news/story-1"
 
 LONG = body(6)
+CSS = (
+    ".search-button{align-items:center;background-color:var(--bg);border:1px solid var(--border);border-radius:9999px;color:var(--text);cursor:pointer;display:flex;margin:0;padding:.25rem .75rem}"
+    * 6
+)
 REACT = (
     f'<div id="root"><!--$?--><template id="B:0"></template><p>Loading…</p><!--/$--></div><div hidden id="S:0">{LONG}</div>'
     '<script>$RC("B:0","S:0")</script>'
 )
 EXTRA: dict[str, tuple[str, dict]] = {
     "react_streaming": (page("Streamed", REACT), {}),
-    "react_streaming_runtime": (page("Streamed", REACT.replace('<script>$RC("B:0","S:0")</script>', '<script>$RC=function(a,b){x};$RC("B:0","S:0")</script>')), {}),
+    "react_streaming_runtime": (
+        page("Streamed", REACT.replace('<script>$RC("B:0","S:0")</script>', '<script>$RC=function(a,b){x};$RC("B:0","S:0")</script>')),
+        {},
+    ),
     "inline_visibility": (
-        page("Styles", f'<div><div style="Display : NONE !important; display: block">{LONG}</div><div style="color:red;VISIBILITY:Hidden">{LONG}</div>{body(4)}</div>'),
+        page(
+            "Styles",
+            f'<div><div style="Display : NONE !important; display: block">{LONG}</div><div style="color:red;VISIBILITY:Hidden">{LONG}</div>{body(4)}</div>',
+        ),
         {},
     ),
     "preserve_pre": (
-        page("Code", f'<div>{body(3)}<div class="snippet"><span class="label">main.py</span><div class="src"><span aria-hidden="true">1</span>print(1)\nprint(2)</div></div>{body(3)}</div>'),
+        page(
+            "Code",
+            f'<div>{body(3)}<div class="snippet"><span class="label">main.py</span><div class="src"><span aria-hidden="true">1</span>print(1)\nprint(2)</div></div>{body(3)}</div>',
+        ),
         {"preserve": [{"selector": ".snippet", "as": "pre", "code": ".src", "caption": ".label"}]},
     ),
     "preserve_table": (
-        page("Compare", f'<div>{body(3)}<div class="cmp"><div><h4>A</h4><dl><dt>x</dt><dd>1</dd><dt>y</dt><dd>2</dd></dl></div><div><h4>B</h4><dl><dt>x</dt><dd>3</dd><dt>y</dt><dd>4</dd></dl></div></div>{body(3)}</div>'),
+        page(
+            "Compare",
+            f'<div>{body(3)}<div class="cmp"><div><h4>A</h4><dl><dt>x</dt><dd>1</dd><dt>y</dt><dd>2</dd></dl></div><div><h4>B</h4><dl><dt>x</dt><dd>3</dd><dt>y</dt><dd>4</dd></dl></div></div>{body(3)}</div>',
+        ),
         {"preserve": [{"selector": ".cmp", "as": "table"}]},
     ),
     "figure_drawings": (
-        page("Drawings", f'<article>{body(3)}<figure><div role="img" aria-label="A bar chart of sales"><svg viewBox="0 0 1 1"><rect/></svg></div><figcaption>Sales by quarter</figcaption></figure>'
-                         f'<figure><svg aria-labelledby="t1"><title id="t1x">x</title></svg><span id="t1">Labelled drawing text</span></figure><figure><svg><title>Only title</title><desc>and desc</desc></svg></figure>{body(3)}</article>'),
+        page(
+            "Drawings",
+            f'<article>{body(3)}<figure><div role="img" aria-label="A bar chart of sales"><svg viewBox="0 0 1 1"><rect/></svg></div><figcaption>Sales by quarter</figcaption></figure>'
+            f'<figure><svg aria-labelledby="t1"><title id="t1x">x</title></svg><span id="t1">Labelled drawing text</span></figure><figure><svg><title>Only title</title><desc>and desc</desc></svg></figure>{body(3)}</article>',
+        ),
         {},
     ),
     "asides": (
-        page("Asides", f'<div>{para(1)}<aside><p>Update: this article was corrected after publication, with new facts and figures.</p></aside>{para(2)}<aside><p><a href="/x">Links</a></p></aside>{body(3)}</div>'),
+        page(
+            "Asides",
+            f'<div>{para(1)}<aside><p>Update: this article was corrected after publication, with new facts and figures.</p></aside>{para(2)}<aside><p><a href="/x">Links</a></p></aside>{body(3)}</div>',
+        ),
         {},
     ),
     "layout_classes": (
@@ -56,20 +78,46 @@ EXTRA: dict[str, tuple[str, dict]] = {
     ),
     "trailing_chrome_kept": (page("Chrome kept", f"<article>{LONG}<p>Read more about it.</p><h4>Topics</h4></article>"), {}),
     "dates_meta": (
-        page("Dated", f"<div>{LONG}</div>", head='<meta property="article:published_time" content="2026-10-29"><meta itemprop="datePublished" content="2026-10-29T08:15:00+08:00">'),
+        page(
+            "Dated",
+            f"<div>{LONG}</div>",
+            head='<meta property="article:published_time" content="2026-10-29"><meta itemprop="datePublished" content="2026-10-29T08:15:00+08:00">',
+        ),
         {},
     ),
     "dates_jsonld": (
-        page("Dated", f"<div>{LONG}</div>", head='<script type="application/ld+json">{"@graph":[{"@type":"Article","datePublished":"2026-09-01T10:00:00Z"}]}</script>'),
+        page(
+            "Dated",
+            f"<div>{LONG}</div>",
+            head='<script type="application/ld+json">{"@graph":[{"@type":"Article","datePublished":"2026-09-01T10:00:00Z"}]}</script>',
+        ),
         {"utcOffset": "+00:00"},
     ),
-    "dates_time_tag": (page("Dated", f'<div><time itemprop="datePublished" datetime="2026-08-08 10:30">Aug 8</time>{LONG}</div>'), {"utcOffset": "-05:00"}),
+    "dates_time_tag": (
+        page("Dated", f'<div><time itemprop="datePublished" datetime="2026-08-08 10:30">Aug 8</time>{LONG}</div>'),
+        {"utcOffset": "-05:00"},
+    ),
     "relative_urls": (
-        page("Urls", f'<div><p>{"Text with a link, and more words, to make it long enough. " * 6}<a href="/other?utm_source=x">link</a> <a href="../up">up</a> <a href="//cdn.example.org/x">proto</a></p>'
-                     f'<img src="/img/a.png" width="300" height="200"><img src="img/b.jpg?x=1&y=2"><picture><source srcset="/s.webp 1x, /s2.webp 2x"><img src="/p.jpg"></picture>{body(4)}</div>'),
+        page(
+            "Urls",
+            f'<div><p>{"Text with a link, and more words, to make it long enough. " * 6}<a href="/other?utm_source=x">link</a> <a href="../up">up</a> <a href="//cdn.example.org/x">proto</a></p>'
+            f'<img src="/img/a.png" width="300" height="200"><img src="img/b.jpg?x=1&y=2"><picture><source srcset="/s.webp 1x, /s2.webp 2x"><img src="/p.jpg"></picture>{body(4)}</div>',
+        ),
         {},
     ),
     "video_url": (page("Video", f"<div>{LONG}</div>"), {}),
+    # A page that declares a shadow root (a <template> with a <style>, as MDN does): querySelectorAll does not go into it, so Readability's removal of <style>
+    # leaves that CSS, which counts as text of the elements around it. The article sits in a container whose class reads as unlikely, so the first pass
+    # finds nothing and the second pass (the one that counts) scores the page with that text in it.
+    "shadow_root_style": (
+        page(
+            "Shadow",
+            f'<div class="page"><div class="navigation"><my-search><template shadowroot="open" shadowrootmode="open"><style>{CSS}</style><button>Search</button>'
+            "</template></my-search></div>"
+            f'<main id="content"><div class="layout-sidebars-inline reference-layout"><div class="layout-body reference-layout-body">{body(6)}</div></div></main></div>',
+        ),
+        {},
+    ),
 }
 EXTRA_URLS = {"video_url": "https://www.youtube.com/watch?v=abc"}
 
@@ -93,7 +141,11 @@ def node_results(cases, tmp_path_factory):
 
 
 def rules_of(raw: dict) -> PageRules:
-    return PageRules(raw.get("utcOffset"), [PreserveRule(r["selector"], r["as"], r.get("code"), r.get("caption")) for r in raw.get("preserve", [])], raw.get("acceptLanguage"))
+    return PageRules(
+        raw.get("utcOffset"),
+        [PreserveRule(r["selector"], r["as"], r.get("code"), r.get("caption")) for r in raw.get("preserve", [])],
+        raw.get("acceptLanguage"),
+    )
 
 
 def test_every_page(cases, node_results):
@@ -107,7 +159,9 @@ def test_every_page(cases, node_results):
             got = {"error": str(e)}
         if node is None or got is None:
             if not (node is None and got is None):
-                failures.append(f"{name}: {'nothing' if node is None else 'an article'} from TypeScript, {'nothing' if got is None else 'an article'} from Python")
+                failures.append(
+                    f"{name}: {'nothing' if node is None else 'an article'} from TypeScript, {'nothing' if got is None else 'an article'} from Python"
+                )
             continue
         if "error" in node or isinstance(got, dict):
             if ("error" in node) != isinstance(got, dict):

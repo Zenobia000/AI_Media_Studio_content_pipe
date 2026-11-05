@@ -87,7 +87,20 @@ REGEXPS = {
 UNLIKELY_ROLES = ["menu", "menubar", "complementary", "navigation", "alert", "alertdialog", "dialog"]
 DIV_TO_P_ELEMS = {"BLOCKQUOTE", "DL", "DIV", "IMG", "OL", "P", "PRE", "TABLE", "UL"}
 ALTER_TO_DIV_EXCEPTIONS = ["DIV", "ARTICLE", "SECTION", "P", "OL", "UL"]
-PRESENTATIONAL_ATTRIBUTES = ["align", "background", "bgcolor", "border", "cellpadding", "cellspacing", "frame", "hspace", "rules", "style", "valign", "vspace"]
+PRESENTATIONAL_ATTRIBUTES = [
+    "align",
+    "background",
+    "bgcolor",
+    "border",
+    "cellpadding",
+    "cellspacing",
+    "frame",
+    "hspace",
+    "rules",
+    "style",
+    "valign",
+    "vspace",
+]
 DEPRECATED_SIZE_ATTRIBUTE_ELEMS = ["TABLE", "TH", "TD", "HR", "PRE"]
 PHRASING_ELEMS = [
     "ABBR", "AUDIO", "B", "BDO", "BR", "BUTTON", "CITE", "CODE", "DATA", "DATALIST", "DFN", "EM", "EMBED", "I", "IMG", "INPUT", "KBD", "LABEL", "MARK", "MATH",
@@ -133,9 +146,24 @@ class ReadabilityBase:
             self._setNodeTag(node, new_tag)
 
     def _getAllNodesWithTag(self, node, tag_names: list[str]) -> list[El]:
+        # Readability asks the DOM's querySelectorAll, which (unlike getElementsByTagName) does not go into a <template>'s content: a <style> inside a shadow
+        # root the page declares stays in the document, and so does the text it adds to its ancestors.
         want = {t.upper() for t in tag_names}
         root = node.soup if isinstance(node, D.Document) else node
-        return [d for d in D.descendants(root) if D.tag_name(d) in want]
+        found: list[El] = []
+        stack = [iter(D.child_nodes(root))]
+        while stack:
+            for child in stack[-1]:
+                if not D.is_element(child):
+                    continue
+                if D.tag_name(child) in want:
+                    found.append(child)
+                if D.tag_name(child) != "TEMPLATE":
+                    stack.append(iter(D.child_nodes(child)))
+                    break
+            else:
+                stack.pop()
+        return found
 
     def _postProcessContent(self, article_content) -> None:
         self._fixRelativeUris(article_content)
@@ -196,12 +224,18 @@ class ReadabilityBase:
             if poster:
                 D.set_attribute(media, "poster", to_absolute(poster))
             if srcset:
-                D.set_attribute(media, "srcset", REGEXPS["srcsetUrl"].sub(lambda m: to_absolute(m.group(1)) + (m.group(2) or "") + m.group(3), srcset))
+                D.set_attribute(
+                    media, "srcset", REGEXPS["srcsetUrl"].sub(lambda m: to_absolute(m.group(1)) + (m.group(2) or "") + m.group(3), srcset)
+                )
 
     def _simplifyNestedElements(self, article_content) -> None:
         node = article_content
         while node is not None:
-            if node.parent is not None and D.tag_name(node) in ("DIV", "SECTION") and not ((D.element_id(node)) and D.element_id(node).startswith("readability")):
+            if (
+                node.parent is not None
+                and D.tag_name(node) in ("DIV", "SECTION")
+                and not ((D.element_id(node)) and D.element_id(node).startswith("readability"))
+            ):
                 if self._isElementWithoutContent(node):
                     node = self._removeAndGetNext(node)
                     continue
@@ -328,7 +362,9 @@ class ReadabilityBase:
         # Clean out elements with little content that have "share" in their id/class combinations from final top candidates.
         share_threshold = DEFAULT_CHAR_THRESHOLD
         for top in D.children(article_content):
-            self._cleanMatchedNodes(top, lambda node, match: REGEXPS["shareElements"].search(match) is not None and len(text_of(node)) < share_threshold)
+            self._cleanMatchedNodes(
+                top, lambda node, match: REGEXPS["shareElements"].search(match) is not None and len(text_of(node)) < share_threshold
+            )
         self._clean(article_content, "iframe")
         self._clean(article_content, "input")
         self._clean(article_content, "textarea")
@@ -344,7 +380,9 @@ class ReadabilityBase:
         # Remove extra paragraphs
         self._removeNodes(
             self._getAllNodesWithTag(article_content, ["p"]),
-            lambda paragraph, i, nodes: len(self._getAllNodesWithTag(paragraph, ["img", "embed", "object", "iframe"])) == 0 and not self._getInnerText(paragraph, False),
+            lambda paragraph, i, nodes: (
+                len(self._getAllNodesWithTag(paragraph, ["img", "embed", "object", "iframe"])) == 0 and not self._getInnerText(paragraph, False)
+            ),
         )
         for br in self._getAllNodesWithTag(article_content, ["br"]):
             nxt = self._nextNode(br.next_sibling)
@@ -404,7 +442,11 @@ class ReadabilityBase:
         rel = D.get_attribute(node, "rel")
         itemprop = D.get_attribute(node, "itemprop")
         byline_length = len(js_trim(text_of(node)))
-        return (rel == "author" or bool(itemprop and "author" in itemprop) or REGEXPS["byline"].search(match_string) is not None) and bool(byline_length) and byline_length < 100
+        return (
+            (rel == "author" or bool(itemprop and "author" in itemprop) or REGEXPS["byline"].search(match_string) is not None)
+            and bool(byline_length)
+            and byline_length < 100
+        )
 
     def _getNodeAncestors(self, node, max_depth: int = 0) -> list:
         i, ancestors = 0, []
