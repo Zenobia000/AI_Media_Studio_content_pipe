@@ -120,6 +120,9 @@ def main() -> None:
     env["DATABASE_URL"] = f"{DB_HOST}/{args.db}"
     env["COLLECT_ENABLED"] = "false" if args.no_collect else "true"
     env["MODEL_CALLS_ENABLED"] = "true" if args.models else "false"
+    # 本機的模型（Ollama 等）常常不照提示詞的規則填值；讓伺服器直接限制它能寫的值（engine/structured.py）。.env 裡自己設了就照它。
+    if args.models and "LLM_STRUCTURED_OUTPUT" not in env and any(h in env.get("LLM_BASE_URL", "") for h in ("//127.0.0.1", "//localhost")):
+        env["LLM_STRUCTURED_OUTPUT"] = "true"
     if args.models and not env.get("LLM_API_KEY"):
         sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
     database(args.db)

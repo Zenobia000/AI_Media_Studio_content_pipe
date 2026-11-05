@@ -27,6 +27,7 @@ from newsroom.engine.receipts import (
     reject_received_response,
 )
 from newsroom.engine.sources.json_list import json_parse
+from newsroom.engine.structured import response_format as structured_format
 
 TIMEOUT_MS = 120_000  # a call without a backup waits this long for its answer
 # A call with an evaluated backup gives up sooner: the backup takes over at once, and the primary's receipt stays unknown (it may be billed as well).
@@ -131,7 +132,9 @@ def _chat_once(pool, opts: dict, circuit: bool = False, fallback_for: str | None
     base_url = credential("models", spec["baseUrlEnv"])
     api_key = credential("models", spec["apiKeyEnv"])
     if not base_url or not api_key or not spec["model"]:
-        raise ModelUnavailableError(f"Model {opts['model']} is not configured ({spec['baseUrlEnv']}, {spec['apiKeyEnv']}{', LLM_MODEL' if spec['key'] == 'default' else ''})")
+        raise ModelUnavailableError(
+            f"Model {opts['model']} is not configured ({spec['baseUrlEnv']}, {spec['apiKeyEnv']}{', LLM_MODEL' if spec['key'] == 'default' else ''})"
+        )
     request, temperature, max_tokens, user_text = request_for(opts, spec)
     timeout_ms = opts.get("timeout_ms") or (FAILOVER_TIMEOUT_MS if circuit else TIMEOUT_MS)
     user = opts["user"]
@@ -145,7 +148,12 @@ def _chat_once(pool, opts: dict, circuit: bool = False, fallback_for: str | None
         ],
         "temperature": temperature,
         "max_tokens": max_tokens,
-        **({"response_format": {"type": "json_object"}} if spec.get("jsonMode") and opts.get("json") is not False else {}),
+        # json_object is the original's; LLM_STRUCTURED_OUTPUT=true sends a step's own schema instead (structured.py)
+        **(
+            {"response_format": structured_format(opts["purpose"]) or {"type": "json_object"}}
+            if spec.get("jsonMode") and opts.get("json") is not False
+            else {}
+        ),
         **(spec.get("extra") or {}),
     }
     request.fallback_for = fallback_for
@@ -162,7 +170,11 @@ def _chat_once(pool, opts: dict, circuit: bool = False, fallback_for: str | None
             text = res.content.decode("utf-8", "replace")
             assert_accepted(spec["service"], res.status_code, text)
         except Exception as error:
-            failure = ProviderRejectedError(f"connect failed: {error}", None, True) if isinstance(error, (httpx.ConnectError, httpx.ConnectTimeout)) else error
+            failure = (
+                ProviderRejectedError(f"connect failed: {error}", None, True)
+                if isinstance(error, (httpx.ConnectError, httpx.ConnectTimeout))
+                else error
+            )
             # A refusal is the provider answering; any other failure counts against its availability.
             if circuit:
                 record_model_health(pool, spec["service"], permit, failure_kind(failure) != "refused")
@@ -205,5 +217,7 @@ def _chat_once(pool, opts: dict, circuit: bool = False, fallback_for: str | None
         else:
             detail = str(error)
         reject_received_response(pool, receipt["receiptId"], f"unusable output: {detail[:500]}")
-        raise ModelOutputError(f"Model {opts['model']} returned unusable output for {opts.get('subject')}: {detail[:300]}", receipt["receiptId"]) from error
+        raise ModelOutputError(
+            f"Model {opts['model']} returned unusable output for {opts.get('subject')}: {detail[:300]}", receipt["receiptId"]
+        ) from error
     return {"data": parsed, "receiptId": receipt["receiptId"], "reused": receipt["reused"], "model": spec["key"], "usage": response.get("usage")}

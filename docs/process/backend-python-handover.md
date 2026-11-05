@@ -90,6 +90,8 @@ newsroom worker                       # 工作行程：收集、抓正文、排�
 
 環境變數沿用原本的（`DATABASE_URL`、`ADMIN_PASSWORD`、`API_PORT` 等）。
 
+**用本機模型（Ollama）代替雲端模型：** 程式向 `LLM_BASE_URL` 發標準的 OpenAI 格式請求，所以任何 OpenAI 相容的本機伺服器都能接。在 `AIHOT/.env` 設 `LLM_BASE_URL=http://127.0.0.1:11434/v1`、`LLM_API_KEY=ollama`（隨便一個非空字串）、`LLM_MODEL=模型名`、`LLM_EXTRA_JSON={}`，再用 `python start_dev.py --models`。本機模型常常不照提示詞的規則填值（自己編一個分類、把分數寫成 0 到 1 的小數），答案會被檢查擋下。所以 `start_dev.py` 在 `--models` 且模型網址是本機時，自動打開 `LLM_STRUCTURED_OUTPUT=true`：判斷相關、評分、理解這三步改用 `json_schema` 把可填的值直接交給伺服器限制（`engine/structured.py`），預設關著，雲端模型不受影響，和 Node 版的對照也不變。2026-11-05 在 RTX 5080（16GB）上用 `qwen2.5:14b` 實測 3 個信源：不用限制時 16 篇有 5 篇被擋（分類填「article」「文章」、分數填 0.85）；打開限制後 16 篇全部分析成功，每篇約 8 秒。品質（評分偏低、有些中文標題用簡體字）還需要更多樣本判斷，也沒有和別的模型比較過。
+
 **用 Docker 跑整個 Python 後端**（網站前端維持原樣）：
 
 ```
