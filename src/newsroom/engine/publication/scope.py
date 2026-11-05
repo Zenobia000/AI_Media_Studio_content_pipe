@@ -67,3 +67,20 @@ def evidence_condition() -> str:
 def own_fact_evidence_condition() -> str:
     """Report `p` is still evidence of its own fact (`publications.fact_id`, written at publish time)."""
     return f"EXISTS (SELECT 1 FROM fact_articles fa WHERE fa.fact_id = p.fact_id AND fa.article_id = p.article_id AND {evidence_condition()})"
+
+
+def latest_composite_condition(article: str) -> str:
+    """The same rule over the latest analysis of report `article` (an SQL expression), for grouping (recall, story roots, consolidation) and for publish when it
+    picks a publication's fact. They decide from the newest analysis, which `p.analysis_id` only points to once the publication is rebuilt from it, and recall
+    also meets reports without a publication. Missing scope is unknown, never composite."""
+    return f"""(SELECT scope_analysis.output->>'scope' = 'composite' FROM analyses scope_analysis
+    WHERE scope_analysis.article_id = {article}
+    ORDER BY scope_analysis.input_revision DESC, scope_analysis.id DESC LIMIT 1) IS TRUE"""
+
+
+def grouping_evidence_condition(article: str) -> str:
+    """Evidence for a later identity decision: not a composite and not explicitly withdrawn. A summary-only report or one awaiting publication keeps its existing
+    eligibility. Historical memberships and judgements are retained independently of this predicate."""
+    return f"""NOT {latest_composite_condition(article)} AND NOT EXISTS (
+    SELECT 1 FROM publications grouping_publication
+    WHERE grouping_publication.article_id = {article} AND grouping_publication.visibility = 'withdrawn')"""

@@ -125,6 +125,21 @@ def register_admin(app: FastAPI) -> None:
         result = ct.rerun(request.app.state.pool, article_id, b.get("step"), request.headers.get("idempotency-key") or "", actor_of(admin), {"preview": b.get("preview"), "version": b.get("version")})
         return or_not_found(request, result)
 
+    @app.post("/api/admin/content/{article_id}/detach", include_in_schema=False)
+    @admin_handler
+    def content_detach(request: Request, admin: Principal, article_id: str):
+        from newsroom.engine.events.corrections import detach_from_fact
+
+        return detach_from_fact(request.app.state.pool, article_id, str(body(request).get("reason") or ""), actor_of(admin))
+
+    @app.post("/api/admin/stories/merge", include_in_schema=False)
+    @admin_handler
+    def stories_merge(request: Request, admin: Principal):
+        from newsroom.engine.events.corrections import merge_stories
+
+        b = body(request)
+        return merge_stories(request.app.state.pool, int(b.get("from")), int(b.get("into")), b.get("reason"), actor_of(admin))
+
     # Feedback
     @app.get("/api/admin/feedback", include_in_schema=False)
     @admin_handler

@@ -13,6 +13,7 @@ from newsroom.engine.lib.ids import sha256, stable_json
 from newsroom.engine.publication.scope import (
     composite_condition,
     evidence_condition,
+    latest_composite_condition,
     listed_condition,
     scope_params,
     story_report_condition,
@@ -269,9 +270,7 @@ def _related_evidence(story: str, other: str) -> str:
 
 
 def latest_composite(article: str) -> str:
-    """The composite rule over the latest analysis of report `article` (missing scope is unknown, never composite)."""
-    return f"""(SELECT scope_analysis.output->>'scope' = 'composite' FROM analyses scope_analysis
-      WHERE scope_analysis.article_id = {article} ORDER BY scope_analysis.input_revision DESC, scope_analysis.id DESC LIMIT 1) IS TRUE"""
+    return latest_composite_condition(article)
 
 
 def related_stories(conn, story_id: int, now: datetime) -> list[dict]:

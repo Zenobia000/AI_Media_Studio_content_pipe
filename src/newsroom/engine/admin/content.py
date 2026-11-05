@@ -1,7 +1,6 @@
 """Content diagnostics and corrections. Find any item by id, URL or title and see its whole chain: source → discoveries → revisions → model receipts → decisions →
 publication and sync ledger → grouping → deliveries. Visibility changes and manual corrections go through editorial overrides with a version check, are
-re-projected to every public exit, and are audited. Port of admin/content.ts (without the publication-date correction, the presentation refresh and the
-regroup, which need the parts of the pipeline that are not ported yet)."""
+re-projected to every public exit, and are audited. Port of admin/content.ts (without the publication-date correction and the presentation refresh)."""
 
 from __future__ import annotations
 
@@ -252,8 +251,6 @@ def rerun(pool, article_id: str, step, request_id: str, actor: str, options: dic
     issues.raise_if_any()
     if step == "presentation":
         raise NotImplementedError("refreshing a body's presentation needs the translation rebase, which is not ported yet")
-    if step == "group":
-        raise NotImplementedError("regrouping needs the event grouping, which is not ported yet")
     with pool.connection() as conn, conn.transaction():
         if not conn.execute("SELECT id FROM articles WHERE id = %s FOR UPDATE", (article_id,)).fetchone():
             return None
@@ -264,11 +261,16 @@ def rerun(pool, article_id: str, step, request_id: str, actor: str, options: dic
         ).fetchone()
         if prior:
             return {"jobId": prior["after"]["jobId"]}
-        conn.execute(
-            """UPDATE articles SET processing_state = 'new', processing_error = NULL, processing_attempts = 0, processing_retry_at = NULL,
-                 body_status = CASE WHEN %s THEN 'pending' ELSE body_status END WHERE id = %s""",
-            (step == "extract", article_id),
-        )
-        job = queue_processing(conn, article_id, step=step, attempt_tag=f"admin:{request_id}" if step == "analyze" else None)
+        if step == "group":
+            from newsroom.engine.events.corrections import request_regroup
+
+            job = request_regroup(conn, article_id, request_id)
+        else:
+            conn.execute(
+                """UPDATE articles SET processing_state = 'new', processing_error = NULL, processing_attempts = 0, processing_retry_at = NULL,
+                     body_status = CASE WHEN %s THEN 'pending' ELSE body_status END WHERE id = %s""",
+                (step == "extract", article_id),
+            )
+            job = queue_processing(conn, article_id, step=step, attempt_tag=f"admin:{request_id}" if step == "analyze" else None)
         audit(conn, actor, f"content.rerun.{step}", f"content:{article_id}", None, None, {"jobId": job, "requestId": request_id}, request_id=request_id)
         return {"jobId": job}

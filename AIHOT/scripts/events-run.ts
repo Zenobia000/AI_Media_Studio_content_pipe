@@ -1,11 +1,13 @@
 // Event helpers for the Python port's tests. argv[2] is a JSON file: { op, ... }.
 //   digest: { ids: number[], rewrite?: boolean } → composeStoryDigest for each story
 //   merge:  { pairs: [from, into][] } → mergeStoryInto for each pair
+//   corrections: { calls: [name, ...args][] } → events/corrections.ts: detachFromFact, moveToFact, mergeStories, rewriteStoryDigest, requestRegroup
 //   relate: { calls: [name, ...args][] } → the pure functions of events/relate.ts, with `at` fields turned into dates
 import { readFileSync } from "node:fs";
 import { closeDb } from "@aihot/backend/db";
 import { composeStoryDigest } from "@aihot/backend/events/digest";
 import { mergeStoryInto } from "@aihot/backend/events/merge";
+import * as corrections from "@aihot/backend/events/corrections";
 import * as relate from "@aihot/backend/events/relate";
 import { stopBoss } from "@aihot/backend/jobs/queue";
 import { failureKind } from "@aihot/backend/providers/receipts";
@@ -26,6 +28,14 @@ if (input.op === "digest") {
       out.push(await mergeStoryInto(from, into, input.reason ?? "test", input.actor ?? "editor"));
     } catch (error) {
       out.push({ error: (error as Error).message });
+    }
+  }
+} else if (input.op === "corrections") {
+  for (const [name, ...args] of input.calls) {
+    try {
+      out.push((await (corrections as any)[name](...args)) ?? null);
+    } catch (error) {
+      out.push({ error: (error as Error).message, name: (error as Error).constructor.name });
     }
   }
 } else if (input.op === "relate") {
