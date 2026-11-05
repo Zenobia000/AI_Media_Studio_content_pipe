@@ -132,6 +132,13 @@ def register_admin(app: FastAPI) -> None:
 
         return or_not_found(request, release_receipt(request.app.state.pool, receipt_id, body(request), actor_of(admin)))
 
+    @app.post("/api/admin/deliveries/{delivery_id}/resolve", include_in_schema=False)
+    @admin_handler
+    def delivery_resolve(request: Request, admin: Principal, delivery_id: int):
+        from newsroom.engine.notify_deliver import resolve_delivery
+
+        return or_not_found(request, resolve_delivery(request.app.state.pool, delivery_id, body(request), actor_of(admin)))
+
     @app.post("/api/admin/content/{article_id}/detach", include_in_schema=False)
     @admin_handler
     def content_detach(request: Request, admin: Principal, article_id: str):

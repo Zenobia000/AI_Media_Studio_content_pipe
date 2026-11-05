@@ -160,7 +160,8 @@ def register_processing_jobs(worker) -> None:
     from newsroom.engine.jobs.content import process_article
     from newsroom.engine.jobs.events import register_event_jobs
     from newsroom.engine.jobs.publication import run_republish
-    from newsroom.engine.operations import daily_retention, recover_stale_work
+    from newsroom.engine.notify_selected import run_notify_selected
+    from newsroom.engine.operations import daily_retention, forward_pending_feedback, recover_stale_work
     from newsroom.engine.reports_compose import compose_due_reports
     from newsroom.engine.translate import translate_pending
 
@@ -178,6 +179,8 @@ def register_processing_jobs(worker) -> None:
     # The deletions the privacy notice promises, once their retention periods are over; work a stopped process left half way becomes visible, and unknown paid
     # requests get their one automatic release.
     worker.schedule("ops.retention", "30 3 * * *", lambda: daily_retention(pool), missed="once")
+    worker.schedule("feedback.forward", "*/10 * * * *", lambda: forward_pending_feedback(pool))
+    worker.work(QUEUES["notifySelected"], lambda data: run_notify_selected(pool, data), local_concurrency=1, polling_interval=5)
     worker.schedule("ops.recover", "*/10 * * * *", lambda: recover_stale_work(pool))
     worker.schedule("stories.links", "12 * * * *", lambda: link_related_stories(pool))
     worker.schedule("hot.rank", "*/5 * * * *", lambda: compute_hot_ranking(pool))

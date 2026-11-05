@@ -41,6 +41,9 @@ def build_worker(pool) -> Worker:
 def run(database_url: str | None = None) -> None:
     """Runs until SIGINT or SIGTERM, then lets the running jobs finish."""
     pool = open_pool(database_url)
+    from newsroom.engine.notify_deliver import ensure_content_targets
+
+    ensure_content_targets(pool)
     worker = build_worker(pool)
     stop = threading.Event()
     start_heartbeat(pool, "worker", stop)

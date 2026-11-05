@@ -17,6 +17,7 @@ from pathlib import Path
 from newsroom.engine.audit import Conflict, audit
 from newsroom.engine.config import config, credential
 from newsroom.engine.jobs.events import sweep_ungrouped
+from newsroom.engine.notify_deliver import mark_stale_deliveries
 from newsroom.engine.operations_feedback import _expire_bans
 from newsroom.engine.receipts import mark_stale_pending_receipts, release_unknown_receipt
 from newsroom.engine.sources.collect import queue_processing
@@ -171,26 +172,31 @@ def retry_released_receipt_jobs(pool) -> int:
         return len(jobs)
 
 
-def mark_stale_deliveries(pool) -> dict:
-    """A delivery a stopped process left half way: in doubt if it may have gone out, failed if it did not."""
-    cutoff = datetime.now(UTC) - timedelta(minutes=15)
-    with pool.connection() as conn:
-        unknown = conn.execute(
-            """UPDATE deliveries SET status = 'unknown', response = coalesce(response, '傳送中程序中斷，是否送達未知'), updated_at = now()
-               WHERE status = 'sending' AND updated_at < %s""",
-            (cutoff,),
-        ).rowcount
-        failed = conn.execute(
-            """UPDATE deliveries SET status = 'failed', response = coalesce(response, '傳送前程序中斷，沒有發出'), updated_at = now()
-               WHERE status = 'pending' AND updated_at < %s""",
-            (cutoff,),
-        ).rowcount
-    return {"unknown": unknown, "failed": failed}
-
-
 def recover_stale_work(pool) -> dict:
     """ops.recover, every 10 minutes."""
     return {
         "receipts": mark_stale_pending_receipts(pool), "released": auto_release_unknown_receipts(pool), "jobs": retry_released_receipt_jobs(pool),
         "grouping": sweep_ungrouped(pool), "deliveries": mark_stale_deliveries(pool),
     }  # fmt: skip
+
+
+def forward_pending_feedback(pool) -> dict:
+    """Every few minutes: feedback that did not reach the internal chat (Feishu down, a screenshot upload failing) is tried again for a week. Newer than a few minutes is
+    still being sent by its submission."""
+    from newsroom.engine.notify_feishu import forward_feedback_to_feishu
+
+    if not feishu_internal_enabled():
+        return {"sent": 0, "failed": 0}
+    with pool.connection() as conn:
+        rows = conn.execute(
+            """SELECT id FROM feedback WHERE forwarded_at IS NULL AND forward_error IS NOT NULL
+               AND created_at < now() - interval '5 minutes' AND created_at > now() - interval '7 days' ORDER BY id LIMIT 20"""
+        ).fetchall()
+    sent = failed = 0
+    for r in rows:
+        try:
+            if forward_feedback_to_feishu(pool, r["id"]) == "sent":
+                sent += 1
+        except Exception:
+            failed += 1
+    return {"sent": sent, "failed": failed}
