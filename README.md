@@ -76,6 +76,30 @@
 
 ---
 
+## 資料怎麼收集進來（抓取條件）
+
+以下是 Python 後端（`newsroom worker`）的行為，條件寫在 `src/newsroom/engine/sources/`、`src/newsroom/engine/jobs/sources.py`，數字是程式裡的預設值。
+
+**要打開才會抓。** 環境變數 `COLLECT_ENABLED=true` 才會排程收集（`python start_dev.py` 預設打開，`--no-collect` 關閉）。收集到的文章要經過模型分析才會出現在網站，沒有模型（`--models`）時只會停在「待分析」。
+
+| 項目 | 條件 |
+|---|---|
+| 多久檢查一次 | worker 每分鐘看哪些信源到期，一次最多排 40 個，同時最多抓 8 個 |
+| 每個信源多久抓一次 | 各信源自己的間隔（`interval_minutes`），預設清單設 1 到 6 小時。**每天凌晨 4:20** 依最近 7 天的產量重算：一般信源 15 到 60 分鐘（產量越高越勤），X 與付費渲染的列表頁最慢 2 小時，只當熱度參考的討論類最慢 3 小時 |
+| 抓失敗時 | 連續失敗 3 次後，後臺信源列表會提醒；詳情頁抓失敗先快速重試 2 次，之後等 1 小時、再倍增，最長 1 天，不會放棄 |
+| 新加的信源（第一次） | 最多取 30 筆（可設 `initialBackfillLimit`），範圍是最近 12 個月內（`initialBackfillMonths`）；這批算「歷史」，不會進「今天」，也不會被推送 |
+| 之後每次 | 只收「沒看過的網址」，而且要是信源加入時間再往前 48 小時之後發布的；已經收過的不重收 |
+| 去重 | 依網址整理後的身分碼（去掉追蹤參數等）判斷，換寫法的同一個網址也只算一筆 |
+| 發布時間 | 比抓取時間晚超過 1 小時的視為不可信；抓取時已經超過 48 小時前發布的，算「歷史」 |
+| 過濾 | 各信源可設前綴、分類、雜訊詞與 `publishedAfter` 發布時間下限（在後臺 `/admin/sources` 設定） |
+| 正文 | 每篇新文章都會排一個「抓正文」工作；擋爬蟲的網站要付費的 Jina 金鑰才補抓得到，抓不到的標為「未確認」 |
+
+**預設信源**（`AIHOT/industry/sources.json`，33 個，全部啟用）：官方部落格（OpenAI、DeepMind、Google Research、Microsoft、NVIDIA、AWS、GitHub、Mistral、Hugging Face、BAIR）、GitHub 專案版本發布、科技媒體（The Verge、TechCrunch、Ars Technica、MIT Technology Review、The Decoder）、電子報與個人部落格、Hacker News、Hugging Face 熱門與論文、iThome 台灣、TechNews。X 與微信公眾號要付費金鑰（SocialData、Dajiala），預設清單沒有。
+
+**想調整：** 單一信源的間隔、過濾與啟用在後臺 `/admin/sources`；預設清單改 `AIHOT/industry/sources.json`（只在建立資料庫時放進去）。更多細節見[交付說明](docs/process/backend-python-handover.md)。
+
+---
+
 ## 資料夾
 
 ```
