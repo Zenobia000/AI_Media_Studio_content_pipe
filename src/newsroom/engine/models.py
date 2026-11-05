@@ -110,3 +110,20 @@ def model_route(conn, capability: str) -> dict:
     """Preserve an explicit primary choice; only the site's evaluated pair may fail over."""
     model = model_for(conn, capability)
     return {"model": model, "fallbackModel": fallback_model_for(capability, model)}
+
+
+def steps_on_service(conn, service: str, only_models: set[str] | None = None) -> list[str]:
+    """The steps that use a model service now (primary or backup), for the alerts. Current routing describes possible impact."""
+    current = model_sources(conn)
+    registry = models()
+    out: list[str] = []
+    for key, c in capabilities().items():
+        if c["idle"] and c["idle"]():
+            continue
+        primary = current[key]["model"]
+        for candidate in (primary, fallback_model_for(key, primary)):
+            model = registry.get(candidate) if candidate else None
+            if model and model["service"] == service and (only_models is None or model["model"] in only_models):
+                out.append(c["label"].split("（")[0])
+                break
+    return list(dict.fromkeys(out))

@@ -54,6 +54,9 @@ def build_app(database_url: str | None = None) -> FastAPI:
         app.state.pool = pool
         stop = threading.Event()
         start_heartbeat(pool, f"api:{config().api_port}", stop)
+        from newsroom.engine.operations_watch import start_worker_watchdog
+
+        start_worker_watchdog(pool, stop)
         try:
             yield
         finally:

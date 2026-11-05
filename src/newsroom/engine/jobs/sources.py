@@ -162,6 +162,9 @@ def register_processing_jobs(worker) -> None:
     from newsroom.engine.jobs.publication import run_republish
     from newsroom.engine.notify_selected import run_notify_selected
     from newsroom.engine.operations import daily_retention, forward_pending_feedback, recover_stale_work
+    from newsroom.engine.operations_alerts import check_alerts, send_digest
+    from newsroom.engine.operations_backup import backup_configured, run_backup
+    from newsroom.engine.operations_reports import source_health_weekly
     from newsroom.engine.reports_compose import compose_due_reports
     from newsroom.engine.translate import translate_pending
 
@@ -179,6 +182,12 @@ def register_processing_jobs(worker) -> None:
     # The deletions the privacy notice promises, once their retention periods are over; work a stopped process left half way becomes visible, and unknown paid
     # requests get their one automatic release.
     worker.schedule("ops.retention", "30 3 * * *", lambda: daily_retention(pool), missed="once")
+    # Operations: alerts every ten minutes, the 09:00 follow-up list, the nightly backup where an object store is set up, and Monday's source-health report.
+    worker.schedule("ops.alerts", "*/10 * * * *", lambda: check_alerts(pool))
+    worker.schedule("ops.digest", "0 9 * * *", lambda: send_digest(pool), missed="once")
+    if backup_configured():
+        worker.schedule("ops.backup", "10 4 * * *", lambda: run_backup(pool), missed="once")
+    worker.schedule("reports.source-health", "0 9 * * 1", lambda: source_health_weekly(pool), missed="once")
     worker.schedule("feedback.forward", "*/10 * * * *", lambda: forward_pending_feedback(pool))
     worker.work(QUEUES["notifySelected"], lambda data: run_notify_selected(pool, data), local_concurrency=1, polling_interval=5)
     worker.schedule("ops.recover", "*/10 * * * *", lambda: recover_stale_work(pool))
