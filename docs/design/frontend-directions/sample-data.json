@@ -1,0 +1,150 @@
+{
+ "items": [
+  {
+   "title": "哈薩克斯坦擴大AI計算生態系統",
+   "summary": "NVIDIA CEO 黃仁勳訪問哈薩克斯坦，宣布Firebird將在該國建設AI基礎設施，包括45,000個NVIDIA Grace Blackwell GPU，並投資當地AI創業公司Higgsfield。哈薩克斯坦計劃利用其能源資源轉化為AI智能，並在多個領",
+   "reason": "positive",
+   "cat": "產品",
+   "score": 80.0,
+   "source": "NVIDIA Blog",
+   "time": "10/23 02:00",
+   "selected": true
+  },
+  {
+   "title": "GPT-6 Astra 可直接修改其他 AI 模型的權重",
+   "summary": "OpenAI 的 GPT-6 Astra 可直接理解並修改其他 AI 模型的權重，無需傳統訓練過程。研究人員通過實驗展示了 Astra 能識別模型訓練的任務和改進模型性能，但目前仍存在局限性。",
+   "reason": "The research demonstrates a novel approach to AI model tuning and control, but acknowledges limitations and the need for further development.",
+   "cat": "論文",
+   "score": 78.0,
+   "source": "The Decoder",
+   "time": "11/04 15:44",
+   "selected": true
+  },
+  {
+   "title": "Google DeepMind 和新加坡政府合作開發隱私保護的在設備上詐騙檢測AI模型",
+   "summary": "Google DeepMind 和新加坡政府合作開發了一款隱私保護的在設備上進行詐騙檢測的AI模型，該模型將在應用程序中部署，以幫助用戶在分享敏感信息或資金之前識別詐騙意圖。該模型通過兩階段管道運行，確保在設備上進行隱私保護的實時檢測，並在STACK 2026",
+   "reason": "Google DeepMind 和新加坡政府合作開發了一款隱私保護的在設備上進行詐騙檢測的AI模型，該模型將在應用程序中部署，以幫助用戶在分享敏感信息或資金之前識別詐騙意圖。",
+   "cat": "產品",
+   "score": 73.0,
+   "source": "Google DeepMind",
+   "time": "10/14 02:00",
+   "selected": true
+  },
+  {
+   "title": "NVIDIA AI 加入搜尋外星信號的行列",
+   "summary": "NVIDIA Holoscan 平台在搜尋外星智慧的日常工作中引入了代理 AI，使天文望遠鏡能通過自然語言指令進行操作、數據增強和錯誤修正。該系統每秒可處理 2.4 TB 的數據，將人類需要數周或數年的任務壓縮到數小時內完成，並已實現實時 AI 檢測脈衝星的突",
+   "reason": "官方",
+   "cat": "產業",
+   "score": 72.0,
+   "source": "NVIDIA Blog",
+   "time": "10/30 15:00",
+   "selected": true
+  },
+  {
+   "title": "Mistral AI 在慕尼黑開設德國研發中心",
+   "summary": "Mistral AI 在慕尼黑開設德國研發中心，以推動歐洲最大經濟體的工業 AI 發展。該中心將專注於物理 AI 和工業 AI 的研究，並與當地企業合作，提供定制化的解決方案。Mistral AI 通過開放權重架構確保數據安全和技術主權，計劃到 2030 年在",
+   "reason": "Mistral AI 宣布在慕尼黑開設德國研發中心，以推動歐洲最大經濟體的工業 AI 發展。",
+   "cat": "產業",
+   "score": 72.0,
+   "source": "Mistral AI",
+   "time": "09/28 15:57",
+   "selected": true
+  },
+  {
+   "title": "AI 改變半導體製造工廠運作方式：加速計算和數字孿生技術",
+   "summary": "NVIDIA 介紹了 AI 如何轉變半導體製造工廠的運作方式，通過加速計算和數字孿生技術，幫助工程師更快地做出決策。加速計算將模擬時間縮短至幾毫秒，而數字孿生技術則允許團隊在虛擬環境中模擬工廠的運作，減少實驗成本。這些技術共同構建了 AI 定義的工廠，使工程師",
+   "reason": "NVIDIA 的文章詳細介紹了 AI 如何轉變半導體製造工廠的運作方式，通過加速計算和數字孿生技術，幫助工程師更快地做出決策。",
+   "cat": "產業",
+   "score": 71.0,
+   "source": "NVIDIA Blog",
+   "time": "11/03 16:00",
+   "selected": true
+  },
+  {
+   "title": "全球城市利用 NVIDIA 物理和代理 AI 提升城市管理效率",
+   "summary": "NVIDIA 宣布與其合作夥伴在全球城市推廣物理和代理 AI 技術，以提高城市管理效率和公共服務水平。例如，西班牙的 1MillionBot 和 LiveX 在舊金山灣區使用 NVIDIA Cosmos 和 Nemotron 模型，將城市攝像頭轉換為操作洞察，",
+   "reason": "NVIDIA 宣布與其合作夥伴在全球城市推廣物理和代理 AI 技術，以提高城市管理效率和公共服務水平。",
+   "cat": "產業",
+   "score": 70.0,
+   "source": "NVIDIA Blog",
+   "time": "11/03 07:00",
+   "selected": true
+  },
+  {
+   "title": "DeepMind 推出 PlanAssist：AI 助力規劃決策提速",
+   "summary": "Google DeepMind 推出 PlanAssist，這是一個利用 AI 技術來加速規劃申請審批過程的工具，已在三個地區的初步測試中將規劃官員的審批時間縮短了 58%。PlanAssist 現已進入 Beta 測試階段，將在未來 12 個月內在 15 個",
+   "reason": "PlanAssist 是由 Google DeepMind 與英國政府合作開發的一個 AI 規劃工具，旨在通過自動化例行申請的處理來減少規劃官員的工作負擔，並已在三個地區進行了初步測試，顯示出顯著的效率提升。",
+   "cat": "產品",
+   "score": 68.0,
+   "source": "Google DeepMind",
+   "time": "10/30 14:18",
+   "selected": true
+  },
+  {
+   "title": "OpenAI 自動化管道發現並修復 Linux 核心 948 個本地權限提升漏洞",
+   "summary": "OpenAI 建立了一個自動化管道，發現、驗證並生成了 948 個 Linux 核心本地權限提升漏洞的修復程式。",
+   "reason": "官方",
+   "cat": "產業",
+   "score": 65.0,
+   "source": "OpenAI News",
+   "time": "11/04 08:00",
+   "selected": true
+  },
+  {
+   "title": "CWE-bench v2：更全面的覆蓋範圍、更高的質量和透明度",
+   "summary": "Collinear AI 推出 CWE-bench v2，新增一套包含 100 個任務的公開測試集，用於評估模型在發現和修復安全漏洞方面的表現。這些任務涵蓋了 91 種不同的安全漏洞類型，確保模型能夠理解和應對多種潛在攻擊面。評估結果在 Hugging Fac",
+   "reason": "T1",
+   "cat": "模型",
+   "score": 62.0,
+   "source": "Hugging Face Blog",
+   "time": "11/03 00:00",
+   "selected": true
+  },
+  {
+   "title": "Mistral 和 Mozilla 合作，將開放、隱私和多語言 AI 帶入您的瀏覽器",
+   "summary": "Mistral AI 和 Mozilla 宣布合作，將 Mistral 的多語言 AI 模型集成到 Firefox 的 Smart Window 中，為用戶提供隱私保護和本地化體驗。Smart Window 現已支持法國和北美用戶，預計今年晚些時候將擴展到英國",
+   "reason": "Mistral AI 和 Mozilla 宣布合作，將 Mistral 的多語言 AI 模型集成到 Firefox 的 Smart Window 中，為用戶提供隱私保護和本地化體驗。",
+   "cat": "產品",
+   "score": 60.0,
+   "source": "Mistral AI",
+   "time": "09/16 12:00",
+   "selected": true
+  },
+  {
+   "title": "美國期中選舉公投：一面倒支持限制AI資料中心開發",
+   "summary": "美國期中選舉期間，各地公投顯示選民對AI資料中心開發持強烈反對態度，39項公投中有38項支持限制資料中心建設。選民擔心資料中心帶來的環境和經濟負面影響，部分州政府已開始限制資料中心擴建。隨著民主黨在眾議院取得多數席次，科技公司未來擴建AI資料中心將面臨更大阻力",
+   "reason": "",
+   "cat": "產業",
+   "score": 70.0,
+   "source": "iThome",
+   "time": "11/05 01:11",
+   "selected": false
+  }
+ ],
+ "stories": [
+  {
+   "title": "OpenAI 收購 Pierre Computer Company",
+   "n": 4
+  },
+  {
+   "title": "OpenAI 推出 Images 2.6 支持生成 GIF",
+   "n": 4
+  },
+  {
+   "title": "Cat Wu 加入 OpenAI 擔任核心產品管理主管",
+   "n": 2
+  },
+  {
+   "title": "Anthropic 推出 FlashProve 驗證 AI 回應來源",
+   "n": 2
+  },
+  {
+   "title": "Hugging Face 解析開源AI商業模式",
+   "n": 2
+  },
+  {
+   "title": "Nothing將於12月推出首款無屏AI設備",
+   "n": 2
+  }
+ ]
+}
