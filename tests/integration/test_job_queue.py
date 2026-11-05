@@ -38,6 +38,21 @@ def test_short_policy_keeps_one_waiting_job_per_key(conn, tag):
     )
 
 
+def test_a_result_or_data_with_dates_is_stored_as_pg_boss_stored_it(conn, tag):
+    """A handler's result may hold a Date (the analysis waiting for a model gives its time to retry): pg-boss stored it as JSON.stringify writes a Date, and a result
+    that cannot be stored must not leave the job active for ever."""
+    name = f"t.dates.{tag}"
+    at = datetime(2026, 11, 5, 8, 52, 9, 123456, tzinfo=UTC)
+    job = Q.enqueue(conn, name, {"notBefore": at})
+    assert job
+    assert conn.execute("SELECT data FROM jobs WHERE id = %s", (job,)).fetchone()["data"] == {"notBefore": "2026-11-05T08:52:09.123Z"}
+    Q.fetch(conn, name, 1)
+    Q.complete(conn, job, {"retryAt": at, "later": [at], "n": 1})
+    row = conn.execute("SELECT state, output FROM jobs WHERE id = %s", (job,)).fetchone()
+    assert row["state"] == "completed"
+    assert row["output"] == {"retryAt": "2026-11-05T08:52:09.123Z", "later": ["2026-11-05T08:52:09.123Z"], "n": 1}
+
+
 def test_priority_then_age_and_delay(conn, tag):
     name = f"t.order.{tag}"
     low = Q.enqueue(conn, name, {"k": "low"}, singleton_key="1")

@@ -96,7 +96,7 @@ newsroom worker                       # 工作行程：收集、抓正文、排�
 docker compose -f AIHOT/docker-compose.yml -f deploy/python-backend.yml up -d --build
 ```
 
-`setup` 執行 `newsroom migrate`（空資料庫一個指令建完 86 個遷移），API 與 worker 都用 Python，網站前端照舊在 3000。不要再疊 `deploy/newsroom.yml`，worker 自己跑收集與抓取排程。2026-11-05 在空資料庫上實際跑過一次：遷移成功、API、worker、前端都起來，首頁、文章、RSS、sitemap、`llms.txt`、圖片、後臺登入與各後臺頁面都回 200，worker 有程序心跳，映像內有 `pg_dump` 17。第一次跑發現並修掉兩個只有容器裡才有的問題：安裝後的套件找不到 `AIHOT/` 資料夾（遷移檔、靜態檔、字型），改用 `AIHOT_ROOT` 指定；映像沒有 PostgreSQL 客戶端，備份會失敗。這次在容器裡跑時收集與模型呼叫是關著的，沒有測真實收集。
+`setup` 執行 `newsroom migrate`（空資料庫一個指令建完 86 個遷移），API 與 worker 都用 Python，網站前端照舊在 3000。不要再疊 `deploy/newsroom.yml`，worker 自己跑收集與抓取排程。2026-11-05 在空資料庫上實際跑過一次：遷移成功、API、worker、前端都起來，首頁、文章、RSS、sitemap、`llms.txt`、圖片、後臺登入與各後臺頁面都回 200，worker 有程序心跳，映像內有 `pg_dump` 17。第一次跑發現並修掉兩個只有容器裡才有的問題：安裝後的套件找不到 `AIHOT/` 資料夾（遷移檔、靜態檔、字型），改用 `AIHOT_ROOT` 指定；映像沒有 PostgreSQL 客戶端，備份會失敗。之後又在容器裡打開收集（模型呼叫仍關著）跑了一次真實收集：用後臺 API 建了 3 個真實公開 RSS 信源，worker 的排程把它們排進佇列、抓取、過濾、入庫，53 篇文章全部抓到正文，53 個分析工作排進佇列（沒有模型，文章停在待分析）。這次發現並修掉一個只有真實執行才會出現的問題：處理函式的結果裡若有日期（分析在等模型時會回傳下次重試時間），寫進佇列結果欄位會因日期不能轉成 JSON 而失敗，工作就一直停在進行中；現在日期與 pg-boss 一樣存成 ISO 字串，並有回歸測試。
 
 Windows 本機開發可以一次全開：先打開 Docker Desktop，再在專案根目錄執行 `.\start-dev.ps1`（資料庫、API、worker、網站各一個視窗，網站在 http://127.0.0.1:3000），停止用 `.\stop-dev.ps1`。
 

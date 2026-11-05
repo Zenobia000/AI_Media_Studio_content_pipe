@@ -81,7 +81,7 @@ def enqueue(db, name: str, data: dict, *, singleton_key: str | None = None, star
             (
                 name,
                 o["policy"],
-                Jsonb(data),
+                Jsonb(data, dumps=_dumps),
                 priority,
                 singleton_key,
                 after,
@@ -113,7 +113,7 @@ def fetch(conn, name: str, batch: int = 1) -> list[dict]:
 def complete(conn, job_id, output=None) -> None:
     conn.execute(
         "UPDATE jobs SET state = 'completed', completed_on = now(), output = %s WHERE id = %s AND state = 'active'",
-        (Jsonb(output) if output is not None else None, job_id),
+        (Jsonb(output, dumps=_dumps) if output is not None else None, job_id),
     )
 
 
@@ -129,7 +129,11 @@ def fail(conn, job_id, error: str, receipt_id: int | None = None) -> str:
              completed_on = CASE WHEN retry_count < retry_limit THEN NULL ELSE now() END,
              output = CASE WHEN retry_count < retry_limit THEN output ELSE %(output)s END
            WHERE id = %(id)s AND state = 'active' RETURNING state""",
-        {"id": job_id, "jitter": random.random(), "output": Jsonb({"message": error[:4000], **({"receiptId": receipt_id} if receipt_id is not None else {})})},
+        {
+            "id": job_id,
+            "jitter": random.random(),
+            "output": Jsonb({"message": error[:4000], **({"receiptId": receipt_id} if receipt_id is not None else {})}),
+        },
     ).fetchone()
     return row["state"] if row else "gone"
 
@@ -181,10 +185,20 @@ def record_run(pool, job: str, fn: Callable[[], object]):
     return result
 
 
+def _default(value):
+    """What JSON.stringify makes of a Date (ISO, milliseconds, Z), which is what pg-boss stored for a handler's result; other values become text."""
+    from datetime import UTC, datetime  # noqa: PLC0415
+
+    if isinstance(value, datetime):
+        value = value if value.tzinfo else value.replace(tzinfo=UTC)
+        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.") + f"{value.microsecond // 1000:03d}Z"
+    return float(value) if hasattr(value, "as_tuple") else str(value)
+
+
 def _dumps(value) -> str:
     import json  # noqa: PLC0415
 
-    return json.dumps(value, ensure_ascii=False, default=str)
+    return json.dumps(value, ensure_ascii=False, default=_default)
 
 
 # ── workers and schedules ───────────────────────────────────────────────────────────────
