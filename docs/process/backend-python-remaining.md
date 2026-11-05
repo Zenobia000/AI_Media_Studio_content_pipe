@@ -75,6 +75,15 @@ B 區的程式都已寫好，也都用假服務與 Node 版比對過（見上表
 | SocialData、Dajiala、Jina 真實服務 | 要各家金鑰 |
 | 備份上傳到物件儲存 | 沒有儲存可連 |
 
+## 查過之後確定不用移植的
+
+- **站台模組的掛勾**（`articleChanged`、`reportsChanged` 通知、信源「用途」加速、各模組自己的保留期限）：這個站台沒有安裝任何模組（`AIHOT/site/modules/server.ts` 的 `SERVER_MODULES` 是空陣列），所以在這個部署裡沒有人接，Node 版也是空跑。日後若裝了模組，才需要把掛勾接到 Python 的引擎。
+- **X 帳號分片排程**：已經有了（`engine/jobs/sources.py` 的 `schedule_x_shards`），先前文件寫「未移植」是過時的。
+
+## 驗證用的工具
+
+`tests/tools/` 放三支手動比對用的腳本（不是測試，不會被 pytest 收進去）：`collect_real_pages.py` 抓真實網站的文章頁、`compare_real_pages.py` 讓 Node 與 Python 各讀一遍並比對、`frontend_writes.py` 經兩個前端送同樣的後臺寫入並比對回應與資料列。用法見各檔開頭。
+
 ## C. 不建議照搬
 
 - **Playwright 瀏覽器端的測試（`apps/web/tests`）**：是網站前端的測試，不屬於後端。
