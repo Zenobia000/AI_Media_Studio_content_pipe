@@ -163,3 +163,10 @@ def js_slice(s: str, start: int = 0, end: int | None = None) -> str:
     where JavaScript keeps a lone surrogate)."""
     units = s.encode("utf-16-le", "surrogatepass")
     return units[start * 2 : None if end is None else end * 2].decode("utf-16-le", "ignore")
+
+
+def collate_key(s: str) -> tuple:
+    """A sort key that orders ASCII identifiers as String.prototype.localeCompare does (ICU root collation): punctuation before digits before letters, letters
+    without regard to case first, and a lower-case letter before the same upper-case one. Other scripts fall back to code point order within their class."""
+    primary = tuple((0, ord(c)) if not c.isalnum() else (1, ord(c)) if c.isdigit() else (2, ord(c.lower())) for c in s)
+    return primary, tuple(0 if c == c.lower() else 1 for c in s)
