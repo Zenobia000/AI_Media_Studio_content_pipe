@@ -20,6 +20,16 @@
 
 目前測試套件共 **1,422 個測試，全部通過**（`tests/` 底下的 unit、engine、integration、parity）。
 
+### 2026-11-05 補充：前端實際對照
+
+- `tests/parity` 的 **422 個對照測試重跑一次，全部通過**（8 分 20 秒，用 `seeded` 資料庫）。
+- 同一個前端（`apps/web`）分別接 Python 版與 Node 版 API，兩邊用同一份資料庫，逐頁比對回傳的 HTML：
+  - 前台 22 個頁面一致：首頁、9 篇文章頁、3 個事件頁、`/rss.xml`、`/feed.xml`、`/sitemap.xml`、`/robots.txt`、`/hot`、`/weekly`、`/about`、`/admin/login`，以及兩個兩邊都回 404 的頁面（`/search`、`/events`）。
+  - 後臺登入後 13 個頁面一致：總覽、內容、信源（列表、新增、3 個詳情頁）、回饋、執行紀錄、模型、SelectBench、設定、稽核。
+  - 唯一的差異是網址寫法（`localhost` 與 `127.0.0.1`），來自本機啟動前端的方式，與後端無關。
+- **切換前一定要先跑 `newsroom migrate`。** 只跑過 Node 遷移的資料庫沒有 `job_schedules` 資料表，`/api/admin/runs` 會回 500、後臺執行紀錄頁回 503；跑完遷移後與 Node 版一致（只剩「目前執行中的程序」與檢查時間不同，這兩項本來就不會一樣）。
+- 沒有做的：沒有人工肉眼對照畫面；後臺登入後的寫入操作（建立信源、改設定等）沒有經前端比對，只靠上面的資料表逐列比對測試。
+
 ## 已完成
 
 **對外網站與介面（A 區）**
@@ -70,6 +80,8 @@ newsroom worker                       # 工作行程：收集、抓正文、排�
 ```
 
 環境變數沿用原本的（`DATABASE_URL`、`ADMIN_PASSWORD`、`API_PORT` 等）。
+
+Windows 本機開發可以一次全開：先打開 Docker Desktop，再在專案根目錄執行 `.\start-dev.ps1`（資料庫、API、worker、網站各一個視窗，網站在 http://127.0.0.1:3000），停止用 `.\stop-dev.ps1`。
 
 跑測試：
 
