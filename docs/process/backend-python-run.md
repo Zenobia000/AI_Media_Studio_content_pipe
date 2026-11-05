@@ -32,7 +32,7 @@ newsroom worker                                               # 工作行程：�
 網站：`cd AIHOT/apps/web && API_BASE_URL=http://127.0.0.1:3101 npm run dev`（或 `npm run build && npm start`）。
 
 ## 3.1 本機一鍵啟動（Windows）
-專案根目錄的 `start-dev.ps1` 會啟動資料庫容器、API、worker 和網站（各開一個視窗），`stop-dev.ps1` 全部停掉。`.\start-dev.ps1 -Collect` 同時打開自動收集信源。腳本裡的密碼與密鑰是本機測試用的。
+專案根目錄的 `python start_dev.py` 會啟動資料庫容器、API、worker 和網站（各開一個視窗），`python stop_dev.py` 停掉它們（只停 start_dev.py 開的；舊的或漏掉的用 `python stop_dev.py --scan`）。`python start_dev.py --collect` 同時打開自動收集信源。腳本裡的密碼與密鑰是本機測試用的。
 
 ## 4. 演練結果（空資料庫）
 - `newsroom migrate`：套用 86 個 migration，第二次執行顯示「已是最新」。
