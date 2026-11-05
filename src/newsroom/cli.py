@@ -77,11 +77,14 @@ Json = Annotated[bool, typer.Option("--json", help="輸出 JSON（IF-020）")]
 
 @app.command("migrate")
 def migrate() -> None:
-    """套用本專案的資料表 migration（記在 schema_migrations）。"""
+    """套用資料表 migration：引擎的（database/migrations）加本專案的（記在 schema_migrations）。空資料庫一個指令建完。"""
     from newsroom.core.migrate import apply_dir  # noqa: PLC0415
+    from newsroom.engine.config import REPO_ROOT  # noqa: PLC0415
 
+    # The engine's tables first (database/migrations, 0001-0105), then this project's own (core/migrations, 0106 and up): one command builds a whole database.
+    engine = REPO_ROOT / "database" / "migrations"
     with db.connect() as conn:
-        applied = apply_dir(conn)
+        applied = [*apply_dir(conn, engine), *apply_dir(conn)] if engine.is_dir() else apply_dir(conn)
     typer.echo(f"套用 {len(applied)} 個 migration" + (f"：{'、'.join(applied)}" if applied else "，資料表已是最新。"))
 
 
