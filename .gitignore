@@ -14,3 +14,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# local run data and logs
+.data/
+spikes/fet1/run.log
