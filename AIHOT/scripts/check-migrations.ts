@@ -13,7 +13,7 @@ export function checkMigrations(root: string, base: string): string[] {
   const current = git("ls-files", "--cached", "--others", "--exclude-standard").split("\n").filter((file) => isMigration(file) && existsSync(path.join(root, file)));
   const problems: string[] = [];
   for (const file of before) {
-    if (!existsSync(path.join(root, file)) || readFileSync(path.join(root, file), "utf8") !== git("show", `${base}:${file}`)) problems.push(`${file}: deployed migrations are immutable; add a new migration`);
+    if (!existsSync(path.join(root, file)) || readFileSync(path.join(root, file), "utf8") !== git("show", `${base}:./${file}`)) problems.push(`${file}: deployed migrations are immutable; add a new migration`);
   }
   const names = new Set<string>();
   for (const file of current) {
