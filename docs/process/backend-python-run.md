@@ -32,7 +32,7 @@ newsroom worker                                               # 工作行程：�
 網站：`cd AIHOT/apps/web && API_BASE_URL=http://127.0.0.1:3101 npm run dev`（或 `npm run build && npm start`）。
 
 ## 3.1 本機一鍵啟動（Windows）
-專案根目錄的 `python start_dev.py` 會啟動資料庫容器、API、worker 和網站（各開一個視窗），`python stop_dev.py` 停掉它們（只停 start_dev.py 開的；舊的或漏掉的用 `python stop_dev.py --scan`）。預設用獨立的 `dev` 資料庫（第一次啟動自動建立、建表、放進預設信源）並自動收集信源，模型呼叫關著；`--no-collect` 不收集，`--models` 打開模型呼叫（會產生費用，要在 `AIHOT/.env` 填 `LLM_API_KEY`），`--db seeded` 改用對照測試用的假資料庫。沒有模型時收集到的文章停在待分析，網站精選看不到。腳本裡的密碼與密鑰是本機測試用的。
+專案根目錄的 `python start_dev.py` 會啟動資料庫容器、API、worker 和網站（在同一個終端，輸出加服務名稱前綴，Ctrl+C 全停；加 `--separate` 則各開一個視窗），`python stop_dev.py` 停掉它們（只停 start_dev.py 開的；舊的或漏掉的用 `python stop_dev.py --scan`）。預設用獨立的 `dev` 資料庫（第一次啟動自動建立、建表、放進預設信源）並自動收集信源，模型呼叫關著；`--no-collect` 不收集，`--models` 打開模型呼叫（會產生費用，要在 `AIHOT/.env` 填 `LLM_API_KEY`），`--db seeded` 改用對照測試用的假資料庫。沒有模型時收集到的文章停在待分析，網站精選看不到。腳本裡的密碼與密鑰是本機測試用的。
 
 ## 4. 演練結果（空資料庫）
 - `newsroom migrate`：套用 86 個 migration，第二次執行顯示「已是最新」。

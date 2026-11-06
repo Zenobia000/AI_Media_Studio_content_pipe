@@ -4,7 +4,19 @@
 |---|---|
 | 對應票 | [T-061](../tickets/T-061.md)、`COL-FR-007` |
 | 日期 | 2026-11-02 |
-| 狀態 | 只查了規則。**沒有寫 Reddit 收集器**，也沒有 PRD Q5 的主管決定 |
+| 狀態 | **2026-11-06 決定：採停用路徑**。沒有寫 Reddit 收集器；PRD Q5 沒有主管的答覆，依專案規則決定（見下方〈決定〉） |
+
+## 決定（2026-11-06）
+
+依專案既有的規則，Reddit 不收集、預設停用：
+
+- [PRD](../product/PRD.md) D11：Reddit 降為選用來源。
+- [02_collect](../spec/02_collect.md) COL-FR-007：沒有取得 API 存取權就停用，Reddit 上的 AI 討論改由彙整電子報（AINews、TLDR AI）與 Hacker News 間接涵蓋。
+- [技術選型](../architecture/tech-selection.md) §1.3：建議 Reddit 降為選用。
+- PRD Q5 要在 2026-10-30 前登記 Reddit API app，期限已過（Reddit 10-31 起不再受理新的公開 API 申請），所以現在也沒有路可以申請。
+- 驗收「停用時一切正常」：AIHOT 的信源清單沒有 Reddit，現在就成立，不需要改程式。
+
+若之後主管要 Reddit，要先確認是否算商業用途並送申請，拿到存取權才寫收集器。
 
 ## 查到的（第三方文章，不是 Reddit 官方頁面，要核對 Reddit 的 Data API Wiki 與條款）
 
