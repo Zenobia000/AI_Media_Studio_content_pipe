@@ -1,6 +1,7 @@
 # Checks on GitHub-hosted runners: install, typecheck, web build, the web and backend tests on a fresh
 # PostgreSQL, the built site's smoke check on the empty database, and the Docker image brought up with docker compose.
 # Only GitHub-owned actions, pinned to a full commit SHA.
+# The python job runs ruff, mypy and pytest; the other two jobs are the original Node checks and the Docker bring-up.
 name: Check
 
 on:
