@@ -2,7 +2,7 @@
 name = "newsroom"
 version = "0.1.0"
 description = "AI Media Studio content pipeline: collect, fetch (素材收集與補料)"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
   "psycopg[binary]>=3.2",
   "httpx>=0.27",
@@ -23,6 +23,7 @@ dependencies = [
   "tzdata",
   "numpy>=1.26",
   "markdown-it-py>=3",
+  "opencc>=1.1",
 ]
 
 [project.optional-dependencies]
@@ -49,12 +50,16 @@ markers = ["db: needs a throwaway PostgreSQL (DATABASE_URL ending in _test or _c
 
 [tool.ruff]
 line-length = 150
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
-ignore = ["E501", "B008", "UP007", "UP045", "UP017", "RUF001", "E731"]
+ignore = ["E501", "B008", "UP007", "UP045", "UP017", "RUF001", "E731", "UP046", "UP047"]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest fixtures share a name with the helper they wrap; the parity tests loop over pairs and ignore one side
+"tests/**" = ["F811", "B007", "F841"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true

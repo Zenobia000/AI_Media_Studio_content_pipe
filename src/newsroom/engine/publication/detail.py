@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Any, cast
 
 from newsroom.engine.content import proxy_body_images, text_to_html
 from newsroom.engine.lib.text import is_chinese_text, strip_tag_markup
@@ -18,6 +19,7 @@ from newsroom.engine.publication.items import (
 from newsroom.engine.publication.scope import evidence_condition, listed_condition, scope_params
 from newsroom.engine.publication.topics import topic_links, topic_membership, topic_membership_params
 from newsroom.engine.site import has_item_page
+from newsroom.engine.traditional import for_display
 
 
 def with_outline(html: str) -> tuple[str, list[dict]]:
@@ -62,7 +64,7 @@ def reading_body(language: str, zh: dict | None, original: str | None, complete:
     """The body a page reads in `language` when it has it, else in the other: Chinese is the article's own text or a translation (shown even
     before it is complete), the original only the article's own. `page` turns the HTML shown into what is sent, with its outline."""
     body_language = "original" if language == "original" and original else ("zh" if zh and zh["html"] else "original")
-    shown = zh["html"] if body_language == "zh" else original
+    shown = cast(dict, zh)["html"] if body_language == "zh" else original
     html, outline = page(shown) if shown else (shown, [])
     return {
         "body": {"zh": html if body_language == "zh" else None, "original": html if body_language == "original" else None,
@@ -105,11 +107,11 @@ def load_item_detail(pool, item_id: str, language: str = "zh", now: datetime | N
             (item_id,),
         ).fetchall()
         x = None
-        reading = {"body": None, "outline": [], "hasTranslation": False, "bodyLanguage": "original"}
+        reading: dict[str, Any] = {"body": None, "outline": [], "hasTranslation": False, "bodyLanguage": "original"}
         x_post = row.get("x_post") or {}
         if shows_post(row):
             post = x_view(row, False, True)
-            text = (post or {}).get("text") if post and post.get("text") is not None else str(_first(x_post.get("text"), row.get("body_text"), ""))
+            text = cast(str, (post or {}).get("text") if post and post.get("text") is not None else str(_first(x_post.get("text"), row.get("body_text"), "")))
             # A post's text is sent as written: its headings make the outline, without anchors.
             if (post and post.get("translation")) or text.strip():
                 reading = reading_body(
@@ -124,7 +126,7 @@ def load_item_detail(pool, item_id: str, language: str = "zh", now: datetime | N
         elif row["body_mode"] == "full" and row.get("body_html"):
             chinese = is_chinese_body(row)
             zh = (
-                {"html": row["body_html"], "kind": "original"}
+                {"html": for_display(row["body_html"]), "kind": "original"}
                 if chinese
                 else ({"html": row["tr_html"], "kind": "translation"} if row.get("tr_html") else None)
             )

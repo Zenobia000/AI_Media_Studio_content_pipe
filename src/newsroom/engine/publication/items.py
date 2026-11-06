@@ -11,6 +11,7 @@ from newsroom.engine.media.imgproxy import proxied_image, proxied_image_set
 from newsroom.engine.publication.scope import foldable_selection_condition, scope_params, seated_condition
 from newsroom.engine.publication.stories import public_source_name
 from newsroom.engine.publication.v1 import iso, js_round
+from newsroom.engine.traditional import plain_for_display
 
 X_HANDLE = r"from:([A-Za-z0-9_]{1,15})"
 
@@ -155,12 +156,12 @@ def shows_post(row: dict) -> bool:
 def to_item_summary(row: dict) -> dict:
     """The shared public article; its X post is added as each answer shows it."""
     return {
-        "id": row["id"], "title": row["title"], "originalTitle": row["original_title"], "summary": row["summary"],
-        "reason": row["reason"] if row["selected"] else None, "source": {"name": public_source_name(row["source_name"])}, "links": {"original": row["url"]},
+        "id": row["id"], "title": plain_for_display(row["title"]), "originalTitle": row["original_title"], "summary": plain_for_display(row["summary"]),
+        "reason": plain_for_display(row["reason"]) if row["selected"] else None, "source": {"name": public_source_name(row["source_name"])}, "links": {"original": row["url"]},
         "publishedAt": iso(row["published_at"]) if row["published_at"] else None, "discoveredAt": iso(row["discovered_at"]), "timelineAt": iso(row["timeline_at"]),
         "category": row["category"], "tags": display_tags(row["tags"]), "score": None if row["score"] is None else js_round(float(row["score"])),
         "selected": row["selected"], "channel": row["channel"],
-        "story": {"publicId": row["story_public_id"], "title": row["story_title"] or ""} if row["story_public_id"] else None,
+        "story": {"publicId": row["story_public_id"], "title": plain_for_display(row["story_title"] or "")} if row["story_public_id"] else None,
     }  # fmt: skip
 
 
