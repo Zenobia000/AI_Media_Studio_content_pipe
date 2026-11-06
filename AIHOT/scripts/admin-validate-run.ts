@@ -1,6 +1,7 @@
 // Feeds invalid source bodies to the admin's create and update validation and prints the messages the API would answer with.
 import { ZodError } from "zod";
 import { createSource, updateSource } from "@aihot/backend/admin/sources";
+import { exitAfterFlush } from "./flush.ts";
 
 const message = (error: unknown) => error instanceof ZodError
   ? error.issues.map((issue) => `${issue.path.join(".") || "請求"}: ${issue.message}`).join("; ").slice(0, 300)
@@ -24,4 +25,4 @@ const out = {
   createInputs: creates, patchInputs: patches,
 };
 console.log(JSON.stringify(out));
-process.exit(0);
+await exitAfterFlush();

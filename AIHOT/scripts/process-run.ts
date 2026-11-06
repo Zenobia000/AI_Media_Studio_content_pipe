@@ -2,6 +2,7 @@
 import { closeDb } from "@aihot/backend/db";
 import { processArticle } from "@aihot/backend/jobs/content";
 import { stopBoss } from "@aihot/backend/jobs/queue";
+import { exitAfterFlush } from "./flush.ts";
 
 const out = [];
 for (const id of process.argv.slice(2)) {
@@ -11,4 +12,4 @@ for (const id of process.argv.slice(2)) {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

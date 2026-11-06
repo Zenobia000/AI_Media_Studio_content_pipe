@@ -156,8 +156,11 @@ test("every environment variable the code reads is listed in a template, and eve
     ...tracked("*.service").flatMap((unit) => assigned(unit, /^Environment="?([A-Z][A-Z0-9_]+)=/gm)),
   ]);
   const read = envReads(production());
+  // The collect, fetch and inbox part (and the Python engine) lives beside AIHOT in ../src/newsroom and reads its own settings; the
+  // template lists them too. A name the Python code gives whole as a string counts as read, as it does for the TypeScript.
+  const python = existsSync(path.join(ROOT, "../src/newsroom")) ? sources("../src/newsroom", /\.py$/) : [];
   const readAnywhere = new Set([...read, ...envReads(sources("scripts")),
-    ...[...production(), ...sources("scripts")].flatMap(({ text }) => matches(text, NAMED)),
+    ...[...production(), ...sources("scripts"), ...python].flatMap(({ text }) => matches(text, NAMED)),
     ...DEPLOYMENT.flatMap((file) => matches(readFileSync(path.join(ROOT, file), "utf8"), SUBSTITUTED))]);
   assert.deepEqual([...read].filter((name) => !listed.has(name) && !preset.has(name)), [], "list it in an environment template, or stop reading it");
   assert.deepEqual([...listed].filter((name) => !readAnywhere.has(name)), [], "no code reads it: remove it from the template");

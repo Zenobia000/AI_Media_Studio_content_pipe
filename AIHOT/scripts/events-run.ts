@@ -11,6 +11,7 @@ import * as corrections from "@aihot/backend/events/corrections";
 import * as relate from "@aihot/backend/events/relate";
 import { stopBoss } from "@aihot/backend/jobs/queue";
 import { failureKind } from "@aihot/backend/providers/receipts";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 const out: unknown[] = [];
@@ -56,4 +57,4 @@ if (input.op === "digest") {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

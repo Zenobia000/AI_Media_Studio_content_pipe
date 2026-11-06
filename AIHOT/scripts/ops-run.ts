@@ -11,6 +11,7 @@ import { checkWorkerHeartbeat } from "@aihot/backend/operations/watch";
 import { sourceHealthWeekly } from "@aihot/backend/operations/reports";
 import { dailyRetention } from "@aihot/backend/operations/retention";
 import { recoverStaleWork, releaseReceipt } from "@aihot/backend/operations/recover";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 const out: unknown[] = [];
@@ -38,4 +39,4 @@ for (const [name, ...args] of input.calls) {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

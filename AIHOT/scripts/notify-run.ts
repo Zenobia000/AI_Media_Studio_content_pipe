@@ -7,6 +7,7 @@ import { ensureContentTargets, markStaleDeliveries, resolveDelivery } from "@aih
 import * as feishu from "@aihot/backend/notify/feishu";
 import * as agent from "@aihot/backend/notify/agent";
 import { pushSelected } from "@aihot/backend/notify/selected";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 const dated = (f: any) => ({ ...f, since: f.since ? new Date(f.since) : undefined });
@@ -36,4 +37,4 @@ if (!input.calls.every((c: string[]) => ["duration", "formatAlert", "formatRetur
   await stopBoss();
   await closeDb();
 }
-process.exit(0);
+await exitAfterFlush();

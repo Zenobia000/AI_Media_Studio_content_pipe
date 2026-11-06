@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { closeDb } from "@aihot/backend/db";
 import { prepareArticleMedia, proxiedRenditions } from "@aihot/backend/media/prepare";
 import { luma, ssim } from "@aihot/backend/media/similarity";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 let out: unknown;
@@ -25,4 +26,4 @@ if (input.op === "ssim") {
   await closeDb();
 }
 console.log(JSON.stringify(out));
-process.exit(0);
+await exitAfterFlush();

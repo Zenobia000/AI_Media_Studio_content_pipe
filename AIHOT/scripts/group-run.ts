@@ -6,6 +6,7 @@ import { linkRelatedStories } from "@aihot/backend/events/consolidate";
 import { groupArticle } from "@aihot/backend/events/group";
 import { stopBoss } from "@aihot/backend/jobs/queue";
 import { failureKind } from "@aihot/backend/providers/receipts";
+import { exitAfterFlush } from "./flush.ts";
 
 const specs: Array<{ id?: string; signalOnly?: boolean; regroup?: boolean; links?: boolean }> = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 const out: unknown[] = [];
@@ -20,4 +21,4 @@ for (const spec of specs) {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

@@ -10,6 +10,7 @@ import { closeDb } from "@aihot/backend/db";
 import { rebaseTranslation, PresentationMismatch } from "@aihot/backend/content/presentation";
 import { segmentsOf, shield, translateArticle, translatePending, translateQuotes, unshield } from "@aihot/backend/editorial/translate";
 import { failureKind } from "@aihot/backend/providers/receipts";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 let out: unknown;
@@ -46,4 +47,4 @@ if (input.op === "shield") {
   await closeDb();
 }
 console.log(JSON.stringify(out));
-process.exit(0);
+await exitAfterFlush();

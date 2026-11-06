@@ -4,6 +4,7 @@
 import { closeDb } from "@aihot/backend/db";
 import { correctPublicationDate, previewPublicationDateCorrection } from "@aihot/backend/admin/content";
 import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
+import { exitAfterFlush } from "./flush.ts";
 
 interface Step { name: string; id: string; publishedAt: string | null; requestId: string; tamper?: string }
 const fail = (e: unknown) => ({ error: e instanceof Error ? e.message : String(e), kind: e instanceof Error ? e.constructor.name : "other" });
@@ -32,4 +33,4 @@ for (const step of JSON.parse(process.argv[2]) as Step[]) {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

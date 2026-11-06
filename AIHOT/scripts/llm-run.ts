@@ -4,6 +4,7 @@ import { z } from "zod";
 import { closeDb } from "@aihot/backend/db";
 import { chatJson } from "@aihot/backend/providers/llm";
 import { failureKind } from "@aihot/backend/providers/receipts";
+import { exitAfterFlush } from "./flush.ts";
 
 const cases = JSON.parse(readFileSync(process.argv[2]!, "utf8")) as Array<Record<string, any>>;
 const schema = z.object({ answer: z.string() });
@@ -19,4 +20,4 @@ for (const c of cases) {
 }
 console.log(JSON.stringify(out));
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

@@ -1,6 +1,7 @@
 // Reads one JSON source with the engine's fetchJsonList. argv[2] is a JSON file with the source row; prints the candidates as JSON.
 import { readFileSync } from "node:fs";
 import { fetchJsonList } from "@aihot/backend/sources/json-list";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8")) as { source: never };
 try {
@@ -8,4 +9,4 @@ try {
 } catch (error) {
   console.log(JSON.stringify({ ok: false, error: String((error as Error).message).slice(0, 200), name: (error as Error).constructor.name }));
 }
-process.exit(0);
+await exitAfterFlush();

@@ -2,6 +2,7 @@
 import { closeDb } from "@aihot/backend/db";
 import { analyzeArticle } from "@aihot/backend/editorial/analyze";
 import { failureKind } from "@aihot/backend/providers/receipts";
+import { exitAfterFlush } from "./flush.ts";
 
 const out = [];
 for (const id of process.argv.slice(2)) {
@@ -14,4 +15,4 @@ for (const id of process.argv.slice(2)) {
 }
 console.log(JSON.stringify(out));
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

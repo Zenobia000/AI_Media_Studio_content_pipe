@@ -12,6 +12,7 @@ import { collectSource, collectXShard } from "@aihot/backend/sources/collect";
 import { checkMpAccount, scheduleMpReconcile } from "@aihot/backend/sources/mp";
 import { planXShards, tweetToCandidate, xArticleText } from "@aihot/backend/sources/x";
 import { followXRenames } from "@aihot/backend/sources/x-renames";
+import { exitAfterFlush } from "./flush.ts";
 
 const input = JSON.parse(readFileSync(process.argv[2]!, "utf8"));
 const out: unknown[] = [];
@@ -37,4 +38,4 @@ for (const [name, ...a] of input.calls) {
 console.log(JSON.stringify(out));
 await stopBoss();
 await closeDb();
-process.exit(0);
+await exitAfterFlush();

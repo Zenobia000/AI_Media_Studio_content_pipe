@@ -1,6 +1,7 @@
 // Reads each page of a JSON file (argv[2]: [{ html, url, rules? }]) with the engine's article reader (content/extract.ts readable) and prints the results.
 import { readFileSync } from "node:fs";
 import { readable } from "@aihot/backend/content/extract";
+import { exitAfterFlush } from "./flush.ts";
 
 const pages = JSON.parse(readFileSync(process.argv[2]!, "utf8")) as Array<{ html: string; url: string; rules?: never }>;
 const out = pages.map((page) => {
@@ -12,4 +13,4 @@ const out = pages.map((page) => {
   }
 });
 console.log(JSON.stringify(out));
-process.exit(0);
+await exitAfterFlush();
