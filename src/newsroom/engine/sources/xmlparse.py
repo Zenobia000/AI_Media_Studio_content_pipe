@@ -25,6 +25,7 @@ def js_number_text(s: str) -> str:
         return "0"
     sign = "-" if f < 0 else ""
     m = re.fullmatch(r"(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?", repr(abs(f)).lower())
+    assert m is not None  # repr() of a float always matches
     int_part, frac_part, exp = m.group(1), m.group(2) or "", int(m.group(3) or 0)
     joined = int_part + frac_part
     stripped = joined.lstrip("0")

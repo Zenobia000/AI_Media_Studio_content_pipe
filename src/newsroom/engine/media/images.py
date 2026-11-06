@@ -14,8 +14,10 @@ import struct
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from PIL import Image, ImageOps
 
@@ -62,7 +64,7 @@ class PreparedImage:
 
 
 def _budget(env: str, site: float | None, unit: float) -> float:
-    value = os.environ.get(env)
+    value: str | float | None = os.environ.get(env)
     value = value if value is not None else site
     return float("inf") if value is None else float(value) * unit
 
@@ -72,10 +74,10 @@ class Budget:
         deployment = (pack.site().get("DEPLOYMENT") or {}).get("imageUpstreamBudget") or {}
         self.minute_limit = _budget("IMGPROXY_UPSTREAM_MB_PER_MINUTE", deployment.get("mbPerMinute"), 1e6)
         self.day_limit = _budget("IMGPROXY_UPSTREAM_GB_PER_DAY", deployment.get("gbPerDay"), 1e9)
-        self.minute = {"at": 0, "bytes": 0}
-        self.day = {"key": "", "bytes": 0}
+        self.minute: dict[str, Any] = {"at": 0, "bytes": 0}
+        self.day: dict[str, Any] = {"key": "", "bytes": 0}
         self.tripped: str | None = None
-        self.on_trip = None  # called with the settings value when a window is first exceeded
+        self.on_trip: Callable[[dict], None] | None = None  # called with the settings value when a window is first exceeded
 
     def allowed(self, now: float | None = None) -> tuple[bool, str | None]:
         now = time.time() * 1000 if now is None else now
@@ -280,9 +282,9 @@ def still_rendition(body: bytes, upstream_type: str, mode: str, vectors: bool):
         return {"kept": {"body": body, "type": typ}}
     img = ImageOps.exif_transpose(img) if not ico else img
     if avatar:
-        img = ImageOps.fit(img, (width, width), Image.LANCZOS, centering=(0.5, 0.5))
+        img = ImageOps.fit(img, (width, width), Image.Resampling.LANCZOS, centering=(0.5, 0.5))
     elif img.width > width:
-        img = img.resize((width, max(1, round(img.height * width / img.width))), Image.LANCZOS)
+        img = img.resize((width, max(1, round(img.height * width / img.width))), Image.Resampling.LANCZOS)
     return {"image": img, "type": typ, "ico": bool(ico), "avatar": avatar}
 
 
@@ -414,7 +416,7 @@ def convert_animated(url: str, mode: str) -> int:
                 gif.seek(i)
                 frame = gif.convert("RGBA")
                 if frame.width > width:
-                    frame = frame.resize((width, max(1, round(frame.height * width / frame.width))), Image.LANCZOS)
+                    frame = frame.resize((width, max(1, round(frame.height * width / frame.width))), Image.Resampling.LANCZOS)
                 frames.append(frame)
                 durations.append(gif.info.get("duration", 100))
             out = io.BytesIO()

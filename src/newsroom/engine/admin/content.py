@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime, timedelta
+from typing import cast
 
 from psycopg.types.json import Jsonb
 
@@ -345,7 +346,7 @@ def refresh_presentation(pool, article_id: str, options: dict, request_id: str, 
     # A feed can publish different wording from its web page. Refresh the same source material first.
     got = None
     if a["kind"] == "rss" and a["config"].get("feedUrl"):
-        source = load_source(pool, a["source_id"])
+        source = cast(dict, load_source(pool, a["source_id"]))
         with pool.connection() as conn:
             entries = listing_entries(conn, source, fetch_rss(source, True)["candidates"])
         entry = next((c for c in entries if c["identity_key"] == a["identity_key"]), None)
@@ -374,7 +375,7 @@ def refresh_presentation(pool, article_id: str, options: dict, request_id: str, 
     version_now = sha256(stable_json({k: v for k, v in snapshot_key.items() if v is not None}))
     result = {
         "revision": a["revision"], "version": version_now, "ready": reason is None, "applied": False,
-        "changed": bool(got) and (got["html"] != a["body_html"] or stable_json(got["images"]) != stable_json(a["media"])), "reason": reason,
+        "changed": got is not None and (got["html"] != a["body_html"] or stable_json(got["images"]) != stable_json(a["media"])), "reason": reason,
         "images": {"before": before["images"], "after": after["images"]}, "links": {"before": before["links"], "after": after["links"]}, "translation": translation,
     }  # fmt: skip
     if preview:

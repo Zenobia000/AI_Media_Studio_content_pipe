@@ -4,6 +4,8 @@ retries or later revisions (only an explicit regroup). Port of events/correction
 
 from __future__ import annotations
 
+from typing import Any
+
 from newsroom.engine.audit import Conflict, audit
 from newsroom.engine.events.digest import compose_story_digest
 from newsroom.engine.events.group import record_signal, reset_automatic
@@ -98,7 +100,7 @@ def move_to_fact(pool, article_id: str, fact_public_id: str, reason: str, actor:
         source = conn.execute("SELECT id, signal_group_id FROM sources WHERE id = %s", (article["source_id"],)).fetchone()
         record_signal(conn, target["story_id"], article_id, source, "editorial", article["at"])
         conn.execute(_GROUPED, (article_id,))
-        moved = {"fact": int(target["id"]), "story": int(target["story_id"]), "facts": facts, "stories": stories}
+        moved: dict[str, Any] = {"fact": int(target["id"]), "story": int(target["story_id"]), "facts": facts, "stories": stories}
     publish_article(pool, article_id)
     # The old facts' other reports may take a new reading-group anchor.
     if moved["facts"]:

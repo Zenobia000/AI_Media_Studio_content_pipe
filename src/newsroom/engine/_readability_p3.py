@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import re
+from typing import Any
 
 from bs4 import Tag
 
@@ -201,7 +202,8 @@ class ReadabilityRest(ReadabilityGrab):
                                   v("twitter:title"), v("parsely-title"))  # fmt: skip
         if not js_truthy(metadata["title"]):
             metadata["title"] = self._getArticleTitle()
-        article_author = v("article:author") if isinstance(v("article:author"), str) and not self._isUrl(v("article:author")) else None
+        author_value = v("article:author")
+        article_author = author_value if isinstance(author_value, str) and not self._isUrl(author_value) else None
         # get author
         metadata["byline"] = first(jsonld.get("byline"), v("dc:creator"), v("dcterm:creator"), v("author"), v("parsely-author"), article_author)
         # get description
@@ -323,7 +325,7 @@ class ReadabilityRest(ReadabilityGrab):
         text_length = len(self._getInnerText(element))
         if text_length == 0:
             return 0
-        link_length = 0
+        link_length: float = 0
         for link in D.get_elements_by_tag_name(element, "a"):
             href = D.get_attribute(link, "href")
             coefficient = 0.3 if href and REGEXPS["hashUrl"].search(href) else 1
@@ -386,13 +388,13 @@ class ReadabilityRest(ReadabilityGrab):
         """Return an object indicating how many rows and columns this table has."""
         rows = columns = 0
         for tr in D.get_elements_by_tag_name(table, "tr"):
-            rowspan = D.get_attribute(tr, "rowspan") or 0
+            rowspan: Any = D.get_attribute(tr, "rowspan") or 0
             if rowspan:
                 rowspan = js_parse_int(rowspan)
             rows += rowspan if js_truthy(rowspan) and rowspan == rowspan else 1
             columns_in_row = 0
             for cell in D.get_elements_by_tag_name(tr, "td"):
-                colspan = D.get_attribute(cell, "colspan") or 0
+                colspan: Any = D.get_attribute(cell, "colspan") or 0
                 if colspan:
                     colspan = js_parse_int(colspan)
                 columns_in_row += colspan if js_truthy(colspan) and colspan == colspan else 1
@@ -443,6 +445,7 @@ class ReadabilityRest(ReadabilityGrab):
             # In some sites (e.g. Kotaku), they put 1px square image as base64 data uri in the src attribute. So, here we check if the data uri is too short, just might as well remove it.
             if src and REGEXPS["b64DataUrl"].search(src):
                 parts = REGEXPS["b64DataUrl"].search(src)
+                assert parts is not None  # the same search just matched
                 # Make sure it's not SVG, because SVG can have a meaningful image in under 133 bytes.
                 if parts.group(1) == "image/svg+xml":
                     continue

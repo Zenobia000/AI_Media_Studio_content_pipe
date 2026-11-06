@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import re
+from typing import Any, cast
 
 from fastapi import FastAPI, Request, Response
 
@@ -152,7 +153,7 @@ def register_admin(app: FastAPI) -> None:
         from newsroom.engine.events.corrections import merge_stories
 
         b = body(request)
-        return merge_stories(request.app.state.pool, int(b.get("from")), int(b.get("into")), b.get("reason"), actor_of(admin))
+        return merge_stories(request.app.state.pool, int(cast(Any, b.get("from"))), int(cast(Any, b.get("into"))), cast(str, b.get("reason")), actor_of(admin))
 
     # Feedback
     @app.get("/api/admin/feedback", include_in_schema=False)
@@ -242,7 +243,7 @@ def register_admin(app: FastAPI) -> None:
         except ValueError:
             days = 7
         days = min(90, days)
-        return md.models_overview(request.app.state.pool, int(days) if float(days).is_integer() else days)
+        return md.models_overview(request.app.state.pool, cast(int, int(days) if float(days).is_integer() else days))
 
     @app.post("/api/admin/models/{capability}", include_in_schema=False)
     @admin_handler
@@ -279,20 +280,20 @@ def register_admin(app: FastAPI) -> None:
     @admin_handler
     def contact_qr(request: Request, admin: Principal):
         b = body(request)
-        return st.replace_contact_qr(request.app.state.pool, b.get("slot"), decode_image(b.get("image")), actor_of(admin))
+        return st.replace_contact_qr(request.app.state.pool, cast(str, b.get("slot")), decode_image(b.get("image")), actor_of(admin))
 
     @app.post("/api/admin/notify-targets/{key}", include_in_schema=False)
     @admin_handler
     def notify_target(request: Request, admin: Principal, key: str):
         b = body(request)
-        return or_not_found(request, st.set_target_enabled(request.app.state.pool, key, bool(b.get("enabled")), b.get("reason"), actor_of(admin)))
+        return or_not_found(request, st.set_target_enabled(request.app.state.pool, key, bool(b.get("enabled")), cast(str, b.get("reason")), actor_of(admin)))
 
     @app.put("/api/admin/budgets/{service}", include_in_schema=False)
     @admin_handler
     def budget(request: Request, admin: Principal, service: str):
         b = body(request)
         return st.update_budget(
-            request.app.state.pool, service, b.get("perMinute"), b.get("perHour"), b.get("perDay"), b.get("reason"), actor_of(admin)
+            request.app.state.pool, service, b.get("perMinute"), b.get("perHour"), b.get("perDay"), cast(str, b.get("reason")), actor_of(admin)
         )
 
     # The audit trail.

@@ -6,10 +6,11 @@ from __future__ import annotations
 import json
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from newsroom.engine import pack
 from newsroom.engine.config import REPO_ROOT
-from newsroom.engine.lib.cache import cached
+from newsroom.engine.lib.cache import Cached, cached
 from newsroom.engine.media.imgproxy import proxied_image
 from newsroom.engine.publication.scope import scope_params, selected_condition
 from newsroom.engine.publication.stories import public_source_name
@@ -89,15 +90,19 @@ def _query_site_stats(pool, now: datetime) -> dict:
     }
 
 
-_stats: dict[int, object] = {}
+_stats: dict[int, Cached[dict, Any]] = {}
 
 
 def load_site_stats(pool) -> dict:
     """Figures for the about page, kept for ten minutes per process; an older copy is served while the counts are read again."""
     entry = _stats.get(id(pool))
     if entry is None:
-        entry = _stats[id(pool)] = cached(lambda _=None: _query_site_stats(pool, datetime.now(UTC)), 10 * 60_000, 60 * 60_000)
-    return entry.get()  # type: ignore[attr-defined]
+
+        def load(_: Any = None) -> dict:
+            return _query_site_stats(pool, datetime.now(UTC))
+
+        entry = _stats[id(pool)] = cached(load, 10 * 60_000, 60 * 60_000)
+    return entry.get()
 
 
 def _pack_code(slot: str) -> str | None:

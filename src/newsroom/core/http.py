@@ -71,7 +71,7 @@ def assert_public_url(url: str) -> None:
     except socket.gaierror as e:
         raise BlockedAddress(f"查不到主機：{parts.hostname}") from e
     for info in infos:
-        if is_blocked_address(info[4][0]):
+        if is_blocked_address(str(info[4][0])):
             raise BlockedAddress(f"不允許連到內部位址：{parts.hostname}")
 
 

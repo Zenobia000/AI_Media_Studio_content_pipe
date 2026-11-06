@@ -14,6 +14,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 from psycopg.types.json import Jsonb
@@ -104,7 +105,7 @@ def build_score_input(a: dict) -> str:
         quoted_text = f"\n\n[引用 {'@' + quoted['handle'] if quoted.get('handle') else '原推文'}]：{quoted['text']}" if quoted.get("text") else ""
         body = js_trim(f"{js_trim(str(x.get('text') if x.get('text') is not None else ''))}{quoted_text}")
     else:
-        body = js_trim(a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else "")
+        body = js_trim(cast(str, a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else ""))
     if not body:
         body = a["title"]
     at = a.get("publishedAt")
@@ -176,7 +177,7 @@ def _fact(v) -> dict | None:
                 out[key] = s
     ev = _is_str(v.get("evidence"), 600, trim=True)
     out["evidence"] = ev if v.get("evidence") is not None and ev is not None else None
-    conditions = []
+    conditions: list[dict[str, Any] | None] = []
     if isinstance(v.get("conditions"), list):
         for item in v["conditions"]:
             if not isinstance(item, dict):
@@ -260,7 +261,7 @@ def normalize_structure(data: dict, a: dict) -> dict:
     if x:
         originals = [str(x.get("text") if x.get("text") is not None else a["title"]), str((x.get("quoted") or {}).get("text") if (x.get("quoted") or {}).get("text") is not None else "")]
     else:
-        originals = [a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else ""]
+        originals = [cast(str, a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else "")]
     originals = [collapse_whitespace(o) for o in originals]
     # A title is not the unseen contents of a video/article, regardless of the model's confidence.
     scope = data["scope"] if any(originals) else "unknown"
@@ -490,7 +491,7 @@ def run_summarize(pool, a: dict, opts: dict) -> dict:
     is_x = t.source_kind == "x_search"
     short = W.is_short_tweet_input(t)
     main = collapse_whitespace(t.main_text or t.title)
-    plain = {"reasonZh": None, "receiptIds": [], "reused": True}
+    plain: dict[str, Any] = {"reasonZh": None, "receiptIds": [], "reused": True}
     # A short post already in Chinese is its own copy, and too little text is not written up from a title.
     if short and not W.needs_short_tweet_translation(main):
         return {"kind": "verbatim", "model": None, "titleZh": main, "summaryZh": main, **plain}

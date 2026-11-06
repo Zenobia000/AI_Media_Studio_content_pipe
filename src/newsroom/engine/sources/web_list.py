@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from datetime import UTC, datetime
+from typing import Any, cast
 from urllib.parse import parse_qsl, quote, urlsplit
 
 import soupsieve
@@ -318,7 +320,7 @@ def from_intercom_changelog(html: str, base: str, source: dict) -> list[dict]:
         body_text = strip_tags(body_html)
         if not body_text.strip():
             continue
-        url = resolve_url(re.sub(r"#.*$", "", base) + "#" + quote(heading["id"], safe="!$&'()*+,;=:@/?-._~%"))
+        url = resolve_url(re.sub(r"#.*$", "", base) + "#" + quote(cast(Any, heading)["id"], safe="!$&'()*+,;=:@/?-._~%"))
         if not allowed(url, source):
             continue
         out.append({
@@ -353,7 +355,7 @@ def from_docusaurus_changelog(html: str, base: str, source: dict) -> list[dict]:
         if not allowed(re.sub(r"#.*$", "", url), source):
             continue
         dated = next((d for d in (read_publication_date(title, off), section_date, read_publication_date(strip_tags(body_html)[:80], off)) if d and d.published_at), None)
-        cand = {"url": url, "identity_key": f"url:{url}", "title": title}
+        cand: dict[str, Any] = {"url": url, "identity_key": f"url:{url}", "title": title}
         if dated:
             cand.update(published_at=dated.published_at, publication_time=dated.publication_time)
         out.append({**cand, "body_html": body_html, "body_text": strip_tags(body_html), "body_status": "ok"})
@@ -380,11 +382,11 @@ def from_mimo_home(html: str, base: str, source: dict) -> list[dict]:
     """The homepage's post rows are a prop of its own chunk, found through the route table and the runtime's chunk map (config.adapter "mimo_home").
     A homepage that no longer looks like this fails the fetch instead of falling back to the menu."""
     route_chunks: list[str] = []
-    chunk_file = None
+    chunk_resolver: Callable[[str], str | None] | None = None
     # Entry scripts come last; the libraries loaded before them hold neither table.
     scripts = [u for u in (absolute(m.group(1), base) for m in re.finditer(r'<script\b[^>]*\bsrc="([^"]+)"', html, re.I)) if u is not None]
     for src in reversed(scripts):
-        if route_chunks and chunk_file:
+        if route_chunks and chunk_resolver:
             break
         js = fetch_script(src)
         route = re.search(r'\{path:"/",[^{}]*\}', js)
@@ -396,15 +398,17 @@ def from_mimo_home(html: str, base: str, source: dict) -> list[dict]:
             names = {m.group(1): m.group(2) for m in re.finditer(r'"?(\w+)"?:"(\w+)"', mp.group(2))}
             root = resolve_url(public.group(1), src)
 
-            def chunk_file(cid, names=names, prefix=mp.group(1), root=root):  # noqa: B023
+            def resolve_chunk(cid, names=names, prefix=mp.group(1), root=root):  # noqa: B023
                 return resolve_url(f"{prefix}{cid}.{names[cid]}.js", root) if cid in names else None
 
-    if not route_chunks or not chunk_file:
+            chunk_resolver = resolve_chunk
+
+    if not route_chunks or not chunk_resolver:
         raise FetchError("mimo_home: no route table or chunk map in the homepage scripts")
     listing = str(source["config"]["url"] if source["config"].get("url") is not None else base)
     # The page's own chunk is the last one its route loads.
     for cid in reversed(route_chunks):
-        file = chunk_file(cid)
+        file = chunk_resolver(cid)
         if not file:
             continue
         js = fetch_script(file)

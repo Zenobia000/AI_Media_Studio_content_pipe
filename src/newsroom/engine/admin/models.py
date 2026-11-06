@@ -84,7 +84,7 @@ def models_overview(pool, days: int = 7) -> dict:
             open_until = (primary_circuit or {}).get("openUntil")
             fallback = {
                 "model": backup, "primaryPaused": bool(open_until), "backupPaused": bool((backup_circuit or {}).get("openUntil")),
-                "nextProbeAt": _iso(max(open_until, primary_circuit.get("probeUntil") or 0)) if open_until else None,
+                "nextProbeAt": _iso(max(open_until, (primary_circuit or {}).get("probeUntil") or 0)) if open_until else None,
             }  # fmt: skip
         steps.append({
             "key": key, "label": c["label"], "env": c["env"], "defaultModel": c["default"], "vision": bool(c["vision"]), "current": current, "fallback": fallback,

@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import math
 from datetime import datetime
+from typing import Any
 
 import regex
 
-from newsroom.engine.lib.cache import cached
+from newsroom.engine.lib.cache import Cached, cached
 from newsroom.engine.publication.items import ITEM_COLUMNS, ITEM_FROM, to_feed_item_summary
 from newsroom.engine.publication.scope import (
     listed_condition,
@@ -68,7 +69,7 @@ def read_seats(conn, now: datetime, ids: list[str] | None = None, subset: list[d
     ).fetchall()
 
 
-_indexes: dict[int, object] = {}
+_indexes: dict[int, Cached[dict, Any]] = {}
 
 
 def _read_index(pool, now: datetime) -> dict:
@@ -88,8 +89,12 @@ def topic_index(pool, now: datetime | None = None) -> dict:
         return _read_index(pool, now)
     entry = _indexes.get(id(pool))
     if entry is None:
-        entry = _indexes[id(pool)] = cached(lambda _=None: _read_index(pool, datetime.now().astimezone()), 60_000, 60_000)
-    return entry.get()  # type: ignore[attr-defined]
+
+        def load(_: Any = None) -> dict:
+            return _read_index(pool, datetime.now().astimezone())
+
+        entry = _indexes[id(pool)] = cached(load, 60_000, 60_000)
+    return entry.get()
 
 
 def company_brands() -> dict[str, dict]:
@@ -143,7 +148,7 @@ def topic_page_counts(pool, now: datetime | None = None) -> list[dict]:
     return out
 
 
-_pool_counts: dict[tuple[int, str], object] = {}
+_pool_counts: dict[tuple[int, str], Cached[Any, Any]] = {}
 
 
 def pool_total(pool, t: dict, now: datetime | None) -> int:
@@ -161,8 +166,12 @@ def pool_total(pool, t: dict, now: datetime | None) -> int:
     key = (id(pool), t["slug"])
     entry = _pool_counts.get(key)
     if entry is None:
-        entry = _pool_counts[key] = cached(lambda _=None: read(datetime.now().astimezone()), 60_000, 60_000)
-    return entry.get()  # type: ignore[attr-defined]
+
+        def load(_: Any = None) -> Any:
+            return read(datetime.now().astimezone())
+
+        entry = _pool_counts[key] = cached(load, 60_000, 60_000)
+    return entry.get()
 
 
 def load_topic_page(pool, slug: str, page: float, now: datetime | None = None) -> dict | None:

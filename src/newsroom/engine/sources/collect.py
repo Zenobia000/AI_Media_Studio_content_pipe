@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import time
 from datetime import UTC, datetime
+from typing import Any, cast
 
 from psycopg.types.json import Jsonb
 
@@ -161,7 +162,7 @@ def _from_stored(c: dict, stored: dict, source: dict, rules: str | None) -> bool
 
 def _detail_need(c: dict, stored: dict | None, source: dict, listing_title: str) -> dict | None:
     d = source["config"]["detail"]
-    stored_headline = bool(stored) and is_call_to_action_title(listing_title) and not is_call_to_action_title(stored["title"])
+    stored_headline = stored is not None and is_call_to_action_title(listing_title) and not is_call_to_action_title(stored["title"])
     need = {
         "date": d.get("publishedAtAuthoritative") is True or not ((stored and stored["published_at"]) or c.get("published_at")) or d.get("upgradeDatePrecision") is True,
         "title": bool(d.get("titleSelector") or d.get("titleRegex")) and (d.get("titleAuthoritative") is True or (not stored_headline and needs_title(c["title"]))),
@@ -195,7 +196,7 @@ def enrich_details(candidates: list[dict], source: dict, known: dict, *, budget:
     """Detail pages (config.detail) fill what a listing lacks, reading at most `budget` pages; the rest finish on a later run. A page read under the
     rules in force is not read again, and another source's material takes nothing from this listing."""
     rules = detail_rules_of(source)
-    reads = {"attempts": 0, "pending": 0, "failures": [], "refused": [], "listed": {}, "retries": {}, "after": None}
+    reads: dict[str, Any] = {"attempts": 0, "pending": 0, "failures": [], "refused": [], "listed": {}, "retries": {}, "after": None}
     provider_budget_spent = False
     start = next((i for i, c in enumerate(candidates) if c["identity_key"] == after), -1) + 1
     ordered = candidates[start:] + candidates[:start]
@@ -230,7 +231,7 @@ def enrich_details(candidates: list[dict], source: dict, known: dict, *, budget:
             got = fetch_detail(c["url"], source, need, pool)
             if got.get("published_at"):
                 c["published_at"] = datetime.fromisoformat(listed.replace("Z", "+00:00")) if listed else None
-            _apply_detail(c, got, rules)
+            _apply_detail(c, got, cast(str, rules))
             reads["listed"][key] = [listed, iso(c["published_at"]) if c.get("published_at") else None, now_ms()]
         except NotImplementedError:
             raise
@@ -551,12 +552,12 @@ def collect_x_shard(pool, key: str, source_ids: list[str]) -> dict:
                     backlog.append(b)
                 stretches.add(f"{b['query']} {b['next']}")
         read = read_x_search(
-            pool, shard_query([shard_handle(m) for m in members], [h for h in (self_thread_handle(m) for m in members) if h]), str(since), backlog, f"x-shard:{key}"
+            pool, shard_query([cast(str, shard_handle(m)) for m in members], [h for h in (self_thread_handle(m) for m in members) if h]), str(since), backlog, f"x-shard:{key}"
         )  # fmt: skip
         detail = {"shard": key, "accounts": len(members), "pages": read["pages"], "truncated": read["truncated"], "backlog": len(read["backlog"]), "backlogPages": read["backlogPages"], "dropped": read["dropped"]}
         counts: dict[str, dict] = {}
         for m in members:
-            handle = shard_handle(m).lower()
+            handle = cast(str, shard_handle(m)).lower()
             mine = [t for t in read["tweets"] if t["user"]["screen_name"].lower() == handle]
             stored = store(pool, m["id"], admit_listing([tweet_to_candidate(t) for t in mine], m), None)
             found += len(mine)

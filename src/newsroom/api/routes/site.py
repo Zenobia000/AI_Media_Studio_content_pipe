@@ -9,6 +9,7 @@ import re
 import time
 from collections.abc import Callable
 from functools import wraps
+from typing import cast
 
 from fastapi import FastAPI, Request, Response
 from starlette.concurrency import run_in_threadpool
@@ -73,10 +74,11 @@ def parse_form(raw: bytes, content_type: str) -> dict:
         name = part.get_param("name", header="content-disposition")
         if not name:
             continue
+        field = cast(str, name)
         if part.get_filename() is not None:
-            files.setdefault(name, {"mime": part.get_content_type(), "data": part.get_payload(decode=True) or b""})
+            files.setdefault(field, {"mime": part.get_content_type(), "data": part.get_payload(decode=True) or b""})
         else:
-            texts.setdefault(name, (part.get_payload(decode=True) or b"").decode("utf-8", "replace"))
+            texts.setdefault(field, cast(bytes, part.get_payload(decode=True) or b"").decode("utf-8", "replace"))
     for key in ("content", "email", "pageUrl"):
         if key in files:
             raise FeedbackRejected(400, "invalid_request", "反饋文字格式不正確。")

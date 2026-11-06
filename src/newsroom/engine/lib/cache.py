@@ -11,6 +11,7 @@ import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import Future
+from datetime import UTC, datetime
 from typing import Generic, TypeVar
 
 K = TypeVar("K")
@@ -27,10 +28,13 @@ def shared(name: Callable[[K], str], load: Callable[[K], T]) -> Callable[[K], T]
     def read(key: K) -> T:
         ident = name(key)
         with lock:
-            future = pending.get(ident)
-            owner = future is None
-            if owner:
-                future = pending[ident] = Future()
+            existing = pending.get(ident)
+            owner = existing is None
+            if existing is None:
+                future: Future = Future()
+                pending[ident] = future
+            else:
+                future = existing
         if owner:
             try:
                 future.set_result(load(key))
@@ -105,11 +109,9 @@ def cached_by_key(name: Callable[[K], str], load: Callable[[K], T], fresh_ms: fl
     return read
 
 
-def shared_search(name: Callable[[K], str], load: Callable[[K, object], T], is_search: Callable[[K], bool]) -> Callable[..., T]:
+def shared_search(name: Callable[[K], str], load: Callable[[K, datetime], T], is_search: Callable[[K], bool]) -> Callable[..., T]:
     """A public search that overlapping callers share. A call that names its own clock (a replay, a historical read) and any call
     `is_search` rejects read on their own."""
-    from datetime import UTC, datetime  # noqa: PLC0415
-
     search = shared(name, lambda key: load(key, datetime.now(UTC)))
 
     def read(key: K, now=None) -> T:

@@ -154,12 +154,12 @@ def random_pages(count: int, seed: int = 7) -> dict[str, str]:
     wrappers = ["div", "div", "div", "section", "article", "main", "span", "blockquote", "td", "li", "aside", "header", "footer", "figure", "details", "p"]
     leaves = [lambda: para(rng.randrange(99), rng.choice([12, 30, 80])), lambda: f'<a href="/x/{rng.randrange(50)}">link {rng.randrange(50)} text</a>',
               lambda: f"<h{rng.randrange(1, 7)}>Heading {rng.randrange(99)} of the part</h{rng.randrange(1, 7)}>".replace("</h", "</h", 1), lambda: "<br>", lambda: "<hr>",
-              lambda: "<ul><li>one, two</li><li>three</li></ul>", lambda: '<img src="/i/%d.jpg" width="%d">' % (rng.randrange(9), rng.choice([10, 300, 800])),
+              lambda: "<ul><li>one, two</li><li>three</li></ul>", lambda: f'<img src="/i/{rng.randrange(9)}.jpg" width="{rng.choice([10, 300, 800])}">',
               lambda: "<pre>code block, here</pre>", lambda: "text node with, commas and a long sentence that keeps going on and on for some words",
               lambda: '<table><tr><td>cell one</td><td>cell two</td></tr><tr><td>cell three</td><td>cell four</td></tr></table>', lambda: "<!-- note -->", lambda: "<p></p>",
               lambda: f'<iframe src="https://{rng.choice(["www.youtube.com", "ads.example.com"])}/e"></iframe>', lambda: "<form><input name=q><button>Go</button></form>"]  # fmt: skip
     leaves += [lambda: '<svg class="icon share" viewBox="0 0 1 1"><path d="M0"/></svg>', lambda: '<figure><svg><title>t</title></svg><figcaption>cap</figcaption></figure>',
-               lambda: '<noscript><img src="/n/%d.jpg"></noscript>' % rng.randrange(9), lambda: '<img data-src="/lazy/%d.jpg" class="lazy">' % rng.randrange(9),
+               lambda: f'<noscript><img src="/n/{rng.randrange(9)}.jpg"></noscript>', lambda: f'<img data-src="/lazy/{rng.randrange(9)}.jpg" class="lazy">',
                lambda: '<picture><source srcset="/p.webp"><img src="/p.jpg"></picture>', lambda: "<font color=red>old font text, with commas, here</font>",
                lambda: '<DIV CLASS="Upper Case">Upper case markup, with commas, in a div</DIV>', lambda: "<p>para<br><br>after double break, with commas<br><br>and again</p>",
                lambda: '<a href="javascript:void(0)">js</a><a href="#frag">frag</a><a href="rel/path">rel</a>', lambda: "<h1>Page heading</h1>",

@@ -34,7 +34,7 @@ def ledger_epoch(conn) -> str:
     if not row:
         conn.execute(
             "INSERT INTO settings (key, value) VALUES ('selected_ledger_epoch', %s::jsonb) ON CONFLICT (key) DO NOTHING",
-            ('{"epoch":"%s"}' % new_short_id(6),),
+            (f'{{"epoch":"{new_short_id(6)}"}}',),
         )
         row = conn.execute("SELECT value FROM settings WHERE key = 'selected_ledger_epoch'").fetchone()
     _epoch[:] = [row["value"]["epoch"]]

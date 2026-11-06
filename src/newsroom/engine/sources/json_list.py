@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import UTC, datetime, timedelta
+from typing import cast
 from urllib.parse import quote
 
 from newsroom.engine.config import credential
@@ -268,7 +269,7 @@ def fetch_json_list(source: dict, pool=None) -> list[dict]:
             "published_at": pub.published_at,
             "publication_time": pub.publication_time,
             "excerpt": collapse_whitespace(strip_tags(summary))[:2000] if summary else None,
-            "body_text": strip_tags(summary) if summary_is_body else None,
+            "body_text": strip_tags(cast(str, summary)) if summary_is_body else None,
             "body_status": "ok" if summary_is_body else "pending",
             "raw": {"externalId": external_id},
         })  # fmt: skip

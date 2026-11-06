@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import datetime
+from typing import cast
 
 from newsroom.engine.lib.http_fetch import language_headers, require_ok
 from newsroom.engine.lib.ids import stable_json
@@ -132,11 +133,12 @@ def feed_text(body_html: str | None, summary_text: str | None, source: dict, has
     """The body and excerpt of a feed entry: its text when it is the article, else no body (a summary, or a teaser that stands in as the excerpt
     when the entry has none) until extraction reads the entry's page; an entry without a page has none."""
     body_text = collapse_whitespace(plain_body if plain_body is not None else strip_tags(body_html)) if body_html else None
-    teaser = bool(body_text) and reads_whole(source) and is_teaser(body_text)
+    teaser = bool(body_text) and reads_whole(source) and is_teaser(cast(str, body_text))
+    excerpt: str | None
     if summary_text is not None:
         excerpt = collapse_whitespace(summary_text)[:2000]
     else:
-        excerpt = collapse_whitespace(body_text) if teaser else None
+        excerpt = collapse_whitespace(cast(str, body_text)) if teaser else None
     if body_text and (len(body_text) > 280 or source["config"].get("summaryIsBody") is True) and not teaser:
         return {"excerpt": excerpt, "body_html": body_html, "body_text": body_text, "body_status": "ok"}
     return {"excerpt": excerpt, "body_html": None, "body_text": None, "body_status": "pending" if has_page else "none"}
@@ -176,8 +178,8 @@ def fetch_rss(source: dict, force: bool = False) -> dict:
     require_ok(res)
     try:
         doc = xmlparse.parse(res.text(), STOP_PATHS)
-    except Exception as e:
-        raise FetchError(f"feed parse error: {str(e)[:200]}") from None
+    except Exception as parse_error:
+        raise FetchError(f"feed parse error: {str(parse_error)[:200]}") from None
     summary_is_body = cfg.get("summaryIsBody") is True
     offset = cfg.get("publishedAtUtcOffset") or "+08:00"
     out: list[dict] = []

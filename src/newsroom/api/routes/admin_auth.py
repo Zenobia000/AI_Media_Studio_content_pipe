@@ -12,6 +12,7 @@ from collections.abc import Callable
 from datetime import datetime
 from decimal import Decimal
 from functools import wraps
+from typing import cast
 from urllib.parse import parse_qsl
 from uuid import UUID
 
@@ -118,7 +119,7 @@ def admin_handler(fn: Callable[..., object]) -> Callable[..., Response]:
     # The route sees the handler's parameters without `admin`, which the guard supplies.
     params = [p for name, p in inspect.signature(fn).parameters.items() if name != "admin"]
     wrapper.__signature__ = inspect.Signature(params)  # type: ignore[attr-defined]
-    return wrapper
+    return cast(Callable[..., Response], wrapper)
 
 
 # Password attempts: at most 10 per client address and 50 in all per 15 minutes. The overall cap holds even when a client forges its address.

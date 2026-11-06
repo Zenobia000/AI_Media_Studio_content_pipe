@@ -156,6 +156,7 @@ def _scan(s: str, keep_case: bool = False, comments: bool = False):
                     pos += 1
                 else:
                     m2 = re.compile(r"[^\s=/>]+" if c != "=" else r"=[^\s=/>]*").match(s, pos)
+                    assert m2 is not None  # c is not whitespace, "/" or ">", so one character matches
                     attr = m2.group(0) if keep_case else m2.group(0).lower()
                     pos = m2.end()
                     value = ""
@@ -175,6 +176,7 @@ def _scan(s: str, keep_case: bool = False, comments: bool = False):
                             pos = end + 1
                         else:
                             m3 = re.compile(r"[^\s>]*").match(s, k)
+                            assert m3 is not None  # the pattern can match nothing
                             value = _decode(m3.group(0))
                             pos = m3.end()
                     if attr not in attribs:
@@ -321,7 +323,7 @@ def unwrap_proxy_url(src: str) -> str:
         return src
     from urllib.parse import parse_qs  # noqa: PLC0415
 
-    u = (parse_qs(s[s.index("?") + 1 :].replace("&amp;", "&"), keep_blank_values=True).get("u") or [None])[0]
+    u = (parse_qs(s[s.index("?") + 1 :].replace("&amp;", "&"), keep_blank_values=True).get("u") or [""])[0]
     return u if u and re.match(r"^https?://", u, re.I) else src
 
 

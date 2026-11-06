@@ -154,9 +154,15 @@ def v1_items(pool, query: V1ItemsQuery, now: datetime | None = None) -> dict:
     """Search callers across HTTP and tools share one read (per connection pool)."""
     search = _searches.get(id(pool))
     if search is None:
-        search = _searches[id(pool)] = shared_search(
-            lambda q: stable_json([q.mode, q.window, q.by, q.category, q.q, q.limit, q.cursor]),
-            lambda q, at: query_items(pool, q, at),
-            lambda q: bool((q.q or "").strip()),
-        )
+
+        def name(q: V1ItemsQuery) -> str:
+            return stable_json([q.mode, q.window, q.by, q.category, q.q, q.limit, q.cursor])
+
+        def load(q: V1ItemsQuery, at: datetime) -> dict:
+            return query_items(pool, q, at)
+
+        def is_search(q: V1ItemsQuery) -> bool:
+            return bool((q.q or "").strip())
+
+        search = _searches[id(pool)] = shared_search(name, load, is_search)
     return search(query, now)

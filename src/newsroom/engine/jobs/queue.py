@@ -223,7 +223,11 @@ class Worker:
     def schedule(self, name: str, cron: str, run: Callable[[], object], missed: str = "skip", timezone: str = "Asia/Shanghai") -> None:
         """A cron timer; each run is recorded in job_runs. A slot missed while no worker ran is run once with missed="once", else skipped."""
         self.schedules.append({"name": name, "cron": cron, "run": run, "missed": missed, "timezone": timezone})
-        self.work(f"cron.{name}", lambda _data, n=name, r=run: record_run(self.pool, n, r), 1, 15.0)
+
+        def record(_data: dict, n: str = name, r: Callable[[], object] = run) -> object:
+            return record_run(self.pool, n, r)
+
+        self.work(f"cron.{name}", record, 1, 15.0)
 
     def start(self) -> None:
         with self.pool.connection() as conn:

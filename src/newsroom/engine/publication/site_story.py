@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from newsroom.engine import pack
 from newsroom.engine.media.imgproxy import proxied_image, proxied_image_set
@@ -109,7 +110,7 @@ def heat_series(conn, story_id: int, now: datetime, days: int = 7) -> list[dict]
     for r in rows:
         if r["participant_key"] not in late:
             times.setdefault(r["participant_key"], []).append(r["observed_at"].timestamp() * 1000)
-    series = []
+    series: list[dict[str, Any]] = []
     for hour in hours:
         heat = 0.0
         participants = 0

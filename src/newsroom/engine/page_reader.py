@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, cast
 
 import regex
 from bs4 import Comment, NavigableString, Tag
@@ -167,11 +169,11 @@ def _code_block(document: D.Document, el, rule: PreserveRule):
 def _description_table(document: D.Document, el):
     """Side-by-side description lists as one table: each child of the element is a column, headed by its first other element with text; their terms are
     the rows. None unless every column lists the same terms."""
-    columns = []
+    columns: list[dict[str, Any]] = []
     for column in D.children(el):
         lst = _first(column, "dl")
         heading = next((c for c in D.children(column) if c is not lst and D.get_attribute(c, "aria-hidden") != "true" and shown_text(c)), None)
-        rows = []
+        rows: Any = []
         if lst is not None:
             for term in D.select(lst, "dt"):
                 sib = D.next_element_sibling(term)
@@ -269,7 +271,7 @@ def page_publication_date(document: D.Document, utc_offset: str | None = None) -
             if timed:
                 return date
             day = date
-        elif timed and date.published_at >= day.published_at and (date.published_at - day.published_at).total_seconds() * 1000 < _DAY_MS:
+        elif timed and date.published_at >= cast(datetime, day.published_at) and (date.published_at - cast(datetime, day.published_at)).total_seconds() * 1000 < _DAY_MS:
             return date
     return day if day is not None else PublicationDate(None, None)
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import cast
 from urllib.parse import quote, quote_plus, urlencode
 
 from newsroom.engine.config import credential
@@ -77,7 +78,7 @@ def _decode_entities(text: str) -> str:
 
 def tweet_text(t: dict) -> str:
     # Decode before inserting expanded URLs: literal code and destination URLs keep their own bytes.
-    text = _decode_entities(t.get("full_text") if t.get("full_text") is not None else t.get("text") or "")
+    text = _decode_entities(cast(str, t.get("full_text") if t.get("full_text") is not None else t.get("text") or ""))
     # Expand t.co links and drop trailing media links.
     for u in (t.get("entities") or {}).get("urls") or []:
         text = text.replace(u["url"], u["expanded_url"])

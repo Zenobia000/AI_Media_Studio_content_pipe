@@ -9,7 +9,7 @@ def budget_message(service: str, window: str) -> str:
 
 
 class BudgetExceededError(Exception):
-    def __init__(self, service: str, window: str, retry_after_seconds: int) -> None:
+    def __init__(self, service: str, window: str, retry_after_seconds: float) -> None:
         super().__init__(budget_message(service, window))
         self.service = service
         self.retry_after_seconds = retry_after_seconds

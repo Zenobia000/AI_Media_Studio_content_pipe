@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime, timedelta
+from typing import cast
 from urllib.parse import urlparse
 
 from newsroom.engine import pack
@@ -254,7 +255,7 @@ def feed_issues(pool, kind: str, limit: int) -> list[dict]:
                 (kind, limit),
             ).fetchall()
         shape = "daily" if kind == "daily" else "periodic"
-        gone = unavailable_ids(conn, [i.get("itemId") for r in rows for i in entries_of(r["content"], shape)])
+        gone = unavailable_ids(conn, cast(list[str], [i.get("itemId") for r in rows for i in entries_of(r["content"], shape)]))
         leads = daily_leads(conn, rows, gone) if kind == "daily" else None
     out = []
     for r in rows:

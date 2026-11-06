@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 
 from newsroom.engine.budget import budget_message
 from newsroom.engine.materials import SCHEDULED_AHEAD
@@ -33,7 +34,7 @@ def _text_number(v) -> str:
     return js_number_text(repr(float(v)))
 
 
-SOURCE_PROBLEMS = [
+SOURCE_PROBLEMS: list[dict[str, Any]] = [
     {"problem": "failing", "title": "連續抓取失敗", "action": "轉給 AI 檢查抓取錯誤", "observed_at": lambda s: s["last_failed_at"],
      "describe": lambda s: f"連續失敗 {s['fail_count']} 次{'，' + s['last_error'] if s['last_error'] else ''}"},
     {"problem": "unstable", "title": "反覆讀不出條目", "action": "即使最近成功也需檢查，避免繼續漏收", "observed_at": lambda s: s["last_unusable_at"],

@@ -17,6 +17,7 @@ import math
 import os
 import urllib.parse
 from datetime import UTC, datetime
+from typing import cast
 
 from psycopg.types.json import Jsonb
 
@@ -283,8 +284,8 @@ def backup_age(pool, now: float, open_: dict | None = None) -> list[Finding]:
             impact=f"萬一伺服器出事，最近 {duration(age)} 的資料可能無法完整恢復" if last_ok else "還沒有成功的完整備份，伺服器出事時可能無法恢復資料", heals="不會", action="轉給 AI 處理",
             detail=f"{'最近一次成功' if last_ok else '首次備份嘗試'} {beijing_stamp(_at(since))}{f'；{state}' if state else ''}；看 ops.backup 的執行記錄", since=_at(since),
         )]  # fmt: skip
-    if not b or not value.get("uploaded") or age > 30 * 3600_000:
-        detail = f"最近一次 {beijing_stamp(_parse_at(value['at']))}{f'（{state}）' if state else ''}；看 ops.backup" if b else "還沒有成功的備份記錄"
+    if not b or not (value or {}).get("uploaded") or age > 30 * 3600_000:
+        detail = f"最近一次 {beijing_stamp(_parse_at(cast(dict, value)['at']))}{f'（{state}）' if state else ''}；看 ops.backup" if b else "還沒有成功的備份記錄"
         return [Finding(key="backup.stale", level="later", title="資料庫備份超過一天沒成功", detail=detail)]
     return []
 
@@ -640,7 +641,7 @@ def check_alerts(pool, now: float | None = None) -> dict:
         if handing and not f.owner and not (open_ or {}).get("sentAt"):
             handed_at = (open_ or {}).get("handedAt") or _iso(_at(now))
             hold = holds.get(f.key)
-            held = bool(hold) and hold["since"] == (open_ or {}).get("since") and now < _parse(hold["until"])
+            held = bool(hold) and cast(dict, hold)["since"] == (open_ or {}).get("since") and now < _parse(cast(dict, hold)["until"])
             if held or now - _parse(handed_at) < HANDED_MS[f.level]:
                 # Before this round's handoff is published, the earlier ones of the day are counted.
                 earlier = 0 if open_ or returns.get(f.key) else handoffs(pool, f.key, _at(now - DAY_MS))

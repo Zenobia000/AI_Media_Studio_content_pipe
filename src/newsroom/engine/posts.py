@@ -17,6 +17,7 @@ def with_x_article(x_post: dict | None, article: dict | None) -> dict | None:
     """The post and its already fetched long article are one text for writing and public reading."""
     if not x_post or not (article or {}).get("text"):
         return x_post
+    assert article is not None  # the check above returned for a missing article
     post_text = x_post.get("text")
     parts = [str(post_text if post_text is not None else "").strip(), f"【X 長文】{article['title']}" if article.get("title") else "【X 長文】", article["text"]]
     return {**x_post, "text": "\n\n".join(p for p in parts if p)}

@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import math
 from datetime import datetime
+from typing import Any, cast
 
 import regex
 
@@ -343,7 +344,7 @@ def daily_with_notes(pool, date: str) -> dict | None:
         return not truthy(i.get("itemId")) or avail.get(i["itemId"], {}).get("available", True)
 
     def metadata(i: dict) -> dict:
-        return citation_metadata(i, avail.get(i.get("itemId")))
+        return citation_metadata(i, avail.get(cast(str, i.get("itemId"))))
 
     def links(i: dict) -> dict:
         return {"aihot": item_url(i["itemId"]) if truthy(i.get("itemId")) else None, "original": metadata(i)["sourceUrl"]}
@@ -465,7 +466,7 @@ def _number(v) -> float:
 
 def citation_from(raw: dict, avail: dict[str, dict]) -> dict:
     item_id = raw.get("itemId") if raw.get("itemId") is not None else None
-    a = avail.get(item_id) if truthy(item_id) else None
+    a = avail.get(cast(str, item_id)) if truthy(item_id) else None
     title = str(nullish(raw.get("title"), ""))
     if not still_public(raw, avail):
         # Withdrawn since: the reader sees a marked title; the summary and links are not sent at all.
@@ -579,6 +580,7 @@ def load_report(pool, kind: str, key: str) -> dict | None:
         def cite(raw: dict) -> dict:
             return entry_citation(raw, avail)
 
+        sections: list[dict[str, Any]]
         if kind == "daily":
             sections = [{"label": str(s.get("label")), "summary": None, "items": [cite(i) for i in nullish(s.get("items"), [])]} for s in nullish(c.get("sections"), [])]  # fmt: skip
         else:

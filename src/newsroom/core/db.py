@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import psycopg
 from psycopg.adapt import Loader
@@ -24,7 +25,7 @@ class _FloatNumeric(Loader):
         return float(bytes(data).decode())
 
 
-def connect(url: str | None = None) -> psycopg.Connection:
+def connect(url: str | None = None) -> psycopg.Connection[dict[str, Any]]:
     """A connection that returns rows as dicts and commits each statement unless used inside `with conn.transaction()`."""
     conn = psycopg.connect(url or database_url(), row_factory=dict_row, autocommit=True)
     conn.adapters.register_loader("numeric", _FloatNumeric)

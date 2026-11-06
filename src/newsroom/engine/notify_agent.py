@@ -8,6 +8,7 @@ import json
 import re
 import time
 from datetime import UTC, datetime
+from typing import cast
 from urllib.parse import urljoin
 
 import httpx
@@ -40,7 +41,7 @@ def _deliver(pool, key: str, receipt: dict) -> bool:
     failure = "網路連線失敗或超時"
     try:
         res = httpx.post(
-            credential("integrations", "WEBHOOK_HUB_URL"), follow_redirects=False,
+            cast(str, credential("integrations", "WEBHOOK_HUB_URL")), follow_redirects=False,
             headers={"authorization": f"Bearer {credential('integrations', 'WEBHOOK_HUB_KEY')}", "content-type": "application/json"},
             content=json.dumps(receipt["event"], ensure_ascii=False, separators=(",", ":")).encode(), timeout=15,
         )  # fmt: skip
@@ -116,7 +117,7 @@ def _iso(d: datetime) -> str:
 
 
 def wake_agent(pool, f: Finding, now_ms: float | None = None) -> bool:
-    identity = f.key if f.agent_only else f"{f.key}:{_iso(f.since)}"
+    identity = f.key if f.agent_only else f"{f.key}:{_iso(cast(datetime, f.since))}"
     event_type = (f.agent_type or "alert.review") if f.agent_only else "alert.today" if f.level == "today" else "alert.now"
     return _publish(pool, {
         "id": identity if len(identity) <= 200 else f"alert:{_hash(identity)}", "type": event_type, "subject": _subject(f.key), "summary": js_slice(f.title, 0, 200),

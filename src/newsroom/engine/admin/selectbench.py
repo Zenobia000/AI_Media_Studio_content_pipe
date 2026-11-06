@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime
+from typing import Any
 
 from psycopg.types.json import Jsonb
 
@@ -21,7 +22,7 @@ def import_selectbench_run(pool, report, label: str, actor: str) -> dict:
     if report is None:
         raise TypeError("Cannot read properties of null (reading 'models')")
     r = report if isinstance(report, dict) else {}
-    models = r.get("models") if r.get("models") is not None else {}
+    models: Any = r.get("models") if r.get("models") is not None else {}
     names = [m for m in models if isinstance(models[m], dict) and models[m].get("summary")] if isinstance(models, dict) else []
     if not names:
         raise BadRequest("report has no model summaries")
@@ -46,7 +47,7 @@ def import_selectbench_run(pool, report, label: str, actor: str) -> dict:
             if previous is not None and previous != c["gold"]:
                 raise BadRequest(f"{m}: {c['caseId']}: conflicting gold decision across models")
             gold_by_case[c["caseId"]] = c["gold"]
-    meta = r.get("meta") if isinstance(r.get("meta"), dict) else {}
+    meta: Any = r.get("meta") if isinstance(r.get("meta"), dict) else {}
     run_id = f"sb-{datetime.now(UTC):%Y%m%d}-{secrets.token_hex(3)}"
     summary = {m: {**models[m]["summary"], "sweep": models[m].get("sweep") if models[m].get("sweep") is not None else []} for m in names}
     first_n = models[names[0]]["summary"].get("n")

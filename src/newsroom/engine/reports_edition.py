@@ -7,6 +7,7 @@ Sections are the industry pack's. Port of reports/edition.ts."""
 from __future__ import annotations
 
 import math
+from typing import Any
 
 from newsroom.engine import taxonomy as T
 from newsroom.engine.lib.text import collate_key
@@ -153,7 +154,7 @@ def period_entries(pool, start_date: str, end_date: str) -> dict:
         [c for c in carried if c["id"] in by_id],
         lambda c: f"a:{by_id[c['id']]['id']}" if by_id[c["id"]]["story_id"] is None else f"s:{by_id[c['id']]['story_id']}",
     )
-    ranked = []
+    ranked: list[dict[str, Any]] = []
     for cs in events.values():
         best = sorted(cs, key=lambda c: (-c["sources"], collate_key(c["key"]), representative_priority(by_id[c["id"]])))[0]
         main = by_id[best["id"]]
@@ -399,7 +400,8 @@ def arrange_daily(entries: list[dict]) -> dict:
         return not e["previous"] or (e["authority"] < 3 and (e["category"] or "") not in commentary) or e["entry"]["sources"] >= FOLLOW_UP_SOURCES
 
     full = earned if any(earned(e) for e in live) else (lambda _e: True)  # a day of nothing but follow-ups still has entries in full
-    main, rest = [], []
+    main: list[dict] = []
+    rest: list[dict] = []
     per_source: dict[str, int] = {}
     for e in live:
         n = per_source.get(e["entry"]["sourceId"], 0)

@@ -13,6 +13,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from psycopg.types.json import Jsonb
 
@@ -277,7 +278,7 @@ def paid_request(pool, req: ReceiptRequest, call, before_request=None, shutdown=
                 unknown = None
             if unknown is not None:
                 # the transaction ends with the stale marking kept: leave through the normal path below
-                claimed = ("unknown", unknown)
+                claimed: tuple[Any, ...] = ("unknown", unknown)
             else:
                 _check_budget(conn, req.service, req.model)
                 permit = before_request(conn) if before_request else None

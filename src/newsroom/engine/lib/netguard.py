@@ -142,7 +142,7 @@ def _is_ip(host: str) -> bool:
 
 
 def system_resolve(host: str) -> list[str]:
-    return list(dict.fromkeys(i[4][0] for i in socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)))
+    return list(dict.fromkeys(str(i[4][0]) for i in socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)))
 
 
 def assert_public_url(url: str, allow_private: bool = False, resolve: Resolve | None = None, private_hosts: tuple[str, ...] | list[str] = ()) -> str:

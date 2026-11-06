@@ -7,6 +7,7 @@ Tag names are as the parser gave them (lower case); `tag_name` is the DOM's tagN
 from __future__ import annotations
 
 import re
+from typing import Any, cast
 from urllib.parse import urlsplit
 
 import soupsieve
@@ -29,6 +30,10 @@ class El(Tag):
 
     __eq__ = object.__eq__
     __hash__ = object.__hash__
+    # set on the elements that need them; an unset one reads as None (see __getattr__), so these are annotations only
+    svg: Any
+    readability: Any
+    _readabilityDataTable: Any
 
     def __ne__(self, other) -> bool:
         return self is not other
@@ -62,7 +67,7 @@ class Document:
     def create_element(self, name: str) -> El:
         el = self.soup.new_tag(name)  # the name as given: it is also what the element is written as
         el.attrs = {}
-        return el
+        return cast(El, el)
 
     def create_text_node(self, text: str) -> NavigableString:
         return NavigableString(text)
@@ -82,7 +87,7 @@ class Document:
         first = first_element_child(root)
         if first is None or tag_name(first) != "HEAD":
             first = self.create_element("head")
-            root.insert(0, first)
+            cast(El, root).insert(0, first)
         return first
 
     @property
@@ -106,10 +111,10 @@ class Document:
         return None
 
     def query_selector(self, selector: str, scope: Tag | None = None) -> El | None:
-        return (scope or self.soup).select_one(selector)
+        return cast("El | None", (scope or self.soup).select_one(selector))
 
     def query_selector_all(self, selector: str, scope: Tag | None = None) -> list[El]:
-        return list((scope or self.soup).select(selector))
+        return cast("list[El]", list((scope or self.soup).select(selector)))
 
 
 def parse_html(html: str, base_uri: str = "") -> Document:
@@ -179,7 +184,7 @@ def child_nodes(el) -> list:
 
 
 def children(el) -> list[El]:
-    return [c for c in el.contents if isinstance(c, Tag)] if isinstance(el, Tag) else []
+    return cast("list[El]", [c for c in el.contents if isinstance(c, Tag)] if isinstance(el, Tag) else [])
 
 
 def first_child(el):
@@ -193,7 +198,7 @@ def last_child(el):
 def first_element_child(el) -> El | None:
     for c in el.contents if isinstance(el, Tag) else []:
         if isinstance(c, Tag):
-            return c
+            return cast(El, c)
     return None
 
 
@@ -209,14 +214,14 @@ def next_element_sibling(n) -> El | None:
     s = n.next_sibling
     while s is not None and not isinstance(s, Tag):
         s = s.next_sibling
-    return s
+    return cast("El | None", s)
 
 
 def previous_element_sibling(n) -> El | None:
     s = n.previous_sibling
     while s is not None and not isinstance(s, Tag):
         s = s.previous_sibling
-    return s
+    return cast("El | None", s)
 
 
 def parent_node(n):

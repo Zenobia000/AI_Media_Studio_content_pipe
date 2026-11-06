@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -12,9 +13,9 @@ TAIPEI = timezone(timedelta(hours=8))
 
 def find_workspace(start: Path | str, env: dict[str, str] | None = None) -> Path | None:
     """NEWSROOM_HOME, else the first folder going up from `start` that holds config.toml and inbox/ (or newsroom/config.toml)."""
-    env = os.environ if env is None else env
-    if env.get("NEWSROOM_HOME"):
-        return Path(env["NEWSROOM_HOME"]).resolve()
+    environ: Mapping[str, str] = os.environ if env is None else env
+    if environ.get("NEWSROOM_HOME"):
+        return Path(environ["NEWSROOM_HOME"]).resolve()
     d = Path(start).resolve()
     while True:
         if (d / "config.toml").exists() and (d / "inbox").exists():

@@ -14,6 +14,7 @@ import traceback
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import cast
 
 from newsroom.core import db
 from newsroom.core.config import credential
@@ -103,7 +104,7 @@ def jobs() -> list[Job]:
 def run_job(job: Job) -> None:
     """Runs one job unless it is already running anywhere; a failure is logged and does not stop the others."""
     with db.connect() as lock:
-        got = lock.execute("SELECT pg_try_advisory_lock(hashtext(%s)) AS ok", (f"newsroom:{job.name}",)).fetchone()["ok"]
+        got = cast(dict, lock.execute("SELECT pg_try_advisory_lock(hashtext(%s)) AS ok", (f"newsroom:{job.name}",)).fetchone())["ok"]
         if not got:
             log.info(json.dumps({"job": job.name, "msg": "already running, skipped"}))
             return

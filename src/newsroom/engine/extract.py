@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 from urllib.parse import urlsplit
 
 # Sign-in paths read from the final address, never the text; a segment only counts when it ends at a delimiter (a real page path or an extension).
@@ -42,7 +43,7 @@ def page_fetchable(url: str, source_kind: str) -> bool:
         u = urlsplit(url)
     except ValueError:
         return False
-    return u.scheme in ("http", "https") and bool(u.hostname) and re.search(r"(^|\.)(x\.com|twitter\.com|mp\.weixin\.qq\.com)$", u.hostname, re.I) is None
+    return u.scheme in ("http", "https") and bool(u.hostname) and re.search(r"(^|\.)(x\.com|twitter\.com|mp\.weixin\.qq\.com)$", cast(str, u.hostname), re.I) is None
 
 
 # ── fetching and storing an article's body ─────────────────────────────────────────────────────────────────────────────────────────────────────

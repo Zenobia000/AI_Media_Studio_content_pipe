@@ -4,7 +4,9 @@ part),hot (extras and strip)}.ts and loadHot from stories.ts."""
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from newsroom.engine.lib.cache import cached_by_key, shared_search
 from newsroom.engine.lib.cursor import InvalidCursorError, decode_cursor, encode_cursor, query_binding
@@ -163,7 +165,7 @@ def load_timeline(pool, q: dict, cursor: str | None, limit: int, now: datetime |
         rep = pick_representative(candidates)
         reports = [r for r in pool_rows if r["fact_id"] == fact_id]
         rep_source = next((r["source_id"] for r in reports if r["article_id"] == rep["id"]), None)
-        group = {
+        group: dict[str, Any] = {
             "factId": str(fact_info[fact_id]["public_id"]) if fact_id in fact_info else str(fact_id),
             "additionalSourceCount": len({r["source_id"] for r in reports if r["source_id"] != rep_source}),
             "reportCount": len({r["article_id"] for r in reports}),
@@ -214,21 +216,22 @@ def _list_count(pool, f: dict, now: datetime) -> int:
         )
 
 
-_pool_totals: dict[int, object] = {}
+_pool_totals: dict[int, Callable] = {}
 
 
 def _pool_total(pool, f: dict) -> int:
     """Without a search the total only sets the page count: it is reused for 30 seconds per filter."""
     entry = _pool_totals.get(id(pool))
     if entry is None:
-        entry = _pool_totals[id(pool)] = cached_by_key(
-            lambda ff: stable_json([ff["channel"], ff["category"], ff["tag"]]),
-            lambda ff: _list_count(pool, ff, datetime.now(UTC)),
-            30_000,
-            30_000,
-            200,
-        )
-    return entry(f)  # type: ignore[operator]
+
+        def name(ff: dict) -> str:
+            return stable_json([ff["channel"], ff["category"], ff["tag"]])
+
+        def load(ff: dict) -> int:
+            return _list_count(pool, ff, datetime.now(UTC))
+
+        entry = _pool_totals[id(pool)] = cached_by_key(name, load, 30_000, 30_000, 200)
+    return entry(f)
 
 
 def query_pool(pool, query: dict, now: datetime, fixed_clock: bool) -> dict:
@@ -345,21 +348,27 @@ def _three_letters(term: str) -> bool:
     return bool(regex.search(r"[\p{L}\p{N}]{3}", term))
 
 
-_pool_searches: dict[int, object] = {}
+_pool_searches: dict[int, Callable] = {}
 
 
 def load_pool(pool, query: dict, now: datetime | None = None) -> dict:
     """Identical searches share their read before taking search capacity."""
     entry = _pool_searches.get(id(pool))
     if entry is None:
-        entry = _pool_searches[id(pool)] = shared_search(
-            lambda k: stable_json([k["channel"], k["category"], k["tag"], k.get("q"), k.get("tab"), k.get("page")]),
-            lambda k, at: query_pool(pool, k, at, False),
-            lambda k: bool((k.get("q") or "").strip()),
-        )
+
+        def name(k: dict) -> str:
+            return stable_json([k["channel"], k["category"], k["tag"], k.get("q"), k.get("tab"), k.get("page")])
+
+        def load(k: dict, at: datetime) -> dict:
+            return query_pool(pool, k, at, False)
+
+        def is_search(k: dict) -> bool:
+            return bool((k.get("q") or "").strip())
+
+        entry = _pool_searches[id(pool)] = shared_search(name, load, is_search)
     if now is not None:
         return query_pool(pool, query, now, True)
-    return entry(query)  # type: ignore[operator]
+    return entry(query)
 
 
 # ── hot ranking cards ───────────────────────────────────────────────────────────────────

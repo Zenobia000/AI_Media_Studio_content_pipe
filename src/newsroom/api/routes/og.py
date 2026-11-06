@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from fastapi import FastAPI, Request, Response
 from starlette.concurrency import run_in_threadpool
@@ -37,7 +38,7 @@ def report_date_label(kind: str, key: str) -> str:
         return month_day(key)
     if kind == "monthly":
         return f"{key[:4]}年{int(key[5:7])}月"
-    rng = iso_week_range(key)
+    rng = cast(dict[str, str], iso_week_range(key))
     start, end = rng["start"], rng["end"]
     tail = f"{int(end[8:10])}日" if start[5:7] == end[5:7] else month_day(end)
     return f"{month_day(start)}—{tail}"

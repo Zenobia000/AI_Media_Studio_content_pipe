@@ -159,8 +159,8 @@ def unshield(translated: str, s: dict) -> str | None:
     seen: set[int] = set()
     intact = True
     for a in [e for e in elements(root) if e.tagName == "a"]:
-        m = _LINK_ID.match(a.getAttribute("id")) if a.hasAttribute("id") else None
-        n = int(m.group(1)) if m else None
+        link = _LINK_ID.match(a.getAttribute("id")) if a.hasAttribute("id") else None
+        n = int(link.group(1)) if link else None
         if n is None or n >= len(s["links"]) or n in seen:
             intact = False
         else:

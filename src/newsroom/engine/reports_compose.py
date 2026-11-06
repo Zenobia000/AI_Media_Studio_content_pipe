@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import regex
 from psycopg.types.json import Jsonb
@@ -250,7 +251,8 @@ def _compose_period(pool, kind: str, key: str, start_date: str, end_date: str, r
     ]
     corpus = "\n".join([f"{start_date} {end_date}", *[f"{e['title']} {e['summary']}" for e in top]])
     model = M.model_for(_conn(pool), "report")
-    written, receipt_id = {"overview": "", "sections": {}}, None
+    written: dict[str, Any] = {"overview": "", "sections": {}}
+    receipt_id: Any = None
     try:
         res = chat_json(pool, {
             "model": model, "purpose": f"report_{kind}", "subject": f"report:{kind}:{key}", "prompt_version": report_version(), **period_prompt(kind, start_date, end_date, groups),
@@ -279,7 +281,7 @@ def _compose_period(pool, kind: str, key: str, start_date: str, end_date: str, r
     overview = usable(written["overview"], OVERVIEW_CHARS[kind])
 
     def intro(g: dict) -> str | None:
-        return usable(written["sections"].get(g["label"]), INTRO_CHARS) if len(g["items"]) >= INTRO_EVENTS else None
+        return usable(cast(dict, written["sections"]).get(g["label"]), INTRO_CHARS) if len(g["items"]) >= INTRO_EVENTS else None
 
     lead = top[0]
     name = _site()["SITE"]["name"]
@@ -342,7 +344,7 @@ def due_monthly(now: datetime | None = None) -> str:
 
 
 def _next_week(label: str) -> str:
-    return iso_week_label(add_days(iso_week_range(label)["start"], 7))
+    return iso_week_label(add_days(cast(dict, iso_week_range(label))["start"], 7))
 
 
 def _next_month(label: str) -> str:
@@ -359,8 +361,8 @@ def compose_due_reports(pool, now: datetime | None = None, limit: int = 8) -> di
     failed: list[str] = []
     kinds = [
         ("daily", due_daily(now), lambda k: add_days(k, 1), lambda k: k, lambda k: compose_daily(pool, k)),
-        ("weekly", due_weekly(now), _next_week, lambda k: iso_week_range(k)["end"], lambda k: compose_weekly(pool, k)),
-        ("monthly", due_monthly(now), _next_month, lambda k: month_range(k)["end"], lambda k: compose_monthly(pool, k)),
+        ("weekly", due_weekly(now), _next_week, lambda k: cast(dict, iso_week_range(k))["end"], lambda k: compose_weekly(pool, k)),
+        ("monthly", due_monthly(now), _next_month, lambda k: cast(dict, month_range(k))["end"], lambda k: compose_monthly(pool, k)),
     ]
     # Weeklies and monthlies sum up dailies: a period that ended before the site's first daily has nothing to sum up and is not due (a site started mid-month would
     # otherwise fail that month's issue on every run).

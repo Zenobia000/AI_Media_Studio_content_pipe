@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+from typing import cast
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request, Response
@@ -153,7 +154,7 @@ def register_mcp(app: FastAPI) -> None:
         except Exception:
             log.exception("mcp error")
             return rpc_error(500, -32603, "Internal error", headers=headers)
-        return Response(sse(answer), media_type="text/event-stream", headers={**headers, "X-Accel-Buffering": "no"})
+        return Response(sse(cast(dict, answer)), media_type="text/event-stream", headers={**headers, "X-Accel-Buffering": "no"})
 
     @app.options("/api/mcp", include_in_schema=False)
     def preflight(request: Request) -> Response:

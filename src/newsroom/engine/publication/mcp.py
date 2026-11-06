@@ -10,6 +10,7 @@ import json
 import logging
 import re
 from datetime import datetime
+from typing import Any, cast
 
 from newsroom.engine import pack
 from newsroom.engine.http_policy import public_interface_version
@@ -266,7 +267,7 @@ def validate(fields: list[dict], args: dict) -> tuple[dict, list[str]]:
         if problems:
             issues += [f"{key}: {p}" for p in problems]
         else:
-            values[key] = int(v) if f["type"] == "integer" else v
+            values[key] = int(cast(Any, v)) if f["type"] == "integer" else v
     extra = [k for k in args if k not in {f["name"] for f in fields}]
     if extra:
         issues.append(f'Unrecognized key: "{extra[0]}"' if len(extra) == 1 else "Unrecognized keys: " + ", ".join(json.dumps(k) for k in extra))
@@ -328,10 +329,10 @@ def _run_tool(pool, tool: str, args: dict) -> dict:
             date = args.get("date")
             if date and not is_valid_date(date):
                 return fail("invalid_request", f"{date} 不是有效日期。")
-            res = daily_with_notes(pool, date or "latest")
-            if not res:
+            daily = daily_with_notes(pool, date or "latest")
+            if not daily:
                 return fail("not_found", f"沒有 {date} 的公開日報。" if date else "還沒有公開日報。")
-            return ok(daily_answer(res["body"]["report"], "mcp", res["notes"]), res["body"])
+            return ok(daily_answer(daily["body"]["report"], "mcp", daily["notes"]), daily["body"])
         for kind, key_name, label, form in (
             ("weekly", "week", "週報", "真實的 ISO 周（例如 2026-W39）"),
             ("monthly", "month", "月報", "真實的月份（例如 2026-09）"),
@@ -406,11 +407,12 @@ def handle_message(pool, message: dict) -> dict | None:
                 issues.append(_type_issue("record", ["params", "arguments"], _received(params["arguments"])))
         if issues:
             return error(-32602, "Invalid tools/call request: " + _issues_json(issues))
-        tool = params["name"]
+        call = cast(dict, params)
+        tool = call["name"]
         schemas = inputs()
         if tool not in schemas:
             return error(-32602, f"Tool {tool} not found")
-        values, problems = validate(schemas[tool], params.get("arguments") or {})
+        values, problems = validate(schemas[tool], call.get("arguments") or {})
         if problems:
             text = f"Input validation error: Invalid arguments for tool {tool}: " + ", ".join(problems)
             return result({"content": [{"type": "text", "text": text}], "isError": True})

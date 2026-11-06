@@ -61,11 +61,6 @@ def admin(sides):  # noqa: F811
     server.shutdown()
 
 
-def versions(admin_, source_id: str):
-    """The version of a source in each side's own database."""
-    return lambda side: {"node": a, "py": b}[side] if False else None
-
-
 def version_of(admin_, side: str, source_id: str) -> str:
     return admin_[side].request("GET", f"/api/admin/sources/{source_id}").json()["source"]["updated_at"]
 

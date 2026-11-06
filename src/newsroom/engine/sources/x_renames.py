@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 import time
 from datetime import UTC, datetime
+from typing import cast
 
 from newsroom.engine.audit import audit
 from newsroom.engine.socialdata import get_tweet, private_account_refusal
@@ -54,12 +55,15 @@ def follow_x_renames(pool, now: float | None = None, pause_ms: float | None = No
                 break
             if to:
                 break
-        if not to or to.lower() == frm.lower():
+        if not to or to.lower() == cast(str, frm).lower():
             continue
         # Only the handle is rewritten: a new display name or company alias needs judgement and is left to a person.
-        pattern = re.compile(rf"(from:|@){re.escape(frm)}(?![A-Za-z0-9_])", re.I)
-        query = pattern.sub(lambda m, to=to: f"{m.group(1)}{to}", s["query"])
-        name = pattern.sub(lambda m, to=to: f"{m.group(1)}{to}", s["name"])
+        pattern = re.compile(rf"(from:|@){re.escape(cast(str, frm))}(?![A-Za-z0-9_])", re.I)
+        def swap(m: re.Match[str], to: str = to) -> str:
+            return f"{m.group(1)}{to}"
+
+        query = pattern.sub(swap, s["query"])
+        name = pattern.sub(swap, s["name"])
         with pool.connection() as conn, conn.transaction():
             conn.execute(
                 "UPDATE sources SET config = jsonb_set(config, '{query}', to_jsonb(%s::text)), name = %s, updated_at = now() WHERE id = %s",

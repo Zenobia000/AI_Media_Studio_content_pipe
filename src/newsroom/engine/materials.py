@@ -11,7 +11,7 @@ import hashlib
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlsplit
 
 from psycopg.types.json import Jsonb
@@ -354,7 +354,7 @@ def _upsert(conn, m: Material) -> MaterialResult:
             )
             reconcile_material_source(conn, new_id, {"sourceId": m.source_id, "author": m.author})
             return MaterialResult(new_id, True, False, t.backfill)
-        existing = _lock_material(conn, identity_key)
+        existing = cast(dict, _lock_material(conn, identity_key))
     conn.execute(
         "INSERT INTO article_discoveries (article_id, source_id, via, discovered_at) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
         (existing["id"], m.source_id, m.via, discovered_at),

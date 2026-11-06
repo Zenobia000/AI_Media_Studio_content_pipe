@@ -61,9 +61,9 @@ def js_parse(text: str) -> datetime | None:
     )
     if iso:
         y, mo, d = int(iso.group(1)), int(iso.group(2) or 1), int(iso.group(3) or 1)
-        h, mi, s = int(iso.group(4) or 0), int(iso.group(5) or 0), int(iso.group(6) or 0)
+        h, mi, sec = int(iso.group(4) or 0), int(iso.group(5) or 0), int(iso.group(6) or 0)
         frac = int(((iso.group(7) or "0") + "000")[:3])
-        if not (1 <= mo <= 12 and 1 <= d <= 31 and h <= 24 and mi <= 59 and s <= 59) or not _calendar_day(y, mo, d):
+        if not (1 <= mo <= 12 and 1 <= d <= 31 and h <= 24 and mi <= 59 and sec <= 59) or not _calendar_day(y, mo, d):
             return None
         zone = iso.group(8)
         if zone is None:
@@ -72,7 +72,7 @@ def js_parse(text: str) -> datetime | None:
             offset = timedelta(0)
         else:
             offset = _parse_offset(zone)
-        return datetime(y, mo, d, tzinfo=UTC) + timedelta(hours=h, minutes=mi, seconds=s, milliseconds=frac) - offset
+        return datetime(y, mo, d, tzinfo=UTC) + timedelta(hours=h, minutes=mi, seconds=sec, milliseconds=frac) - offset
     # English legacy forms.
     s = re.sub(r"\([^)]*\)", " ", t)
     s = s.replace(",", " ")
@@ -136,7 +136,8 @@ def parse_loose_date(value: str | None, utc_offset: str = "+08:00") -> datetime 
         return None
     compact = re.fullmatch(r"(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})", v)
     if compact:
-        return _at_offset(*compact.groups(), utc_offset)
+        y, mo, d, h, mi, s = compact.groups()
+        return _at_offset(y, mo, d, h, mi, s, utc_offset)
     year_first = re.search(r"(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?(?:(?:T|\s*)(\d{1,2}):(\d{2})(?::(\d{2}))?)?", v)
     month_first = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})(?:(?:T|\s+)(\d{1,2}):(\d{2})(?::(\d{2}))?)?", v)
     numeric = None

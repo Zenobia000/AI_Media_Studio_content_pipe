@@ -176,6 +176,11 @@ def _text_html(c) -> str:
 
 class _Info:
     __slots__ = ("is_block", "is_code", "is_blank", "leading", "trailing")
+    is_block: bool
+    is_code: bool
+    is_blank: bool
+    leading: str
+    trailing: str
 
 
 def _is_blank(node) -> bool:
@@ -214,6 +219,7 @@ def _info(node, infos: dict) -> _Info:
         i.leading = i.trailing = ""
     else:
         m = _EDGE.match(text_content(node))
+        assert m is not None  # the pattern matches any text
         leading, leading_ascii, leading_non_ascii, trailing, trailing_non_ascii, trailing_ascii = m.groups()
         if leading_ascii and _flanked("left", node):
             leading = leading_non_ascii

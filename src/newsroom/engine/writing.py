@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import cast
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -147,7 +148,7 @@ def render_context(a: dict, annotate_quoted: bool = False) -> str:
     if x:
         body = str(x.get("text") if x.get("text") is not None else a["title"])
     else:
-        body = a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else "(無正文)"
+        body = cast(str, a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else "(無正文)")
     lines.append(cap_body(body))
     lines.append("")
     lines.append(f"【材料質量】{material_quality(a)}")
@@ -238,7 +239,7 @@ def translate_input_of(a: dict) -> TranslateInput:
     quoted = (x or {}).get("quoted") or {}
     return TranslateInput(
         title=a["title"],
-        text=(main_text or "") if is_x else (a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else ""),
+        text=(main_text or "") if is_x else cast(str, a.get("bodyText") if a.get("bodyText") is not None else a.get("excerpt") if a.get("excerpt") is not None else ""),
         source_kind="x_search" if is_x else a["source"]["kind"],
         source_name=a["source"]["name"], document_url=a["url"], source_owner_entity_id=a["source"].get("ownerEntityId"), main_text=main_text,
         quoted_text=str(quoted["text"]) if quoted.get("text") else None, quoted_author=str(quoted["handle"]) if quoted.get("handle") else None,

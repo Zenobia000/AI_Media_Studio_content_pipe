@@ -82,7 +82,8 @@ def check_mp_account(pool, source_id: str, reason: str) -> dict:
                         (key,),
                     ).fetchone()
             retry_body = (
-                bool(known and known["retry"])
+                known is not None
+                and bool(known["retry"])
                 and known["body_status"] == "none"
                 and known["retry"]["attempts"] < BODY_RETRIES
                 and time.time() * 1000 - known["discovered_at"].timestamp() * 1000 < BODY_RETRY_WINDOW_MS

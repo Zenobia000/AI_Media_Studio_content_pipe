@@ -190,7 +190,7 @@ def render_poster(p: dict) -> bytes:
 
 def _png(img: Image.Image) -> bytes:
     out = io.BytesIO()
-    img.convert("P", palette=Image.ADAPTIVE, colors=256, dither=Image.FLOYDSTEINBERG).save(out, "PNG", optimize=True)
+    img.convert("P", palette=Image.Palette.ADAPTIVE, colors=256, dither=Image.Dither.FLOYDSTEINBERG).save(out, "PNG", optimize=True)
     return out.getvalue()
 
 

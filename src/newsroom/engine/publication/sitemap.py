@@ -11,6 +11,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from newsroom.engine.config import config
 from newsroom.engine.http_policy import site_url
@@ -35,7 +36,7 @@ PAGES = [
 
 
 def discovery_entries(pool, at: datetime, urls: int) -> list[dict]:
-    entries = [{"loc": loc, "changefreq": freq, "priority": prio} for loc, freq, prio in PAGES]
+    entries: list[dict[str, Any]] = [{"loc": loc, "changefreq": freq, "priority": prio} for loc, freq, prio in PAGES]
     with pool.connection() as conn:
         params = scope_params(at)
         reports = conn.execute(

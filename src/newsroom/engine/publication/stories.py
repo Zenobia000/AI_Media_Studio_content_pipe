@@ -162,9 +162,10 @@ def latest_hot_ranking(conn) -> dict | None:
 def digest_fact_evidence(r: dict) -> dict:
     """Conditions stay next to their object and source quote; no ownership is inferred from subject tags."""
     fact = r["structured_fact"] if isinstance(r.get("structured_fact"), dict) else {}
+    raw_conditions = fact.get("conditions")
     conditions = [
         {"text": c["text"], "quote": c["quote"]}
-        for c in (fact.get("conditions") if isinstance(fact.get("conditions"), list) else [])
+        for c in (raw_conditions if isinstance(raw_conditions, list) else [])
         if isinstance(c, dict) and isinstance(c.get("text"), str) and isinstance(c.get("quote"), str)
     ]
     return {"subject": r["fact_subject"], "action": r["fact_action"], "object": r["fact_object"], "conditions": r["fact_conditions"], "evidence": r["evidence"],

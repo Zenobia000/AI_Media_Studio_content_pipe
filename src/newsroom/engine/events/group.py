@@ -150,7 +150,7 @@ def create_fact(conn, story_id: int, title: str, frame: dict | None, at) -> int:
         except ValueError:
             occurred = None
     raw = frame.get("conditions")
-    conditions = ("；".join(c.get("text") for c in raw if isinstance(c, dict) and c.get("text")) or None) if isinstance(raw, list) else None
+    conditions = ("；".join(c["text"] for c in raw if isinstance(c, dict) and c.get("text")) or None) if isinstance(raw, list) else None
     return conn.execute(
         """INSERT INTO facts (public_id, story_id, title, subject, action, object, conditions, occurred_at, created_at)
            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
@@ -326,7 +326,7 @@ def _error_text(error: BaseException) -> str:
 
 def unsupported_material(output: dict | None) -> bool:
     """An analysis that says the material cannot establish what the current news is: grouping confirms no fact for it."""
-    return bool(output) and output.get("scope") == "unknown" and not output.get("fact")
+    return bool(output) and (output or {}).get("scope") == "unknown" and not (output or {}).get("fact")
 
 
 def decide(pool, article_id: str, signal_only: bool, regroup: bool, revision: int, recheck_selection: bool) -> dict:
