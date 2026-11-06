@@ -209,6 +209,11 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 11-06 | 簡體網站的中文文章原樣顯示，簡體字出現在繁體網站上 | 顯示時用 OpenCC 轉換，見下一節 |
 | 11-06 | 程式宣告支援 Python 3.11，實際用了 3.12 才有的語法（`pyproject.toml` 與程式不一致）；`ruff` 有 25 個問題，GitHub 上的 lint 會紅燈 | `requires-python`、ruff、mypy 都改成 3.12；修掉測試檔的小毛病，並把測試目錄對 3 條規則放寬（pytest 常見寫法） |
 | 11-06 | `mypy src` 有 282 個型別錯誤（260 個在移植的後端），GitHub 上的型別檢查要不就沒有、要不就紅燈 | 全部修掉，現在 `mypy src` 全過、已加進 `check.yml`。主要做法：`core/db.py` 的 `connect()` 標明回傳 dict 列（一次清掉一批）、`_readability_p1.py` 宣告被子類別實作的方法、`dom.py` 宣告動態屬性、其餘用型別標註或 `cast`；沒有放寬規則、沒有用 `ignore_errors`。幾處 `re.match` 後加了 `assert`（只在不可能發生的路徑上，錯誤型別從 AttributeError 變 AssertionError） |
+| 11-06 | 第一次在 GitHub 上跑 CI：`check` 的遷移檢查失敗，`git show <commit>:database/...` 找不到檔案（repo 根目錄在 `AIHOT/` 的上一層） | `AIHOT/scripts/check-migrations.ts` 改成 `${base}:./${file}`，路徑相對於 `AIHOT/` |
+| 11-06 | `python` 工作 74 個和 Node 對照的測試失敗：工作裡沒有 Node 和 AIHOT 的套件 | `check.yml` 的 `python` 工作加 Node 24 和 `npm ci` |
+| 11-06 | 對照測試讀到不完整的 JSON：Node 腳本在 `console.log` 後立刻 `process.exit()`，stdout 是管線時 Linux 上輸出被切在 65,536 位元組（在 `node:24` 容器裡重現）；Windows 上不會發生，所以本機一直沒看到 | 新增 `AIHOT/scripts/flush.ts` 的 `exitAfterFlush()`，19 個 `*-run.ts` 腳本改成輸出寫完才結束 |
+| 11-06 | `architecture.test.ts` 失敗：範本列了 `NEWSROOM_HOME`、`INBOX_DIR`、`CHANGEDETECTION_*`、`YTDLP_COOKIES_FILE`，但檢查只掃 TypeScript，這些只有 Python 在讀 | 檢查也掃 `../src/newsroom` 的 Python 程式 |
+| 11-06 | `error-logging.test.ts` 逾時（子程序啟動整個 API，限時 10 秒，GitHub 的機器忙時不夠；上一輪還通過，是時間不穩定） | 限時改成 60 秒。最後一次 CI 三個工作全綠 |
 | 11-06 | 用真實候選試 `set-title-zh` 時發現 inbox 的標題有簡體字（「订单」），沒經過簡轉繁 | inbox 產生時也轉換（`collect/inbox.py`），加單元測試 |
 
 ---

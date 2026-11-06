@@ -48,7 +48,7 @@
 
 | 工作 | 做完的 | 還沒做的 |
 |---|---|---|
-| T-001 專案架子與自動檢查 | AIHOT 已放進來並改名；`newsroom --version`、pytest、ruff、mypy 設定；自動檢查設定移到根目錄；2026-11-06 補上 `skills/RESOLVER.md` 空殼和根目錄 `CLAUDE.md`；`ruff check src tests` 全過（先前 25 個問題已修）、`mypy src` 全過（先前 282 個錯誤已修，詳見根目錄 README 的修正紀錄）；Python 版本需求改成 3.12；`check.yml` 的 `python` 工作現在有 lint、型別檢查、`pytest tests` | **還沒 push，沒在 GitHub 上實際跑過**（要你決定 push 或開 PR 才能驗證）；Node 檢查仍是原作者的，沒針對我們調整；CI 沒有跑和 Node 的對照測試；票上寫的「README 的 WSL 建置步驟（pyenv＋poetry）」沒做（我們在 Windows 用 pip，步驟在根目錄 README 的〈手動安裝與跑測試〉）；`RESOLVER.md` 只是空殼，完整內容由 T-015（周長曉）定義 |
+| T-001 專案架子與自動檢查 | AIHOT 已放進來並改名；`newsroom --version`、pytest、ruff、mypy 設定；`skills/RESOLVER.md` 空殼、根目錄 `CLAUDE.md`；本機 `ruff`、`mypy` 全過；**2026-11-06 第一次在 GitHub 上跑（我自己的私人 repo `Albertchiang40210/AI_Media_Studio_content_pipe` 的 `dev` 分支）：`check`、`docker`、`python` 三個工作全綠（Check #4，約 5 分 42 秒）**，跑出並修掉的問題見根目錄 README 的修正紀錄（路徑、Node 輸出被截斷、環境變數範本檢查、逾時） | **沒在團隊的 repo 上跑過**（只在我自己的 repo，團隊的 `origin` 沒推）；CI 沒有跑和 Node 的資料庫對照測試（578 個被略過，因為 CI 沒有種好資料的資料庫）；Node 檢查仍是原作者的，沒針對我們調整；票上驗收 1「乾淨的 WSL 照 README 建置並印出版本號」沒做（我們在 Windows 用 pip，README 沒有 WSL 步驟，也沒用 poetry）；驗收 3「故意提交型別錯誤，CI 要失敗並指出位置」沒實際試過（mypy 已在 CI，但沒故意弄壞驗證）；`RESOLVER.md` 只是空殼，內容由 T-015（周長曉）定義 |
 | T-039 下載 YouTube 等影片 | YouTube 可以 | Vimeo、X 要登入，下不了（不會繞過，程式會提示） |
 | T-040 調查來源穩不穩 | 2026-11-02 快照：33 個來源都連得上；`newsroom source-stats` 工具已做 | 14 天長期統計，約 11-17 才有資料，**還沒有結果** |
 | T-059 調查 X 要花多少錢 | 查價格並估算（[SPK-COL-1](../docs/spikes/SPK-COL-1.md)） | 票上要的 7 天實測；數字都是第三方資料 |
