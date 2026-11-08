@@ -40,6 +40,8 @@ ENV = {
     "INGEST_TOKEN": "ci-ingest-token-0123456789abcdef",
     "AIHOT_DATA_DIR": str(ROOT / ".data"),
     "PYTHONUTF8": "1",
+    # 站內問答（聊天、語意搜尋）：worker 定時把新文章轉成向量（需要本機 Ollama 的 bge-m3）
+    "RAG_INDEX_ENABLED": "true",
 }
 SERVICES = [
     ("MediaHOT API", ROOT, [sys.executable, "-m", "uvicorn", "--factory", "newsroom.api.app:build_app", "--port", "3101"]),

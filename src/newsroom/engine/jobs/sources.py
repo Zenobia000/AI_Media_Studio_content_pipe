@@ -246,6 +246,11 @@ def register_processing_jobs(worker) -> None:
     worker.schedule("stories.links", "12 * * * *", lambda: link_related_stories(pool))
     worker.schedule("hot.rank", "*/5 * * * *", lambda: compute_hot_ranking(pool))
     worker.schedule("hot.snapshot", "2 * * * *", lambda: snapshot_heat(pool))
+    # Vectors for the site's question answering (chat, semantic search): the new articles every ten minutes, off unless RAG_INDEX_ENABLED=true (needs the local embedding server).
+    if os.environ.get("RAG_INDEX_ENABLED") == "true":
+        from newsroom.rag.index import index_pending
+
+        worker.schedule("rag.index", "*/10 * * * *", lambda: index_pending(pool))
 
 
 def run_prepare_media(pool, data: dict) -> dict:

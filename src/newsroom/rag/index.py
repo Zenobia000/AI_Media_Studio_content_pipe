@@ -7,6 +7,7 @@ is not embedded again."""
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 from collections.abc import Callable
 from typing import Any
@@ -14,6 +15,7 @@ from typing import Any
 import httpx
 import numpy as np
 
+log = logging.getLogger("newsroom.rag")
 EmbedFn = Callable[[list[str]], list[list[float]]]
 BATCH = 16
 
@@ -86,6 +88,18 @@ def index_articles(conn, embed_fn: EmbedFn = embed, limit: int | None = None) ->
                 (row["id"], model, _hash(_text(row)), [float(x) for x in vector]),
             )
     return {"candidates": len(rows), "embedded": len(todo), "already_indexed": len(rows) - len([r for r in rows if have.get(r["id"]) != _hash(_text(r))])}
+
+
+def index_pending(pool, limit: int = 200) -> dict[str, int | str]:
+    """The worker's timer: embeds the articles that have no vector yet, at most `limit` a run. A server that is not up is not a failed run: the articles wait
+    for the next one, and the reason is in the result."""
+    try:
+        with pool.connection() as conn:
+            done = index_articles(conn, limit=limit)
+    except EmbedError as e:
+        log.warning("rag index skipped: %s", e)
+        return {"skipped": str(e)}
+    return {"embedded": done["embedded"], "candidates": done["candidates"]}
 
 
 def search(conn, query: str, k: int = 5, embed_fn: EmbedFn = embed) -> list[dict[str, Any]]:
