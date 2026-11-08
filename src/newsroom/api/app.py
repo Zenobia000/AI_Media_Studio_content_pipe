@@ -32,6 +32,7 @@ from newsroom.engine import pack
 from newsroom.engine.config import config
 from newsroom.engine.heartbeat import start_heartbeat
 from newsroom.engine.http_policy import OAUTH_PROBE_PATHS, resolve_redirect
+from newsroom.rag import mcp as rag_mcp
 
 log = logging.getLogger("newsroom.api")
 
@@ -103,6 +104,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
     register_feeds(app)
     register_static(app)
     register_mcp(app)
+    register_mcp(app, "/api/mcp-rag", rag_mcp.handle_message)
     register_media(app)
     register_og(app)
     register_v1(app)

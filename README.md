@@ -224,6 +224,22 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 ---
 
+## 站內問答、聊天頁與 MCP（新增）
+
+用本機的 Ollama（向量模型 `bge-m3`、聊天模型 `qwen2.5:14b`）做的，**只根據網站裡已分析過的文章**回答，不用雲端模型。程式在 `src/newsroom/rag/`。
+
+| 要做什麼 | 怎麼用 |
+|---|---|
+| 把文章轉成向量 | `newsroom rag-index`（只處理新的或改過的；向量放在 AIHOT 原有的 `embeddings` 資料表，不用 pgvector） |
+| 用意思找文章 | `newsroom rag-search "問題" --k 5` |
+| 問答 | `newsroom ask "問題"`，會列出出處；找不到相關文章就說找不到 |
+| 聊天頁 | 網站左側「AI 問答」（`/chat`）。可以閒聊、請它推薦文章、問新聞內容；每次重新整理都是新對話，沒有登入就不保存。是 AIHOT 的「模組」（`AIHOT/modules/chat/`），沒有改任何現有頁面。後端是 `POST /api/chat` |
+| 讓 Claude 用語意搜尋 | 原本的 MCP（`/api/mcp`，7 個工具）沒有動，和 Node 版一致；另外開了 `/api/mcp-rag`，只有一個工具 `mediahot_semantic_search`。Claude Code：`claude mcp add --transport http mediahot http://127.0.0.1:3000/api/mcp` 和 `claude mcp add --transport http mediahot-semantic http://127.0.0.1:3000/api/mcp-rag` |
+
+**限制：** 新增文章後要再跑一次 `newsroom rag-index`，聊天與語意搜尋才找得到（還沒有排進 worker 自動做）。回答品質受 `qwen2.5:14b` 限制：出處編號偶爾標錯（12 題抽查，24 句裡 1 句）、簡體標題原樣顯示。聊天沒有登入也沒有使用限制，只適合在本機用。claude.ai 網頁版與 Claude 桌面版的自訂連接器要公開的 HTTPS 網址，連不到 `127.0.0.1`；Claude Code 可以。
+
+---
+
 ## 收集、補料、inbox：我們改了什麼
 
 | 專案 | 內容 |
@@ -326,6 +342,7 @@ cd .. && python -m pytest tests                       # 收集與補料（Python
 | `FEISHU_INTERNAL_ENABLED`、`FEISHU_ALERT_WEBHOOK_URL` | 選用，S 級通知送到飛書警報群；沒開就只記日誌 |
 | `SOCIALDATA_API_KEY` | 選用，X 貼文影片補料（L1）與 AIHOT 的 X 收集器共用 |
 | `YTDLP_COOKIES_FILE` | 選用，自己帳號的 cookies 檔路徑，給 yt-dlp、gallery-dl 用；不要放進版本控制 |
+| `RAG_EMBED_URL`、`RAG_EMBED_MODEL`、`RAG_CHAT_MODEL`、`RAG_MIN_SCORE` | 選用，站內問答用的本機 Ollama 位置（預設 `http://127.0.0.1:11434`）、向量模型（`bge-m3`）、聊天模型（`qwen2.5:14b`）、答案採用的最低相似度（`0.6`） |
 
 其餘設定見 [.env.example](AIHOT/.env.example)。
 

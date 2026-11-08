@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+from collections.abc import Callable
 from typing import cast
 from urllib.parse import urlsplit
 
@@ -17,6 +18,8 @@ from newsroom.api.respond import problem
 from newsroom.engine import pack
 from newsroom.engine.config import config
 from newsroom.engine.publication.mcp import SUPPORTED_VERSIONS, handle_message, sse
+
+Handler = Callable[[object, dict], dict | None]
 
 log = logging.getLogger("newsroom.api")
 
@@ -80,10 +83,11 @@ def rpc_error(status: int, code: int, message: str, msg_id=None, headers: dict |
     return Response(body, status_code=status, media_type="application/json", headers=headers)
 
 
-def register_mcp(app: FastAPI) -> None:
+def register_mcp(app: FastAPI, path: str = "/api/mcp", handler: Handler = handle_message) -> None:
+    """The server at `path`, answering messages with `handler`; the same hosts, origins and protocol checks for every server."""
     allowed = allowed_hosts()
 
-    @app.api_route("/api/mcp", methods=["GET", "POST", "DELETE"], include_in_schema=False)
+    @app.api_route(path, methods=["GET", "POST", "DELETE"], include_in_schema=False)
     async def serve(request: Request) -> Response:
         origin = request.headers.get("origin")
         base = {"Cache-Control": "no-store"}
@@ -150,13 +154,13 @@ def register_mcp(app: FastAPI) -> None:
                 headers=headers,
             )
         try:
-            answer = await run_in_threadpool(handle_message, request.app.state.pool, body)
+            answer = await run_in_threadpool(handler, request.app.state.pool, body)
         except Exception:
             log.exception("mcp error")
             return rpc_error(500, -32603, "Internal error", headers=headers)
         return Response(sse(cast(dict, answer)), media_type="text/event-stream", headers={**headers, "X-Accel-Buffering": "no"})
 
-    @app.options("/api/mcp", include_in_schema=False)
+    @app.options(path, include_in_schema=False)
     def preflight(request: Request) -> Response:
         origin = request.headers.get("origin")
         if not allowed_origin(origin):
@@ -167,6 +171,6 @@ def register_mcp(app: FastAPI) -> None:
                      "Access-Control-Allow-Headers": CORS_HEADERS, "Access-Control-Max-Age": "600", "Allow": CORS_METHODS},
         )  # fmt: skip
 
-    @app.api_route("/api/mcp", methods=["PUT", "PATCH"], include_in_schema=False)
+    @app.api_route(path, methods=["PUT", "PATCH"], include_in_schema=False)
     def not_allowed() -> Response:
         return rpc_error(405, -32000, "Method not allowed", headers={"Allow": CORS_METHODS, "Cache-Control": "no-store"})
