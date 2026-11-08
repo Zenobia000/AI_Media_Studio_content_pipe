@@ -18,6 +18,7 @@ from newsroom.api.respond import problem
 from newsroom.api.routes.admin import register_admin
 from newsroom.api.routes.admin_auth import register_admin_auth
 from newsroom.api.routes.agent import register_agent
+from newsroom.api.routes.chat import register_chat
 from newsroom.api.routes.feeds import register_feeds
 from newsroom.api.routes.ingest import register_ingest
 from newsroom.api.routes.mcp import register_mcp
@@ -106,6 +107,7 @@ def build_app(database_url: str | None = None) -> FastAPI:
     register_og(app)
     register_v1(app)
     register_agent(app)
+    register_chat(app)
     register_v1_fallbacks(app)
 
     @app.exception_handler(StarletteHTTPException)
