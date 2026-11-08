@@ -210,6 +210,9 @@ def _article_text(hits: list[dict[str, Any]]) -> str:
     return "\n\n".join(f"[{h['n']}] {h['title']}\n{h['summary']}" for h in hits)
 
 
+Step = Callable[[str], None]
+
+
 @dataclass
 class Plan:
     """What to do with a message: show `reply` as it is, or give `messages` to the model; `sources` are the articles it draws on."""
@@ -220,19 +223,26 @@ class Plan:
     reply: str | None = None
 
 
-def plan(conn, question: str, history: Messages | None = None, k: int = 5, embed_fn: EmbedFn = embed, chat_fn: ChatFn = chat) -> Plan:
+def plan(conn, question: str, history: Messages | None = None, k: int = 5, embed_fn: EmbedFn = embed, chat_fn: ChatFn = chat, step: Step | None = None) -> Plan:
+    """`step`, when given, is told in words what is being done as it happens ("searching the articles", "found 5"), for a page that shows progress."""
+    say = step or (lambda text: None)
+    say("判斷你想做什麼")
     kind, topic = route(question, history, chat_fn)
     past = _recent(history)
     if kind == "chat":
         return Plan(kind, [], [{"role": "system", "content": CHAT_SYSTEM}, *past, {"role": "user", "content": question}])
     if kind == "recommend":
+        say("挑選站內文章")
         items = recommend(conn, topic, RECOMMEND_COUNT, embed_fn)
         if not items:
             return Plan(kind, [], reply=NO_RECOMMENDATION)
+        say(f"找到 {len(items)} 篇可以推薦的文章")
         return Plan(kind, items, [{"role": "system", "content": RECOMMEND_SYSTEM}, *past, {"role": "user", "content": f"文章清單：\n{_article_text(items)}\n\n要求：{question}"}])
+    say("搜尋站內相關文章")
     hits = retrieve(conn, question, history, k, embed_fn, chat_fn)
     if not hits:
         return Plan(kind, [], reply=NOT_FOUND)
+    say(f"找到 {len(hits)} 篇相關文章")
     return Plan(kind, hits, [{"role": "system", "content": ASK_SYSTEM}, *past, {"role": "user", "content": f"文章：\n{_article_text(hits)}\n\n問題：{question}"}])
 
 

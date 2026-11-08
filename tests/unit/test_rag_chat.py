@@ -107,14 +107,33 @@ def _events(monkeypatch, plan, pieces):
 def test_the_stream_lists_only_the_sources_the_answer_points_to(monkeypatch):
     sources = [{"n": i, **_hit(f"文{i}", 0.7)} for i in (1, 2, 3)]
     events = _events(monkeypatch, rag.Plan("ask", sources, messages=[]), ["見 [2]", "，也見 [2]。"])
-    assert [e["type"] for e in events] == ["sources", "delta", "delta", "cited", "done"]
-    assert events[3]["numbers"] == [2]
+    assert [e["type"] for e in events] == ["sources", "status", "delta", "delta", "cited", "done"]
+    assert events[4]["numbers"] == [2]
     assert [s["n"] for s in events[0]["sources"]] == [1, 2, 3]
 
 
 def test_the_stream_ignores_a_number_that_is_not_a_source(monkeypatch):
     events = _events(monkeypatch, rag.Plan("ask", [{"n": 1, **_hit("文", 0.7)}], messages=[]), ["[1] 與 [9]"])
     assert next(e for e in events if e["type"] == "cited")["numbers"] == [1]
+
+
+def test_each_step_of_the_plan_is_told_as_a_status_line_before_the_answer(monkeypatch):
+    def planning(conn, question, history, step=None, **k):
+        step("搜尋站內相關文章")
+        step("找到 2 篇相關文章")
+        return rag.Plan("ask", [], reply=rag.NOT_FOUND)
+
+    monkeypatch.setattr(chat_route, "plan", planning)
+    events = [json.loads(line) for line in b"".join(chat_route._stream(_Pool(), [], "問題")).splitlines()]
+    assert [e["type"] for e in events] == ["status", "status", "sources", "delta", "done"]
+    assert [e["text"] for e in events[:2]] == ["搜尋站內相關文章", "找到 2 篇相關文章"]
+
+
+def test_the_plan_tells_what_it_is_doing(monkeypatch):
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("甲", 0.7)])
+    said: list[str] = []
+    rag.plan(None, "甲是什麼", None, chat_fn=_model("ask"), step=said.append)
+    assert said == ["判斷你想做什麼", "搜尋站內相關文章", "找到 1 篇相關文章"]
 
 
 def test_a_fixed_reply_is_one_delta_with_no_model(monkeypatch):

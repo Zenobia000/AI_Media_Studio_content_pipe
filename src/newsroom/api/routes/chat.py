@@ -7,13 +7,15 @@ from __future__ import annotations
 
 import json
 import logging
+import queue
+import threading
 from collections.abc import Iterator
 
 from fastapi import FastAPI, Request, Response
 from starlette.responses import StreamingResponse
 
 from newsroom.api.respond import js_json, problem
-from newsroom.rag.ask import chat_stream, cited_numbers, plan
+from newsroom.rag.ask import Plan, chat_stream, cited_numbers, plan
 from newsroom.rag.index import EmbedError
 
 log = logging.getLogger("newsroom.api")
@@ -25,14 +27,44 @@ def _line(obj: dict) -> bytes:
     return (js_json(obj) + "\n").encode()
 
 
+def _planned(pool, history: list[dict[str, str]], question: str) -> Iterator[bytes | Plan]:
+    """The "status" lines as the plan is made (it takes a few model and database calls), then the plan itself. The plan is made in a thread so each
+    line can go out the moment it is said, not after everything is done."""
+    box: queue.Queue = queue.Queue()
+
+    def work() -> None:
+        try:
+            with pool.connection() as conn:
+                box.put(("plan", plan(conn, question, history, step=lambda text: box.put(("status", text)))))
+        except BaseException as exc:  # handed to the reader, which raises it where the stream's own handlers are
+            box.put(("error", exc))
+
+    threading.Thread(target=work, daemon=True).start()
+    while True:
+        kind, value = box.get()
+        if kind == "status":
+            yield _line({"type": "status", "text": value})
+        elif kind == "error":
+            raise value
+        else:
+            yield value
+            return
+
+
 def _stream(pool, history: list[dict[str, str]], question: str) -> Iterator[bytes]:
     try:
-        with pool.connection() as conn:
-            p = plan(conn, question, history)
+        p = None
+        for item in _planned(pool, history, question):
+            if isinstance(item, Plan):
+                p = item
+            else:
+                yield item
+        assert p is not None
         yield _line({"type": "sources", "kind": p.kind, "found": bool(p.sources), "sources": [{k: h[k] for k in ("n", "title", "url", "score")} for h in p.sources]})
         if p.reply is not None:
             yield _line({"type": "delta", "text": p.reply})
         else:
+            yield _line({"type": "status", "text": "整理回答"})
             answer = ""
             for piece in chat_stream(p.messages or []):
                 answer += piece
