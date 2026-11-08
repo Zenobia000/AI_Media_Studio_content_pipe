@@ -234,7 +234,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 用意思找文章 | `newsroom rag-search "問題" --k 5` |
 | 問答 | `newsroom ask "問題"`，會列出出處；找不到相關文章就說找不到 |
 | 聊天頁 | 網站左側「AI 問答」（`/chat`）。可以閒聊、請它推薦文章、問新聞內容；每次重新整理都是新對話，沒有登入就不保存。是 AIHOT 的「模組」（`AIHOT/modules/chat/`），沒有改任何現有頁面。後端是 `POST /api/chat` |
-| 讓 Claude 用語意搜尋 | 原本的 MCP（`/api/mcp`，7 個工具）沒有動，和 Node 版一致；另外開了 `/api/mcp-rag`，只有一個工具 `mediahot_semantic_search`。Claude Code：`claude mcp add --transport http mediahot http://127.0.0.1:3000/api/mcp` 和 `claude mcp add --transport http mediahot-semantic http://127.0.0.1:3000/api/mcp-rag` |
+| 讓 Claude 用語意搜尋 | 原本的 MCP（`/api/mcp`，7 個工具）沒有動，和 Node 版一致；另外開了 `/api/mcp-rag`，只有一個工具 `mediahot_semantic_search`。Claude Code（加 `--scope user` 才會在 VS Code 面板的任何路徑都看得到；加完要開新對話）：`claude mcp add --scope user --transport http mediahot http://127.0.0.1:3000/api/mcp` 和 `claude mcp add --scope user --transport http mediahot-semantic http://127.0.0.1:3000/api/mcp-rag` |
 
 **新文章：** `python start_dev.py` 的 worker 每 10 分鐘自動把新文章轉成向量（`RAG_INDEX_ENABLED=true`）；其他環境預設關著，要手動跑 `newsroom rag-index`。
 
