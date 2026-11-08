@@ -12,7 +12,6 @@ export function meta() {
 interface Source { n: number; title: string; url: string; score: number }
 interface Message { role: "user" | "assistant"; text: string; sources?: Source[]; error?: boolean }
 
-const KEY = "chat:messages";
 const SAMPLES = ["幫我推薦幾篇文章", "NVIDIA 最近發布了什麼模型？", "GitHub Copilot 怎麼提高開發效率？"];
 
 /** One turn: the earlier messages go along so a follow-up is understood; the answer arrives as JSON lines (sources first, then pieces of text). */
@@ -59,18 +58,12 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [waiting, setWaiting] = useState(false);
-  const [ready, setReady] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
-  // The conversation stays in this browser only; it is read after the first render so the server's and the browser's first render agree.
+  // The conversation lives only in this page: a refresh or a new visit starts an empty chat (there are no accounts to keep one for).
   useEffect(() => {
-    try { setMessages(JSON.parse(localStorage.getItem(KEY) ?? "[]")); } catch { /* an unreadable record starts empty */ }
-    setReady(true);
-  }, []);
-  useEffect(() => {
-    if (ready) localStorage.setItem(KEY, JSON.stringify(messages.slice(-40)));
     bottom.current?.scrollIntoView({ block: "end" });
-  }, [messages, waiting, ready]);
+  }, [messages, waiting]);
 
   async function send(question: string) {
     const q = question.trim();
@@ -102,7 +95,7 @@ export default function Chat() {
         </header>
 
         <div className="flex-1 space-y-4" aria-live="polite">
-          {ready && messages.length === 0 && (
+          {messages.length === 0 && (
             <div className="rounded-control border border-line bg-surface p-4">
               <p className="text-[14px] text-ink-2">可以直接聊，或試試：</p>
               <div className="mt-3 flex flex-wrap gap-2">
