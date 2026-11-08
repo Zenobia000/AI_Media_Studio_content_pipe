@@ -14,10 +14,12 @@ import os
 import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
+from newsroom.engine.publication.scope import browsed_condition, evidence_condition, listed_condition, scope_params
 from newsroom.rag.index import EmbedError, EmbedFn, embed, embed_url, search
 
 Messages = list[dict[str, str]]
@@ -26,6 +28,7 @@ NOT_FOUND = "資料庫裡找不到相關的文章。"
 NO_RECOMMENDATION = "目前站上沒有可以推薦的文章。"
 HISTORY_TURNS = 6  # the last turns sent to the model and to the rewrite
 RECOMMEND_COUNT = 5
+STORY_DAYS = 14  # an event counts as current for this long after its latest report
 RECOMMEND_MIN_SCORE = 0.5  # for a topic: lower than for answers, a recommendation only has to be near
 
 PERSONA = "你是這個新聞網站的問答助手，用繁體中文，語氣自然親切，回答簡潔。"
@@ -144,25 +147,57 @@ def retrieve(conn, question: str, history: Messages | None = None, k: int = 5, e
     return _numbered([h for h in search(conn, query, k, embed_fn) if h["score"] >= min_score()])
 
 
-def latest_selected(conn, k: int = RECOMMEND_COUNT) -> list[dict[str, Any]]:
-    """The newest articles the site selected, as a recommendation list."""
+def _row(r: dict[str, Any]) -> dict[str, Any]:
+    return {"article_id": r["article_id"], "score": float(r["score"] or 0), "title": r["title_zh"] or r["title"], "summary": r["summary_zh"] or "", "url": r["url"]}
+
+
+def latest_selected(conn, k: int = RECOMMEND_COUNT, now: datetime | None = None) -> list[dict[str, Any]]:
+    """The newest articles the site selected and lists publicly, as a recommendation list."""
     rows = conn.execute(
-        """SELECT p.article_id, p.url, p.title, p.score, an.title_zh, an.summary_zh
-           FROM publications p
-           LEFT JOIN LATERAL (SELECT title_zh, summary_zh FROM analyses WHERE article_id = p.article_id AND origin = 'model' ORDER BY id DESC LIMIT 1) an ON true
-           WHERE p.selected ORDER BY p.timeline_at DESC LIMIT %s""",
-        (k,),
+        f"""SELECT p.article_id, p.url, p.title, p.score, an.title_zh, an.summary_zh
+            FROM publications p
+            LEFT JOIN LATERAL (SELECT title_zh, summary_zh FROM analyses WHERE article_id = p.article_id AND origin = 'model' ORDER BY id DESC LIMIT 1) an ON true
+            WHERE p.selected AND {listed_condition()} ORDER BY p.timeline_at DESC LIMIT %(k)s""",
+        {**scope_params(now or datetime.now(UTC)), "k": k},
     ).fetchall()
-    return [
-        {"article_id": r["article_id"], "score": float(r["score"] or 0), "title": r["title_zh"] or r["title"], "summary": r["summary_zh"] or "", "url": r["url"]}
-        for r in rows
-    ]
+    return [_row(r) for r in rows]
+
+
+def top_stories(conn, k: int = RECOMMEND_COUNT, now: datetime | None = None) -> list[dict[str, Any]]:
+    """Events that two or more different sources reported in the last STORY_DAYS days, the most reported first. A score cannot tell news from a tutorial (the
+    model scored both 95 to 100), but a tutorial is not reported by several sources. Each is shown by its best-scored report, under the event's title."""
+    rows = conn.execute(
+        f"""WITH stories_now AS (
+              SELECT st.id, st.title AS story_title, count(DISTINCT p.source_id) AS sources, max(coalesce(p.published_at, p.discovered_at)) AS latest
+              FROM stories st JOIN facts f ON f.story_id = st.id JOIN fact_articles fa ON fa.fact_id = f.id JOIN publications p ON p.article_id = fa.article_id
+              WHERE st.merged_into IS NULL AND {evidence_condition()} AND {browsed_condition()}
+              GROUP BY st.id, st.title
+              HAVING count(DISTINCT p.source_id) >= 2 AND max(coalesce(p.published_at, p.discovered_at)) >= %(now)s - make_interval(days => {STORY_DAYS})
+            )
+            SELECT s.story_title, s.sources, best.article_id, best.url, best.title, best.score, an.title_zh, an.summary_zh
+            FROM stories_now s
+            CROSS JOIN LATERAL (
+              SELECT p.article_id, p.url, p.title, p.score FROM facts f JOIN fact_articles fa ON fa.fact_id = f.id JOIN publications p ON p.article_id = fa.article_id
+              WHERE f.story_id = s.id AND {evidence_condition()} AND {browsed_condition()} ORDER BY p.score DESC NULLS LAST, p.article_id LIMIT 1
+            ) best
+            LEFT JOIN LATERAL (SELECT title_zh, summary_zh FROM analyses WHERE article_id = best.article_id AND origin = 'model' ORDER BY id DESC LIMIT 1) an ON true
+            ORDER BY s.sources DESC, s.latest DESC LIMIT %(k)s""",
+        {**scope_params(now or datetime.now(UTC)), "k": k},
+    ).fetchall()
+    return [{**_row(r), "title": r["story_title"], "summary": f"（{r['sources']} 個來源報導）{r['title_zh'] or r['title']}。{r['summary_zh'] or ''}"} for r in rows]
+
+
+def popular(conn, k: int = RECOMMEND_COUNT, now: datetime | None = None) -> list[dict[str, Any]]:
+    """What to recommend with no topic: the events several sources reported, then the newest selected articles to fill the list."""
+    picked = top_stories(conn, k, now)
+    seen = {h["article_id"] for h in picked}
+    return (picked + [h for h in latest_selected(conn, k, now) if h["article_id"] not in seen])[:k]
 
 
 def recommend(conn, topic: str, k: int = RECOMMEND_COUNT, embed_fn: EmbedFn = embed) -> list[dict[str, Any]]:
-    """Articles near `topic`, or the newest selected ones when there is no topic."""
+    """Articles near `topic`, or the events several sources reported when there is no topic."""
     if not topic:
-        return _numbered(latest_selected(conn, k))
+        return _numbered(popular(conn, k))
     return _numbered([h for h in search(conn, topic, k, embed_fn) if h["score"] >= RECOMMEND_MIN_SCORE])
 
 

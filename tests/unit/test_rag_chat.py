@@ -69,6 +69,7 @@ def test_chat_has_no_sources_and_keeps_the_site_only_rule():
 
 
 def test_recommend_with_nothing_to_recommend_says_so(monkeypatch):
+    monkeypatch.setattr(rag, "top_stories", lambda *a, **k: [])
     monkeypatch.setattr(rag, "latest_selected", lambda *a, **k: [])
     assert rag.plan(None, "推薦幾篇", None, chat_fn=_model("recommend")).reply == rag.NO_RECOMMENDATION
 
@@ -77,6 +78,18 @@ def test_recommend_for_a_topic_accepts_nearer_than_an_answer_needs(monkeypatch):
     monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("影片", 0.55), _hit("離題", 0.4)])
     p = rag.plan(None, "有影片的嗎", None, chat_fn=_model("recommend", "影片"))
     assert [s["title"] for s in p.sources] == ["影片"]
+
+
+def test_with_no_topic_the_events_several_sources_reported_come_first_and_the_newest_selected_fill_up(monkeypatch):
+    monkeypatch.setattr(rag, "top_stories", lambda *a, **k: [_hit("多家報導", 0.6)])
+    monkeypatch.setattr(rag, "latest_selected", lambda *a, **k: [_hit("多家報導", 0.9), _hit("最新一", 0.9), _hit("最新二", 0.9)])
+    assert [h["title"] for h in rag.popular(None, 3)] == ["多家報導", "最新一", "最新二"]  # the one article is not listed twice
+    assert [h["title"] for h in rag.popular(None, 2)] == ["多家報導", "最新一"]  # and the list stops at k
+
+
+def test_a_recommendation_with_no_topic_is_numbered(monkeypatch):
+    monkeypatch.setattr(rag, "popular", lambda *a, **k: [_hit("甲", 0.6), _hit("乙", 0.6)])
+    assert [h["n"] for h in rag.recommend(None, "")] == [1, 2]
 
 
 class _Pool:
