@@ -8,8 +8,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import datetime
 
-from newsroom.engine.traditional import plain_for_display
-
 BEGIN = "<!-- newsroom:begin candidates -->"
 END = "<!-- newsroom:end candidates -->"
 HEALTH_BEGIN = "<!-- newsroom:begin collect-health -->"
@@ -111,8 +109,7 @@ def render_block(candidates: list[Candidate], notes: dict[str, Annotation]) -> s
             kept = notes.get(c.id)
             sources = "、".join([*c.source_names[:3], *([c.signals] if c.signals else [])])
             carried = f"｜{c.carried}" if c.carried else ""
-            # shown in Traditional when TRADITIONAL_DISPLAY is on (the stored title is untouched)
-            lines.append(f"- [{'x' if kept and kept.checked else ' '}] **{plain_for_display(c.title)}** `{c.id}`")
+            lines.append(f"- [{'x' if kept and kept.checked else ' '}] **{c.title}** `{c.id}`")
             lines.append(f"  - 共振 {c.participant_count} 源｜{sources}｜首次出現 {c.first_seen}{carried}")
             if c.heat:
                 lines.append(f"  - 熱度：{c.heat}" + (f"｜{c.heat_reason}" if c.heat_reason else ""))

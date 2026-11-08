@@ -19,5 +19,4 @@
 - 測試：`python -m pytest tests -q`。要資料庫的測試需要 `DATABASE_URL`（庫名以 `_test` 或 `_ci` 結尾）；和 Node 對照的測試還需要 `PARITY_DATABASE_URL` 與 `AIHOT/node_modules`，沒有時會略過。
 - `AIHOT/` 是 AIHOT 的網站與原本的 TypeScript 後端，`AIHOT/AGENTS.md` 的規則適用於那裡。已發布的資料庫遷移（`AIHOT/database/migrations/`）不能改，修正放進新檔案。
 - 工具輸出依 IF-020（`--json`）：結束碼 `0` 成功、`1` 失敗、`2` 輸入有誤、`3` 被阻擋。
-- 簡體轉繁體只發生在顯示時（`TRADITIONAL_DISPLAY=true`），資料庫存的原文不改。
 - 不要 push、不要刪除 Node 後端，除非使用者明確要求。

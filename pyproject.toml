@@ -23,7 +23,6 @@ dependencies = [
   "tzdata",
   "numpy>=1.26",
   "markdown-it-py>=3",
-  "opencc>=1.1",
 ]
 
 [project.optional-dependencies]

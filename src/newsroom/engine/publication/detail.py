@@ -19,7 +19,6 @@ from newsroom.engine.publication.items import (
 from newsroom.engine.publication.scope import evidence_condition, listed_condition, scope_params
 from newsroom.engine.publication.topics import topic_links, topic_membership, topic_membership_params
 from newsroom.engine.site import has_item_page
-from newsroom.engine.traditional import for_display
 
 
 def with_outline(html: str) -> tuple[str, list[dict]]:
@@ -126,7 +125,7 @@ def load_item_detail(pool, item_id: str, language: str = "zh", now: datetime | N
         elif row["body_mode"] == "full" and row.get("body_html"):
             chinese = is_chinese_body(row)
             zh = (
-                {"html": for_display(row["body_html"]), "kind": "original"}
+                {"html": row["body_html"], "kind": "original"}
                 if chinese
                 else ({"html": row["tr_html"], "kind": "translation"} if row.get("tr_html") else None)
             )

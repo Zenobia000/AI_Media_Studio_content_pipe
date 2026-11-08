@@ -197,7 +197,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 11-05 | 相關文章有 32%（106/329）沒有分類 | 結構抽取也用結構化輸出，重新分析 102 篇後降到 4.3% |
 | 11-05 | 結構抽取輸出被截斷（上限 1,200 token，本機模型平均用掉約 1,170） | `start_dev.py` 對本機模型多給 1,500 token（`LLM_REASONING_TOKENS`） |
 | 11-05 | 本機模型一次只處理很少請求，worker 同時送 6 個，後面的逾時（ReadTimeout） | 新增 `ANALYZE_CONCURRENCY`，`start_dev.py` 對本機模型設成 2；0 篇失敗 |
-| 11-05 | 本機模型常用簡體字寫標題（337 篇有 47%） | 提示詞最後加一句要求繁體（`LLM_TRADITIONAL`），簡體字從 59 個降到 1 個；後來又在顯示時用 OpenCC 轉（見下一節） |
+| 11-05 | 本機模型常用簡體字寫標題（337 篇有 47%） | 提示詞最後加一句要求繁體（`LLM_TRADITIONAL`），簡體字從 59 個降到 1 個 |
 | 11-05 | Docker 裡安裝後的套件找不到 `AIHOT/` 資料夾（遷移檔、靜態檔、字型）；映像沒有 `pg_dump`，備份失敗 | 用 `AIHOT_ROOT` 指定位置；映像加裝 PostgreSQL 客戶端 |
 | 11-05 | 真實收集才出現：工作結果裡有日期時寫不進佇列，工作一直停在進行中 | 日期與 pg-boss 一樣存成 ISO 字串，加回歸測試 |
 | 11-05 | 模型選擇的快取會在同一個行程裡留到下一個測試，測試互相影響 | 修好；新增測試要注意清除這類快取 |
@@ -206,7 +206,6 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 11-05 | 發布日期校正（預覽與套用）原版後臺沒有路由、Python 版原本沒有 | 移植，14 個案例與 Node 比對一致 |
 | 11-05 | 後臺寫入操作沒有經過前端驗證過 | 用同樣的 22 筆寫入分別經接 Python 與接 Node 的前端送進各自資料庫複本，狀態碼、回應、資料列全部一致 |
 | 11-06 | 本機啟動會跳出三個終端 | 改成同一個終端，輸出每行加服務名稱前綴，Ctrl+C 全停；`--separate` 可回到三個視窗 |
-| 11-06 | 簡體網站的中文文章原樣顯示，簡體字出現在繁體網站上 | 顯示時用 OpenCC 轉換，見下一節 |
 | 11-06 | 程式宣告支援 Python 3.11，實際用了 3.12 才有的語法（`pyproject.toml` 與程式不一致）；`ruff` 有 25 個問題，GitHub 上的 lint 會紅燈 | `requires-python`、ruff、mypy 都改成 3.12；修掉測試檔的小毛病，並把測試目錄對 3 條規則放寬（pytest 常見寫法） |
 | 11-06 | `mypy src` 有 282 個型別錯誤（260 個在移植的後端），GitHub 上的型別檢查要不就沒有、要不就紅燈 | 全部修掉，現在 `mypy src` 全過、已加進 `check.yml`。主要做法：`core/db.py` 的 `connect()` 標明回傳 dict 列（一次清掉一批）、`_readability_p1.py` 宣告被子類別實作的方法、`dom.py` 宣告動態屬性、其餘用型別標註或 `cast`；沒有放寬規則、沒有用 `ignore_errors`。幾處 `re.match` 後加了 `assert`（只在不可能發生的路徑上，錯誤型別從 AttributeError 變 AssertionError） |
 | 11-06 | 第一次在 GitHub 上跑 CI：`check` 的遷移檢查失敗，`git show <commit>:database/...` 找不到檔案（repo 根目錄在 `AIHOT/` 的上一層） | `AIHOT/scripts/check-migrations.ts` 改成 `${base}:./${file}`，路徑相對於 `AIHOT/` |
@@ -214,7 +213,6 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 11-06 | 對照測試讀到不完整的 JSON：Node 腳本在 `console.log` 後立刻 `process.exit()`，stdout 是管線時 Linux 上輸出被切在 65,536 位元組（在 `node:24` 容器裡重現）；Windows 上不會發生，所以本機一直沒看到 | 新增 `AIHOT/scripts/flush.ts` 的 `exitAfterFlush()`，19 個 `*-run.ts` 腳本改成輸出寫完才結束 |
 | 11-06 | `architecture.test.ts` 失敗：範本列了 `NEWSROOM_HOME`、`INBOX_DIR`、`CHANGEDETECTION_*`、`YTDLP_COOKIES_FILE`，但檢查只掃 TypeScript，這些只有 Python 在讀 | 檢查也掃 `../src/newsroom` 的 Python 程式 |
 | 11-06 | `error-logging.test.ts` 逾時（子程序啟動整個 API，限時 10 秒，GitHub 的機器忙時不夠；上一輪還通過，是時間不穩定） | 限時改成 60 秒。最後一次 CI 三個工作全綠 |
-| 11-06 | 用真實候選試 `set-title-zh` 時發現 inbox 的標題有簡體字（「订单」），沒經過簡轉繁 | inbox 產生時也轉換（`collect/inbox.py`），加單元測試 |
 
 ---
 
@@ -222,20 +220,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 **一個終端跑全部。** `python start_dev.py` 啟動資料庫、API、worker、網站，三個服務的輸出都在同一個終端，每行前面加 `[MediaHOT API]`、`[MediaHOT worker]`、`[MediaHOT 網站]`。按 Ctrl+C 全部停掉，任何一個服務自己結束時其餘也會停。要回到「三個服務各開一個視窗」，加 `--separate`。`python stop_dev.py` 仍然可以停（程序編號記在 `.data/dev-pids.json`）。
 
-**簡體網站的文章顯示成繁體。** 中文文章原本是抓到什麼就顯示什麼，簡體網站的文章會以簡體字出現在繁體的網站上。現在可以在網頁顯示時，用 OpenCC（`s2twp` 設定）把正文轉成繁體並換成臺灣用語（例如「软件」→「軟體」、「内存」→「記憶體」）：
-
-| 項目 | 做法 |
-|---|---|
-| 開關 | 環境變數 `TRADITIONAL_DISPLAY=true`；`python start_dev.py` 預設打開，其他環境預設關著 |
-| 轉什麼 | 中文文章的正文（簡體網站來的）。標籤、屬性與網址不轉，只轉標籤之間的文字 |
-| 不動什麼 | 資料庫裡存的原文、匯出（Markdown、完整 RSS）與搜尋，都維持抓到的樣子；轉換只發生在送給網頁的那一刻 |
-| 標題、摘要、推薦理由、事件標題 | 同樣在送出時轉換（`to_item_summary`），所以**已經分析過的舊標題不用重跑**，下次顯示就是繁體；原文標題（`originalTitle`）不轉 |
-| 每日 inbox 的標題 | 寫 inbox 時同樣轉換（`collect/inbox.py` 的 `render_block`），資料庫存的標題不動；用 `newsroom write-inbox` 手動產生時要自己設 `TRADITIONAL_DISPLAY=true`，worker 的定時產生會帶 `start_dev.py` 設的值 |
-| 外文文章 | 本來就由模型翻成中文，提示詞另外用 `LLM_TRADITIONAL` 要求繁體（用本機模型時 `start_dev.py --models` 自動打開），顯示時再轉一次當保險 |
-| 程式 | `src/newsroom/engine/traditional.py`，接在 `src/newsroom/engine/publication/detail.py` 組合正文的地方，測試在 `tests/unit/test_traditional.py` |
-| 依賴 | `opencc`（已加進 `pyproject.toml`；已有的環境要 `pip install opencc` 或重新 `pip install -e ".[dev]"`） |
-
-**限制：** 預設關著，是因為與 Node 版的對照測試會逐字比對正文，轉換後會不一致。資料庫裡的舊標題沒有被改寫，只是顯示時轉換；搜尋用的是原本的字，所以用繁體字搜尋簡體標題可能搜不到。OpenCC 偶爾會轉錯人名或品牌名，目前沒有例外詞表。
+**本機模型的繁體字。** 本機模型常用簡體字寫標題，所以用本機模型時（`python start_dev.py --models`）會自動打開 `LLM_TRADITIONAL=true`，在寫中文標題與摘要的提示詞最後加一句要求繁體；雲端模型與預設環境不加。網站顯示的是資料庫裡存的字，沒有另外做簡轉繁，簡體網站的中文文章會以簡體字顯示。
 
 ---
 

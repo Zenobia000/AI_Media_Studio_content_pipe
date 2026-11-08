@@ -40,8 +40,6 @@ ENV = {
     "INGEST_TOKEN": "ci-ingest-token-0123456789abcdef",
     "AIHOT_DATA_DIR": str(ROOT / ".data"),
     "PYTHONUTF8": "1",
-    # 簡體網站的中文文章，網頁顯示時轉成繁體（臺灣用語），資料庫裡的原文不動（engine/traditional.py）
-    "TRADITIONAL_DISPLAY": "true",
 }
 SERVICES = [
     ("MediaHOT API", ROOT, [sys.executable, "-m", "uvicorn", "--factory", "newsroom.api.app:build_app", "--port", "3101"]),
