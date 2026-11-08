@@ -10,13 +10,23 @@ export function meta() {
 }
 
 interface Source { n: number; title: string; url: string; score: number }
-interface Message { role: "user" | "assistant"; text: string; sources?: Source[]; error?: boolean }
+interface Message { role: "user" | "assistant"; text: string; sources?: Source[]; /** Numbers of the sources the answer points to, once it is complete. */ cited?: number[]; error?: boolean }
+
+/** The sources to list under an answer: those it points to as [n], or all of them when it points to none; nothing while it is still being written. */
+function listed(m: Message): Source[] {
+  if (!m.sources || m.cited === undefined) return [];
+  const used = m.sources.filter((s) => m.cited!.includes(s.n));
+  return used.length > 0 ? used : m.sources;
+}
+
+/** How many earlier messages go with a question: the api only reads the last few, and a long chat stays within its limit. */
+const HISTORY = 12;
 
 const SAMPLES = ["幫我推薦幾篇文章", "NVIDIA 最近發布了什麼模型？", "GitHub Copilot 怎麼提高開發效率？"];
 
 /** One turn: the earlier messages go along so a follow-up is understood; the answer arrives as JSON lines (sources first, then pieces of text). */
-async function ask(history: Message[], question: string, onSources: (s: Source[]) => void, onText: (piece: string) => void): Promise<"ok" | "unavailable" | "failed"> {
-  const messages = [...history.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.text })), { role: "user", content: question }];
+async function ask(history: Message[], question: string, onSources: (s: Source[]) => void, onText: (piece: string) => void, onCited: (numbers: number[]) => void): Promise<"ok" | "unavailable" | "failed"> {
+  const messages = [...history.filter((m) => !m.error).slice(-HISTORY).map((m) => ({ role: m.role, content: m.text })), { role: "user", content: question }];
   try {
     const res = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages }) });
     if (!res.ok || !res.body) return "failed";
@@ -30,8 +40,9 @@ async function ask(history: Message[], question: string, onSources: (s: Source[]
       rest = done ? "" : lines.pop() ?? "";
       for (const line of lines) {
         if (!line.trim()) continue;
-        const event = JSON.parse(line) as { type: string; text?: string; sources?: Source[]; code?: string };
+        const event = JSON.parse(line) as { type: string; text?: string; sources?: Source[]; numbers?: number[]; code?: string };
         if (event.type === "sources") onSources(event.sources ?? []);
+        else if (event.type === "cited") onCited(event.numbers ?? []);
         else if (event.type === "delta") onText(event.text ?? "");
         else if (event.type === "error") return event.code === "model_unavailable" ? "unavailable" : "failed";
       }
@@ -74,7 +85,7 @@ export default function Chat() {
     setMessages([...history, { role: "user", text: q }, { role: "assistant", text: "" }]);
     setWaiting(true);
     const patch = (change: (m: Message) => Message) => setMessages((all) => all.map((m, i) => (i === all.length - 1 ? change(m) : m)));
-    const result = await ask(history, q, (sources) => patch((m) => ({ ...m, sources })), (piece) => patch((m) => ({ ...m, text: m.text + piece })));
+    const result = await ask(history, q, (sources) => patch((m) => ({ ...m, sources })), (piece) => patch((m) => ({ ...m, text: m.text + piece })), (cited) => patch((m) => ({ ...m, cited })));
     if (result === "unavailable") patch(() => ({ role: "assistant", text: "回答用的模型現在沒有開，請稍後再試。", error: true }));
     else if (result === "failed") patch((m) => ({ role: "assistant", text: m.text || "出了點問題，請稍後再試。", error: true }));
     setWaiting(false);
@@ -111,9 +122,9 @@ export default function Chat() {
                 m.role === "user" ? "bg-accent text-white" : `border border-line bg-surface ${m.error ? "text-ink-3" : "text-ink"}`
               }`}>
                 {m.role === "assistant" ? <Reply text={m.text} /> : <p className="whitespace-pre-wrap">{m.text}</p>}
-                {m.sources && m.sources.length > 0 && (
+                {listed(m).length > 0 && (
                   <ol className="mt-3 space-y-1 border-t border-line pt-2 text-[12.5px] text-ink-3">
-                    {m.sources.map((s) => (
+                    {listed(m).map((s) => (
                       <li key={s.n}>
                         [{s.n}] <a href={s.url} target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">{s.title}</a>
                       </li>

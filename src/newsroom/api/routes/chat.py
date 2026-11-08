@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request, Response
 from starlette.responses import StreamingResponse
 
 from newsroom.api.respond import js_json, problem
-from newsroom.rag.ask import chat_stream, plan
+from newsroom.rag.ask import chat_stream, cited_numbers, plan
 from newsroom.rag.index import EmbedError
 
 log = logging.getLogger("newsroom.api")
@@ -33,8 +33,12 @@ def _stream(pool, history: list[dict[str, str]], question: str) -> Iterator[byte
         if p.reply is not None:
             yield _line({"type": "delta", "text": p.reply})
         else:
+            answer = ""
             for piece in chat_stream(p.messages or []):
+                answer += piece
                 yield _line({"type": "delta", "text": piece})
+            # Which of the sources the answer points to, so the page lists those and not the ones the model left out.
+            yield _line({"type": "cited", "numbers": [n for n in cited_numbers(answer) if any(h["n"] == n for h in p.sources)]})
         yield _line({"type": "done"})
     except EmbedError:
         log.exception("chat model unavailable")

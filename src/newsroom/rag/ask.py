@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
@@ -163,6 +164,11 @@ def recommend(conn, topic: str, k: int = RECOMMEND_COUNT, embed_fn: EmbedFn = em
     if not topic:
         return _numbered(latest_selected(conn, k))
     return _numbered([h for h in search(conn, topic, k, embed_fn) if h["score"] >= RECOMMEND_MIN_SCORE])
+
+
+def cited_numbers(text: str) -> list[int]:
+    """The article numbers an answer points to with [1], [2] ..., in order, once each."""
+    return list(dict.fromkeys(int(n) for n in re.findall(r"\[(\d{1,2})\]", text)))
 
 
 def _article_text(hits: list[dict[str, Any]]) -> str:
