@@ -428,6 +428,64 @@ def set_title_zh_cmd(
             raise typer.Exit(2) from e
 
 
+@app.command("rag-index")
+def rag_index_cmd(limit: Optional[int] = None, as_json: Json = False) -> None:
+    """把分析過的文章轉成向量存進資料庫（只處理新的或改過的）。"""
+    from newsroom.rag.index import EmbedError, index_articles  # noqa: PLC0415
+
+    def run(conn) -> None:
+        try:
+            data = index_articles(conn, limit=limit)
+        except EmbedError as e:
+            _fail("rag-index", as_json, str(e), "E_EMBED", 1)
+        if as_json:
+            _emit({"ok": True, "tool": "rag-index", "data": data, "warnings": [], "next": []})
+        else:
+            typer.echo(f"可索引 {data['candidates']} 篇，這次轉了 {data['embedded']} 篇，原本就有 {data['already_indexed']} 篇。")
+
+    _guarded("rag-index", as_json, run)
+
+
+@app.command("rag-search")
+def rag_search_cmd(query: str, k: Annotated[int, typer.Option("--k", "-k", help="回傳幾篇")] = 5, as_json: Json = False) -> None:
+    """用問題找最相近的文章。"""
+    from newsroom.rag.index import EmbedError, search  # noqa: PLC0415
+
+    def run(conn) -> None:
+        try:
+            hits = search(conn, query, k)
+        except EmbedError as e:
+            _fail("rag-search", as_json, str(e), "E_EMBED", 1)
+        if as_json:
+            _emit({"ok": True, "tool": "rag-search", "data": {"query": query, "hits": hits}, "warnings": [], "next": []})
+        else:
+            for h in hits:
+                typer.echo(f"{h['score']:.3f}  {h['title']}\n       {h['url']}")
+
+    _guarded("rag-search", as_json, run)
+
+
+@app.command("ask")
+def ask_cmd(question: str, k: Annotated[int, typer.Option("--k", "-k", help="最多參考幾篇")] = 5, as_json: Json = False) -> None:
+    """用資料庫裡的文章回答問題（本機 Qwen），並列出出處；找不到相關文章就說找不到。"""
+    from newsroom.rag.ask import ask  # noqa: PLC0415
+    from newsroom.rag.index import EmbedError  # noqa: PLC0415
+
+    def run(conn) -> None:
+        try:
+            data = ask(conn, question, k)
+        except EmbedError as e:
+            _fail("ask", as_json, str(e), "E_EMBED", 1)
+        if as_json:
+            _emit({"ok": True, "tool": "ask", "data": data, "warnings": [], "next": []})
+            return
+        typer.echo(data["answer"])
+        for s in data["sources"]:
+            typer.echo(f"  [{s['n']}] {s['title']}  ({s['score']:.2f})\n      {s['url']}")
+
+    _guarded("ask", as_json, run)
+
+
 @app.command("fetch-selftest")
 def fetch_selftest_cmd(file: Optional[Path] = None, as_json: Json = False) -> None:
     """每一層補料各試一個固定網址，並檢查下載器版本；有層失敗時結束碼為 1。"""
