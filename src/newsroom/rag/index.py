@@ -10,10 +10,13 @@ import hashlib
 import logging
 import os
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 import numpy as np
+
+from newsroom.engine.publication.scope import listed_condition, scope_params
 
 log = logging.getLogger("newsroom.rag")
 EmbedFn = Callable[[list[str]], list[list[float]]]
@@ -102,14 +105,16 @@ def index_pending(pool, limit: int = 200) -> dict[str, int | str]:
     return {"embedded": done["embedded"], "candidates": done["candidates"]}
 
 
-def search(conn, query: str, k: int = 5, embed_fn: EmbedFn = embed) -> list[dict[str, Any]]:
-    """The `k` indexed articles closest to `query`, best first, with cosine similarity as `score`."""
+def search(conn, query: str, k: int = 5, embed_fn: EmbedFn = embed, now: datetime | None = None) -> list[dict[str, Any]]:
+    """The `k` indexed articles closest to `query`, best first, with cosine similarity as `score`. Only articles listed publicly at `now` are searched:
+    an article that is withdrawn, not eligible or not yet released is indexed but is never found."""
     stored = conn.execute(
-        """SELECT e.ref_id, e.vector, a.title, a.url, an.title_zh, an.summary_zh
+        f"""SELECT e.ref_id, e.vector, a.title, a.url, an.title_zh, an.summary_zh
            FROM embeddings e JOIN articles a ON a.id = e.ref_id
+           JOIN publications p ON p.article_id = a.id
            LEFT JOIN LATERAL (SELECT title_zh, summary_zh FROM analyses WHERE article_id = a.id AND origin = 'model' ORDER BY id DESC LIMIT 1) an ON true
-           WHERE e.kind = 'article' AND e.model = %s""",
-        (embed_model(),),
+           WHERE e.kind = 'article' AND e.model = %(model)s AND {listed_condition()}""",
+        {**scope_params(now or datetime.now(UTC)), "model": embed_model()},
     ).fetchall()
     if not stored:
         return []

@@ -63,6 +63,8 @@ def _stream(pool, history: list[dict[str, str]], question: str) -> Iterator[byte
         yield _line({"type": "sources", "kind": p.kind, "found": bool(p.sources), "sources": [{k: h[k] for k in ("n", "title", "url", "score")} for h in p.sources]})
         if p.reply is not None:
             yield _line({"type": "delta", "text": p.reply})
+            if p.sources:  # a fixed reply that lists related articles: the page shows the sources once it hears which ones the reply points to
+                yield _line({"type": "cited", "numbers": [h["n"] for h in p.sources]})
         else:
             yield _line({"type": "status", "text": "整理回答"})
             answer = ""

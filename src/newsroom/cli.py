@@ -481,7 +481,8 @@ def ask_cmd(question: str, k: Annotated[int, typer.Option("--k", "-k", help="最
             return
         typer.echo(data["answer"])
         for s in data["sources"]:
-            typer.echo(f"  [{s['n']}] {s['title']}  ({s['score']:.2f})\n      {s['url']}")
+            shown = f"  ({s['score']:.2f})" if 0 <= s["score"] <= 1 else ""  # a recommendation with no topic carries the article's own 0-100 score, not a similarity
+            typer.echo(f"  [{s['n']}] {s['title']}{shown}\n      {s['url']}")
 
     _guarded("ask", as_json, run)
 

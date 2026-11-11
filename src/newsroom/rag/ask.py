@@ -26,10 +26,13 @@ Messages = list[dict[str, str]]
 ChatFn = Callable[..., str]
 NOT_FOUND = "資料庫裡找不到相關的文章。"
 NO_RECOMMENDATION = "目前站上沒有可以推薦的文章。"
+NOT_ANSWERED = "站內沒有文章直接回答這個問題，不過有幾篇相關的，可以點開看看："
 HISTORY_TURNS = 6  # the last turns sent to the model and to the rewrite
 RECOMMEND_COUNT = 5
 STORY_DAYS = 14  # an event counts as current for this long after its latest report
 RECOMMEND_MIN_SCORE = 0.5  # for a topic: lower than for answers, a recommendation only has to be near
+RELATED_MIN_SCORE = 0.55  # a question no article answers (below RAG_MIN_SCORE) still gets the articles at least this near, listed without the model
+RELATED_COUNT = 3
 
 PERSONA = "你是這個新聞網站的問答助手，用繁體中文，語氣自然親切，回答簡潔。"
 CHAT_SYSTEM = (
@@ -46,7 +49,7 @@ ASK_SYSTEM = (
 RECOMMEND_SYSTEM = (
     PERSONA
     + "下面是網站上的文章清單。依使用者的要求，從清單裡推薦，每篇用一兩句話說它在講什麼、為什麼值得看，並在後面用 [編號] 標出是哪一篇。"
-    "只能推薦清單裡的文章，不要自己加。"
+    "清單裡的每一篇都要介紹，不可以漏掉，照編號順序。只能推薦清單裡的文章，不要自己加。"
 )
 REWRITE = (
     "把使用者最後一個問題改寫成一個不需要上下文也看得懂的搜尋問題，補上前面對話裡提到的人事物。"
@@ -58,7 +61,7 @@ ROUTE = (
     'recommend：要你推薦或列出文章，或問最近有什麼新聞、有哪些文章；topic 填他想看的主題，沒有指定就填空字串。\n'
     'ask：問某件事、某個產品、某家公司的內容或細節（需要查文章才能回答）。\n'
     '例：「你好」→chat；「推薦幾篇文章」→recommend，topic 空；「有 AI 影片的文章嗎」→recommend，topic「AI 影片」；'
-    '「NVIDIA 發布了什麼」→ask。'
+    '「NVIDIA 發布了什麼」→ask；「AI 自己找出系統漏洞的新聞」→ask（問的是某件具體的事，不是要清單）；「最近有什麼新聞」→recommend，topic 空。'
 )
 ROUTE_FORMAT = {
     "type": "object",
@@ -143,8 +146,18 @@ def _numbered(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def retrieve(conn, question: str, history: Messages | None = None, k: int = 5, embed_fn: EmbedFn = embed, chat_fn: ChatFn = chat) -> list[dict[str, Any]]:
-    query = standalone_question(question, history, chat_fn)
-    return _numbered([h for h in search(conn, query, k, embed_fn) if h["score"] >= min_score()])
+    return retrieve_with_related(conn, question, history, k, embed_fn, chat_fn)[0]
+
+
+def retrieve_with_related(
+    conn, question: str, history: Messages | None = None, k: int = 5, embed_fn: EmbedFn = embed, chat_fn: ChatFn = chat
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """(the articles that answer the question, the articles only near it): the second list is filled only when the first is empty."""
+    found = search(conn, standalone_question(question, history, chat_fn), max(k, RELATED_COUNT), embed_fn)
+    answers = _numbered([h for h in found if h["score"] >= min_score()][:k])
+    if answers:
+        return answers, []
+    return [], _numbered([h for h in found if h["score"] >= RELATED_MIN_SCORE][:RELATED_COUNT])
 
 
 def _row(r: dict[str, Any]) -> dict[str, Any]:
@@ -239,8 +252,11 @@ def plan(conn, question: str, history: Messages | None = None, k: int = 5, embed
         say(f"找到 {len(items)} 篇可以推薦的文章")
         return Plan(kind, items, [{"role": "system", "content": RECOMMEND_SYSTEM}, *past, {"role": "user", "content": f"文章清單：\n{_article_text(items)}\n\n要求：{question}"}])
     say("搜尋站內相關文章")
-    hits = retrieve(conn, question, history, k, embed_fn, chat_fn)
+    hits, related = retrieve_with_related(conn, question, history, k, embed_fn, chat_fn)
     if not hits:
+        if related:
+            say(f"沒有直接的答案，找到 {len(related)} 篇相關文章")
+            return Plan(kind, related, reply=NOT_ANSWERED)
         return Plan(kind, [], reply=NOT_FOUND)
     say(f"找到 {len(hits)} 篇相關文章")
     return Plan(kind, hits, [{"role": "system", "content": ASK_SYSTEM}, *past, {"role": "user", "content": f"文章：\n{_article_text(hits)}\n\n問題：{question}"}])

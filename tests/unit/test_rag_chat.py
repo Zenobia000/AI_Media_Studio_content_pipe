@@ -51,9 +51,22 @@ def test_no_earlier_turns_leaves_the_question_alone():
 
 
 def test_a_question_the_articles_do_not_cover_is_not_found_and_the_model_is_not_asked(monkeypatch):
-    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("離題", 0.55)])  # under the 0.6 bar
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("離題", 0.45)])  # too far even to be called related
     p = rag.plan(None, "今天天氣", None, chat_fn=_model("ask"))
     assert p.reply == rag.NOT_FOUND and p.sources == [] and p.messages is None
+
+
+def test_a_question_only_near_some_articles_lists_them_without_the_model(monkeypatch):
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("近", 0.57), _hit("較遠", 0.56), _hit("太遠", 0.5)])
+    p = rag.plan(None, "近的訓練成本", None, chat_fn=_model("ask"))
+    assert p.reply == rag.NOT_ANSWERED and p.messages is None
+    assert [(s["n"], s["title"]) for s in p.sources] == [(1, "近"), (2, "較遠")]
+
+
+def test_when_an_article_answers_the_nearer_ones_are_not_listed_as_related(monkeypatch):
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("甲", 0.7), _hit("乙", 0.58)])
+    hits, related = rag.retrieve_with_related(None, "甲是什麼", chat_fn=_model("ask"))
+    assert [h["title"] for h in hits] == ["甲"] and related == []
 
 
 def test_a_covered_question_goes_to_the_model_with_numbered_articles(monkeypatch):
@@ -134,6 +147,12 @@ def test_the_plan_tells_what_it_is_doing(monkeypatch):
     said: list[str] = []
     rag.plan(None, "甲是什麼", None, chat_fn=_model("ask"), step=said.append)
     assert said == ["判斷你想做什麼", "搜尋站內相關文章", "找到 1 篇相關文章"]
+
+
+def test_a_fixed_reply_that_lists_related_articles_tells_the_page_to_show_them(monkeypatch):
+    sources = [{"n": i, **_hit(f"文{i}", 0.57)} for i in (1, 2)]
+    events = _events(monkeypatch, rag.Plan("ask", sources, reply=rag.NOT_ANSWERED), [])
+    assert [e["type"] for e in events] == ["sources", "delta", "cited", "done"] and events[2]["numbers"] == [1, 2]
 
 
 def test_a_fixed_reply_is_one_delta_with_no_model(monkeypatch):
