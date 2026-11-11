@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconSparkles } from "../../../apps/web/app/components/icons";
 import { PhoneBar } from "../../../apps/web/app/components/shell/PhoneBar";
 import type { Screen } from "../../../apps/web/app/components/shell/screens";
+import { copyText } from "../../../apps/web/app/lib/clipboard";
 import { pageMeta } from "../../../apps/web/app/lib/seo";
 
 export const handle: Screen = { tab: "me", name: "AI 問答" };
@@ -109,14 +110,15 @@ function Steps({ steps, streaming }: { steps: string[]; streaming: boolean }) {
 }
 
 function CopyButton({ text }: { text: string }) {
-  const [done, setDone] = useState(false);
+  const [state, setState] = useState<"idle" | "done" | "failed">("idle");
+  const show = (next: "done" | "failed") => { setState(next); setTimeout(() => setState("idle"), 1500); };
   return (
     <button
       type="button"
-      onClick={() => { void navigator.clipboard?.writeText(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1500); }); }}
+      onClick={() => { copyText(text).then(() => show("done"), () => show("failed")); }}
       className="text-[12.5px] text-ink-3 hover:text-ink"
     >
-      {done ? "已複製" : "複製"}
+      {state === "done" ? "已複製" : state === "failed" ? "複製失敗" : "複製"}
     </button>
   );
 }
