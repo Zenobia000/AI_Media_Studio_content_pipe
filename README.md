@@ -226,19 +226,21 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 ## 站內問答、聊天頁與 MCP（新增）
 
-用本機的 Ollama（向量模型 `bge-m3`、聊天模型 `qwen2.5:14b`）做的，**只根據網站裡已分析過的文章**回答，不用雲端模型。程式在 `src/newsroom/rag/`。
+用本機的 Ollama（向量模型 `bge-m3`、聊天模型 `qwen3.5:9b-ctx32k`）做的，**只根據網站裡已分析過的文章**回答，不用雲端模型。程式在 `src/newsroom/rag/`。
+
+聊天模型要先建好（只做一次）：`ollama pull qwen3.5:9b`，再 `ollama create qwen3.5:9b-ctx32k -f deploy/qwen3.5-9b-ctx32k.Modelfile`。文章分析用本機模型時也用同一個：`AIHOT/.env` 設 `LLM_MODEL=qwen3.5:9b-ctx32k` 和 `LLM_EXTRA_JSON={"reasoning_effort":"none"}`（關掉思考）。Ollama 預設的上下文只有 4096 個 token，分析的提示詞比它長，超過的部分會被截掉開頭而且不報錯，所以不能直接用 `qwen3.5:9b`。
 
 | 要做什麼 | 怎麼用 |
 |---|---|
 | 把文章轉成向量 | `newsroom rag-index`（只處理新的或改過的；向量放在 AIHOT 原有的 `embeddings` 資料表，不用 pgvector） |
 | 用意思找文章 | `newsroom rag-search "問題" --k 5` |
 | 問答 | `newsroom ask "問題"`，會列出出處；找不到相關文章就說找不到 |
-| 聊天頁 | 網站左側「AI 問答」（`/chat`）。可以閒聊、請它推薦文章、問新聞內容；每次重新整理都是新對話，沒有登入就不保存。是 AIHOT 的「模組」（`AIHOT/modules/chat/`），沒有改任何現有頁面。後端是 `POST /api/chat` |
+| 聊天頁 | 網站左側「AI 問答」（`/chat`）。可以問新聞內容、請它推薦文章、請它改寫或翻譯上一則回答；跟網站無關的要求（常識、寫程式、寫信、閒聊）一律回固定的一句「只能回答這個網站收錄的內容」，不交給模型；每次重新整理都是新對話，沒有登入就不保存。是 AIHOT 的「模組」（`AIHOT/modules/chat/`），沒有改任何現有頁面。後端是 `POST /api/chat` |
 | 讓 Claude 用語意搜尋 | 原本的 MCP（`/api/mcp`，7 個工具）沒有動，和 Node 版一致；另外開了 `/api/mcp-rag`，只有一個工具 `mediahot_semantic_search`。Claude Code（加 `--scope user` 才會在 VS Code 面板的任何路徑都看得到；加完要開新對話）：`claude mcp add --scope user --transport http mediahot http://127.0.0.1:3000/api/mcp` 和 `claude mcp add --scope user --transport http mediahot-semantic http://127.0.0.1:3000/api/mcp-rag` |
 
 **新文章：** `python start_dev.py` 的 worker 每 10 分鐘自動把新文章轉成向量（`RAG_INDEX_ENABLED=true`）；其他環境預設關著，要手動跑 `newsroom rag-index`。
 
-**限制：** 回答品質受 `qwen2.5:14b` 限制：出處編號偶爾標錯（12 題抽查，24 句裡 1 句）、簡體標題原樣顯示。聊天沒有登入也沒有使用限制，只適合在本機用。claude.ai 網頁版與 Claude 桌面版的自訂連接器要公開的 HTTPS 網址，連不到 `127.0.0.1`；Claude Code 可以。
+**限制：** 回答品質受 `qwen3.5:9b` 限制：出處編號偶爾標錯（讀過 60 則回答，1 句標錯篇、1 則把出處寫成頁面認不得的格式）、資料庫裡已有的簡體標題原樣顯示。聊天沒有登入也沒有使用限制，只適合在本機用。claude.ai 網頁版與 Claude 桌面版的自訂連接器要公開的 HTTPS 網址，連不到 `127.0.0.1`；Claude Code 可以。
 
 ---
 
@@ -345,7 +347,7 @@ cd .. && python -m pytest tests                       # 收集與補料（Python
 | `SOCIALDATA_API_KEY` | 選用，X 貼文影片補料（L1）與 AIHOT 的 X 收集器共用 |
 | `YTDLP_COOKIES_FILE` | 選用，自己帳號的 cookies 檔路徑，給 yt-dlp、gallery-dl 用；不要放進版本控制 |
 | `RAG_INDEX_ENABLED` | 選用，`true` 時 worker 每 10 分鐘把新文章轉成向量；`start_dev.py` 預設打開，其他環境預設關著 |
-| `RAG_EMBED_URL`、`RAG_EMBED_MODEL`、`RAG_CHAT_MODEL`、`RAG_MIN_SCORE` | 選用，站內問答用的本機 Ollama 位置（預設 `http://127.0.0.1:11434`）、向量模型（`bge-m3`）、聊天模型（`qwen2.5:14b`）、答案採用的最低相似度（`0.6`） |
+| `RAG_EMBED_URL`、`RAG_EMBED_MODEL`、`RAG_CHAT_MODEL`、`RAG_MIN_SCORE` | 選用，站內問答用的本機 Ollama 位置（預設 `http://127.0.0.1:11434`）、向量模型（`bge-m3`）、聊天模型（`qwen3.5:9b-ctx32k`）、答案採用的最低相似度（`0.6`） |
 
 其餘設定見 [.env.example](AIHOT/.env.example)。
 

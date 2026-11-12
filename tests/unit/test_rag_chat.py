@@ -34,6 +34,12 @@ def test_cited_numbers_in_order_once_each():
     assert rag.cited_numbers("沒有出處") == []
 
 
+def test_every_request_to_the_model_turns_thinking_off():
+    """A model that reasons first would spend seconds reasoning before each route, rewrite and answer."""
+    for stream, fmt in ((False, rag.ROUTE_FORMAT), (False, None), (True, None)):
+        assert rag._body([{"role": "user", "content": "你好"}], stream, 0.2, fmt)["think"] is False
+
+
 def test_route_reads_the_kind_and_topic():
     assert rag.route("推薦 AI 影片", None, _model("recommend", "AI 影片")) == ("recommend", "AI 影片")
 
@@ -79,6 +85,27 @@ def test_a_covered_question_goes_to_the_model_with_numbered_articles(monkeypatch
 def test_chat_has_no_sources_and_keeps_the_site_only_rule():
     p = rag.plan(None, "你好", None, chat_fn=_model("chat"))
     assert p.sources == [] and p.messages and p.messages[0]["content"] == rag.CHAT_SYSTEM and p.messages[-1]["content"] == "你好"
+    assert rag.OFF_SITE in rag.CHAT_SYSTEM  # what it is told to say to anything else is the fixed reply, word for word
+
+
+def test_a_request_that_is_not_about_the_site_gets_the_fixed_reply_and_the_model_is_not_asked(monkeypatch):
+    """The fake model fails the test if it is asked for an answer: "other" never reaches it. Articles that are only near do not change that."""
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("近", 0.57), _hit("離題", 0.4)])
+    assert rag.route("幫我寫一封請假信", None, _model("other")) == ("other", "")
+    p = rag.plan(None, "幫我寫一封請假信", None, chat_fn=_model("other"))
+    assert p.kind == "other" and p.reply == rag.OFF_SITE and p.sources == [] and p.messages is None
+
+
+def test_a_message_sorted_as_not_about_the_site_is_answered_when_an_article_does_answer_it(monkeypatch):
+    """The sorting is a model's guess: a question about the stock market was sorted as "other" although the site has articles on it."""
+    monkeypatch.setattr(rag, "search", lambda *a, **k: [_hit("台股", 0.65)])
+    p = rag.plan(None, "台股最近的走勢如何", None, chat_fn=_model("other"))
+    assert p.kind == "ask" and p.reply is None and [s["title"] for s in p.sources] == ["台股"]
+    assert p.messages and p.messages[0]["content"] == rag.ASK_SYSTEM
+
+
+def test_the_model_may_only_sort_a_message_into_the_four_kinds():
+    assert rag.ROUTE_FORMAT["properties"]["intent"]["enum"] == ["chat", "recommend", "ask", "other"]
 
 
 def test_recommend_with_nothing_to_recommend_says_so(monkeypatch):
