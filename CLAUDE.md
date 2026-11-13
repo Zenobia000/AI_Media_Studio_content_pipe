@@ -11,6 +11,7 @@
 | 分支與 PR 規則 | [docs/process/branching-strategy.md](docs/process/branching-strategy.md) |
 | skill 怎麼對應口語需求 | [skills/RESOLVER.md](skills/RESOLVER.md)；每個 skill 的規則在它自己的 `SKILL.md` |
 | 後端（Python）怎麼跑、和原版差在哪 | [docs/process/backend-python-handover.md](docs/process/backend-python-handover.md) |
+| 在另一台電腦上跑起來（安裝、模型、檢查環境） | [docs/process/setup-new-machine.md](docs/process/setup-new-machine.md)；`python check_setup.py` |
 | 進度 | [AIHOT/PROGRESS.md](AIHOT/PROGRESS.md) |
 
 ## 規則
