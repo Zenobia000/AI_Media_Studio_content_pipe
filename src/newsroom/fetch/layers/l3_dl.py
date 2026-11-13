@@ -113,8 +113,15 @@ class Layer3Result:
 
 
 def fetch_layer3(
-    conn, topic_id: str, exec_: Exec | None = None, get: Get | None = None, have_video: set[str] | None = None, cookies_file: str | None | bool = True
+    conn,
+    topic_id: str,
+    exec_: Exec | None = None,
+    get: Get | None = None,
+    have_video: set[str] | None = None,
+    cookies_file: str | None | bool = True,
+    kinds: frozenset[str] | None = None,
 ) -> Layer3Result:
+    """`kinds` limits what is downloaded to "video" (yt-dlp) and/or "image" (gallery-dl); None takes both."""
     exec_ = exec_ or default_exec
     get = get or default_get
     cookies = os.environ.get("YTDLP_COOKIES_FILE") if cookies_file is True else cookies_file
@@ -234,8 +241,9 @@ def fetch_layer3(
         # A post with a video is taken as that video; its pictures are looked for only when there is none.
         for kind, url in wanted:
             if kind == "video":
-                video(url, source["source_id"])
-            elif not got_video():
+                if kinds is None or "video" in kinds:
+                    video(url, source["source_id"])
+            elif not got_video() and (kinds is None or "image" in kinds):
                 images(url, source["source_id"])
     record_attempts(conn, [Attempt(3, u, True) for u in dict.fromkeys(d["url"] for d in result.downloaded)])
     record_attempts(conn, [Attempt(3, f["url"], False, f["message"]) for f in result.failed])

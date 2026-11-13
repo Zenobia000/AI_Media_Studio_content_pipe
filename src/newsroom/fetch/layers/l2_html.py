@@ -178,7 +178,9 @@ def fetch_layer2(
     max_per_page: int = MAX_PER_PAGE,
     sleep: Callable[[float], None] = time.sleep,
     clock: Callable[[], float] = time.monotonic,
+    kinds: frozenset[str] | None = None,
 ) -> Layer2Result:
+    """`kinds` limits what is downloaded to some of "video", "gif" and "image"; None takes all three."""
     get = get or default_get
     get_binary = get_binary or default_get_binary
     result = Layer2Result(topic_id)
@@ -219,7 +221,7 @@ def fetch_layer2(
         except Exception as e:  # noqa: BLE001
             result.skipped.append({"url": source["url"], "reason": f"頁面讀不到：{str(e)[:100]}", "failed": True})
             continue
-        ranked = sorted(candidates, key=lambda c: order[c.kind])
+        ranked = sorted((c for c in candidates if kinds is None or c.kind in kinds), key=lambda c: order[c.kind])
         if len(ranked) > max_per_page:
             result.skipped.append(
                 {"url": source["url"], "reason": f"頁面列出 {len(ranked)} 個媒體，只取前 {max_per_page} 個（影片優先）", "failed": False}

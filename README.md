@@ -238,6 +238,22 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 | 聊天頁 | 網站左側「AI 問答」（`/chat`）。可以問新聞內容、請它推薦文章、請它改寫或翻譯上一則回答；跟網站無關的要求（常識、寫程式、寫信、閒聊）一律回固定的一句「只能回答這個網站收錄的內容」，不交給模型；每次重新整理都是新對話，沒有登入就不保存。是 AIHOT 的「模組」（`AIHOT/modules/chat/`），沒有改任何現有頁面。後端是 `POST /api/chat` |
 | 讓 Claude 用語意搜尋 | 原本的 MCP（`/api/mcp`，7 個工具）沒有動，和 Node 版一致；另外開了 `/api/mcp-rag`，只有一個工具 `mediahot_semantic_search`。Claude Code（加 `--scope user` 才會在 VS Code 面板的任何路徑都看得到；加完要開新對話）：`claude mcp add --scope user --transport http mediahot http://127.0.0.1:3000/api/mcp` 和 `claude mcp add --scope user --transport http mediahot-semantic http://127.0.0.1:3000/api/mcp-rag` |
 
+## 素材區：在網站上點一下，就抓原文、照片、影片
+
+不用打指令（`add-source`、`open-topic`、`fetch-topic`、`fetch-media`）也能抓素材。左側欄「內容」有一項「素材」（`/materials`，是 AIHOT 的「模組」`AIHOT/modules/materials/`；後端是 `src/newsroom/api/routes/materials.py` 與 `src/newsroom/collect/picks.py`）：
+
+1. 在文章旁邊按**書籤（收藏）**，文章就進了素材區。收藏與素材區是同一份清單：取消收藏就是移出素材區。
+2. 打開「素材」頁，每篇有三個勾選：**文章**（網頁文字，存成 Markdown）、**照片**（網頁上的主要圖片）、**影片**（影片與 GIF）。勾要的，按「下載」；「全部下載」照各篇的勾選一起跑。
+3. 下載在背景進行（同時最多 2 篇，其餘排隊），頁面每 3 秒更新狀態，完成後列出抓到的檔案、缺口和錯誤。檔案放在工作區 `topics/<題目編號>/`（`python start_dev.py` 時是 `.data/workspace/`），每篇第一次下載時自動建一個題目，所以之後仍可用 `newsroom assets-topic`、`preprocess-topic` 接著處理。
+
+| 勾選 | 做什麼 |
+|---|---|
+| 文章 | `fetch-topic`：GitHub、arXiv、YouTube 用各自的介面，其他網頁用 Readability，失敗時用 Jina（要 `JINA_API_KEY`） |
+| 照片 | 第 2 層（網頁自己的圖片，遵守 robots.txt）、第 3 層 gallery-dl |
+| 影片 | 第 1 層（X、Threads 的平臺介面）、第 2 層（網頁自己的影片與 GIF）、第 3 層 yt-dlp |
+
+**限制：** 素材區是給自己在本機用的，沒有登入：任何連得到這個 API 的人都能開始下載，所以不要把它開到網路上（要開放的話，先在 `/api/materials/{id}/fetch` 前面加上後臺登入）。請求要帶只有網站自己的頁面才會送的標頭，避免瀏覽器裡開著的其他網頁偷偷觸發下載。素材區最多 500 篇。第 4 層（瀏覽器錄影）只給要做 reel 的題目，素材區不跑。沒裝 yt-dlp、gallery-dl 時頁面會提醒，網頁自己提供的圖片和影片仍會抓。頁面還不能預覽圖片和影片，只列檔名與大小。
+
 **新文章：** `python start_dev.py` 的 worker 每 10 分鐘自動把新文章轉成向量（`RAG_INDEX_ENABLED=true`）；其他環境預設關著，要手動跑 `newsroom rag-index`。
 
 **限制：** 回答品質受 `qwen3.5:9b` 限制：出處編號偶爾標錯（讀過 60 則回答，1 句標錯篇、1 則把出處寫成頁面認不得的格式）、資料庫裡已有的簡體標題原樣顯示。聊天沒有登入也沒有使用限制，只適合在本機用。claude.ai 網頁版與 Claude 桌面版的自訂連接器要公開的 HTTPS 網址，連不到 `127.0.0.1`；Claude Code 可以。

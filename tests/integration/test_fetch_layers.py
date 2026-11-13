@@ -236,6 +236,25 @@ def test_a_pages_videos_gif_and_main_picture_are_downloaded_and_a_logo_is_not(co
 
 
 @needs_ffmpeg
+def test_l2_can_be_told_to_take_only_pictures_or_only_videos(conn, workspace, media, tag):
+    page_url = f"https://l2k.example/{tag}/post"
+    html = '<head><meta property="og:image" content="/hero.png"></head><video src="/a.mp4"></video><img src="/anim.gif">'
+    files = {
+        "https://l2k.example/a.mp4": ("video/mp4", media["v1.mp4"]),
+        "https://l2k.example/anim.gif": ("image/gif", media["anim.gif"]),
+        "https://l2k.example/hero.png": ("image/png", media["hero.png"]),
+    }
+    get, get_binary, requests = l2_server({page_url: html}, files)
+    photos = fetch_layer2(conn, topic_at(conn, page_url).topic_id, get=get, get_binary=get_binary, delay=0, kinds=frozenset({"image"}))
+    assert [d["kind"] for d in photos.downloaded] == ["image"]
+    assert "https://l2k.example/a.mp4" not in requests and "https://l2k.example/anim.gif" not in requests  # what was not asked for is not even requested
+    page2 = f"https://l2k.example/{tag}/other"
+    get2, get_binary2, _ = l2_server({page2: html}, files)
+    videos = fetch_layer2(conn, topic_at(conn, page2).topic_id, get=get2, get_binary=get_binary2, delay=0, kinds=frozenset({"video", "gif"}))
+    assert sorted(d["kind"] for d in videos.downloaded) == ["gif", "video"]
+
+
+@needs_ffmpeg
 def test_a_picture_with_a_side_under_400_px_is_not_kept_and_a_big_file_is_a_gap(conn, workspace, media, tag):
     page_url = f"https://l2s.example/{tag}"
     t = topic_at(conn, page_url)
@@ -336,6 +355,17 @@ def test_a_youtube_source_is_downloaded_as_third_party_and_a_failure_says_what_t
     assert r3.failed[0]["code"] == "MISSING_TOOL"
     stats = {s.layer: s for s in fetch_stats(conn, 30)}
     assert stats[3].attempts >= 1
+
+
+def test_l3_can_be_told_to_take_only_videos_or_only_pictures(conn, workspace, tag):
+    post = f"https://x.com/someone/status/{tag.replace('x', '9')}"
+    only_video, calls = fake_exec()
+    r = fetch_layer3(conn, topic_at(conn, post).topic_id, exec_=only_video, get=no_page, cookies_file=None, kinds=frozenset({"video"}))
+    assert [d["kind"] for d in r.downloaded] == ["video"] and not any("-D" in c for c in calls)
+    post2 = f"https://x.com/someone/status/{tag.replace('x', '8')}"
+    only_images, calls2 = fake_exec(video="ERROR: no video in this post")
+    r2 = fetch_layer3(conn, topic_at(conn, post2).topic_id, exec_=only_images, get=no_page, cookies_file=None, kinds=frozenset({"image"}))
+    assert [d["kind"] for d in r2.downloaded] == ["image"] and not any("-f" in c for c in calls2)  # yt-dlp is not run at all
 
 
 # ── L4 ──────────────────────────────────────────────────────────────────────────────────

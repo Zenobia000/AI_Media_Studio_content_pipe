@@ -1,0 +1,2 @@
+-- 素材區: the articles a person put there (the bookmark on an article), what they asked to have downloaded, and how the last download went.
+CREATE TABLE material_picks (article_id text PRIMARY KEY REFERENCES articles (id) ON DELETE CASCADE, added_at timestamptz NOT NULL DEFAULT now(), topic_id text REFERENCES topics (topic_id) ON DELETE SET NULL, state text NOT NULL DEFAULT 'idle' CHECK (state IN ('idle', 'queued', 'running', 'done', 'failed')), wanted text[] NOT NULL DEFAULT '{}', started_at timestamptz, finished_at timestamptz, result jsonb NOT NULL DEFAULT '{}'::jsonb)

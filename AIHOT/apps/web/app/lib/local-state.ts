@@ -187,6 +187,19 @@ function isStarred(id: string): boolean {
   return starredSetCache.ids.has(id);
 }
 
+/**
+ * Tells whatever listens in this tab that an item was starred or unstarred: a `window` event "aihot:star" with
+ * `{ id, on }` as its detail. A module that keeps the stars somewhere else too (modules/materials) listens for it
+ * from its part of every page (WebModule.root.Top); the engine knows nothing of who does.
+ */
+function announceStar(id: string, on: boolean) {
+  try {
+    window.dispatchEvent(new CustomEvent("aihot:star", { detail: { id, on } }));
+  } catch {
+    // No window to tell (the server, a test): the star itself is already saved.
+  }
+}
+
 export function toggleStar(item: Omit<LocalStarredItem, "savedAt">): boolean {
   return editLocalData(() => {
     if (starredUnreadable()) return false;
@@ -195,6 +208,7 @@ export function toggleStar(item: Omit<LocalStarredItem, "savedAt">): boolean {
     const next = exists ? list.filter((s) => s.id !== item.id) : [{ ...item, savedAt: new Date().toISOString() }, ...list].slice(0, STARRED_LIMIT);
     const saved = writeRaw(KEYS.starred, JSON.stringify(next));
     invalidate(KEYS.starred);
+    if (saved) announceStar(item.id, !exists);
     return saved && !exists;
   });
 }
@@ -202,8 +216,9 @@ export function toggleStar(item: Omit<LocalStarredItem, "savedAt">): boolean {
 export function removeStar(id: string) {
   editLocalData(() => {
     if (starredUnreadable()) return;
-    writeRaw(KEYS.starred, JSON.stringify(getStarred().filter((s) => s.id !== id)));
+    const saved = writeRaw(KEYS.starred, JSON.stringify(getStarred().filter((s) => s.id !== id)));
     invalidate(KEYS.starred);
+    if (saved) announceStar(id, false);
   });
 }
 
