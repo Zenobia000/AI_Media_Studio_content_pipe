@@ -1,14 +1,16 @@
 """一次啟動本機開發環境（Windows）：資料庫（Docker 裡的 parity-pg）、Python 後端 API、worker、網站。
 
 用法（在專案根目錄）：
-    python start_dev.py                 啟動：自動收集信源（要連外網），不呼叫模型
+    python start_dev.py                 啟動：自動收集信源（要連外網），並呼叫模型（分析、評分、翻譯、歸組、報告），設定與金鑰從 AIHOT/.env 讀；
+                                        模型是雲端的會產生費用，是本機 Ollama 的不會。AIHOT/.env 沒有金鑰時不呼叫模型，照常啟動
     python start_dev.py --no-collect    不收集信源
-    python start_dev.py --models        同時打開模型呼叫（分析、評分、翻譯、歸組、報告；會產生費用），金鑰從 AIHOT/.env 讀
+    python start_dev.py --no-models     不呼叫模型
+    python start_dev.py --models        一定要呼叫模型：沒有金鑰就直接結束
     python start_dev.py --db seeded     改用測試用的資料庫（裡面是造出來的假文章）；預設是自己的 dev 資料庫
 停止：python stop_dev.py
 
 預設用獨立的 dev 資料庫（第一次啟動時自動建立、跑 newsroom migrate、放進預設的信源），不碰對照測試用的 seeded。
-收集到的文章要經過模型分析、評分、翻譯才會出現在網站的精選裡；沒有 --models 時文章只會停在「待分析」。
+收集到的文章要經過模型分析、評分、翻譯才會出現在網站的精選裡；不呼叫模型時文章只會停在「待分析」。
 三個服務預設在同一個終端，輸出每行加 [API]、[worker]、[網站] 前綴，Ctrl+C 全停；加 --separate 則各開一個視窗。
 程序編號記在 .data/dev-pids.json，stop_dev.py 只停這些。
 這裡的密碼與密鑰都是本機測試用的，不要拿去正式環境。
@@ -139,20 +141,30 @@ def local_model_defaults(env: dict) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="一次啟動本機開發環境")
     parser.add_argument("--no-collect", action="store_true", help="不收集信源")
-    parser.add_argument("--models", action="store_true", help="打開模型呼叫（會產生費用），金鑰從 AIHOT/.env 讀")
+    parser.add_argument("--models", action="store_true", help="一定要打開模型呼叫：AIHOT/.env 沒有金鑰時直接結束（不加時，沒有金鑰就不開模型繼續啟動）")
+    parser.add_argument("--no-models", action="store_true", help="不呼叫模型（文章只收集，停在「待分析」）")
     parser.add_argument("--separate", action="store_true", help="三個服務各開一個視窗（預設在同一個終端，輸出加前綴）")
     parser.add_argument("--db", default="dev", help="資料庫名稱（預設 dev；seeded 是測試用的假資料）")
     args = parser.parse_args()
     if os.name != "nt":
         sys.exit("start_dev.py 為 Windows 的開發環境寫的（每個服務開一個視窗）。")
-    env = {**os.environ, **(dotenv(ROOT / "AIHOT" / ".env") if args.models else {}), **ENV}
+    if args.models and args.no_models:
+        sys.exit("--models 和 --no-models 不能一起用。")
+    # 模型預設打開：設定從 AIHOT/.env 讀。沒有金鑰時，明講 --models 就結束，沒講就不開模型照常啟動。
+    models = not args.no_models
+    env = {**os.environ, **(dotenv(ROOT / "AIHOT" / ".env") if models else {}), **ENV}
+    if models and not env.get("LLM_API_KEY"):
+        if args.models:
+            sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
+        print("AIHOT/.env 沒有 LLM_API_KEY，這次不呼叫模型（要分析文章請先填好，見 AIHOT/.env.example）。")
+        models = False
+        env = {**os.environ, **ENV}
+    args.models = models
     env["DATABASE_URL"] = f"{DB_HOST}/{args.db}"
     env["COLLECT_ENABLED"] = "false" if args.no_collect else "true"
     env["MODEL_CALLS_ENABLED"] = "true" if args.models else "false"
     if args.models:
         local_model_defaults(env)
-    if args.models and not env.get("LLM_API_KEY"):
-        sys.exit("--models 需要模型金鑰：請在 AIHOT/.env 填 LLM_API_KEY（和 LLM_BASE_URL、LLM_MODEL），見 AIHOT/.env.example。")
     database(args.db)
     if args.db != "seeded":
         prepare(env)
@@ -184,7 +196,7 @@ def main() -> None:
         f"收集信源：{'關著' if args.no_collect else '打開（約每分鐘檢查一次哪些信源到期）'}；模型呼叫：{'打開（會產生費用）' if args.models else '關著'}"
     )
     if not args.models and not args.no_collect:
-        print("沒有打開模型，收集到的文章會停在「待分析」，不會出現在網站的精選裡；要分析請用  python start_dev.py --models")
+        print("沒有打開模型，收集到的文章會停在「待分析」，不會出現在網站的精選裡；要分析請在 AIHOT/.env 填好模型設定，並且不要加 --no-models")
     if procs:
         follow(procs)
 

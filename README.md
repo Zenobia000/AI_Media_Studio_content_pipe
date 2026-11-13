@@ -98,7 +98,7 @@
 
 以下是 Python 後端（`newsroom worker`）的行為，條件寫在 `src/newsroom/engine/sources/`、`src/newsroom/engine/jobs/sources.py`，數字是程式裡的預設值。
 
-**要打開才會抓。** 環境變數 `COLLECT_ENABLED=true` 才會排程收集（`python start_dev.py` 預設打開，`--no-collect` 關閉）。收集到的文章要經過模型分析才會出現在網站，沒有模型（`--models`）時只會停在「待分析」。
+**要打開才會抓。** 環境變數 `COLLECT_ENABLED=true` 才會排程收集（`python start_dev.py` 預設打開，`--no-collect` 關閉）。收集到的文章要經過模型分析才會出現在網站；`python start_dev.py` 預設會呼叫模型（設定從 `AIHOT/.env` 讀），加 `--no-models` 或 `.env` 沒有金鑰時不呼叫，文章只會停在「待分析」。
 
 | 項目 | 條件 |
 |---|---|
@@ -220,7 +220,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 **一個終端跑全部。** `python start_dev.py` 啟動資料庫、API、worker、網站，三個服務的輸出都在同一個終端，每行前面加 `[MediaHOT API]`、`[MediaHOT worker]`、`[MediaHOT 網站]`。按 Ctrl+C 全部停掉，任何一個服務自己結束時其餘也會停。要回到「三個服務各開一個視窗」，加 `--separate`。`python stop_dev.py` 仍然可以停（程序編號記在 `.data/dev-pids.json`）。
 
-**本機模型的繁體字。** 本機模型常用簡體字寫標題，所以用本機模型時（`python start_dev.py --models`）會自動打開 `LLM_TRADITIONAL=true`，在寫中文標題與摘要的提示詞最後加一句要求繁體；雲端模型與預設環境不加。網站顯示的是資料庫裡存的字，沒有另外做簡轉繁，簡體網站的中文文章會以簡體字顯示。
+**本機模型的繁體字。** 本機模型常用簡體字寫標題，所以用本機模型時（`python start_dev.py`，模型網址是本機）會自動打開 `LLM_TRADITIONAL=true`，在寫中文標題與摘要的提示詞最後加一句要求繁體；雲端模型與預設環境不加。網站顯示的是資料庫裡存的字，沒有另外做簡轉繁，簡體網站的中文文章會以簡體字顯示。
 
 ---
 
