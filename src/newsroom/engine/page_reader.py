@@ -384,6 +384,35 @@ def describe_figure_drawings(document: D.Document) -> None:
         seen["texts"][text] = p
 
 
+_NOT_BODY = frozenset({"li", "aside", "footer", "nav", "form", "blockquote", "figure", "article"})
+
+
+def join_split_body(document: D.Document) -> None:
+    """Some sites print one article as several blocks of paragraphs, each in a wrapper of its own with an advertisement or a side column between them, and
+    Readability kept a single block. Blocks of one <article> with the same tag and classes, each holding paragraphs directly and each in a different parent,
+    are set side by side in their order, where Readability joins them as it joins any siblings of one class. Blocks inside a list item, an aside, a footer,
+    a quotation, a figure, a form or a nested article are not the body and stay where they are."""
+    for article in D.select(document.soup, "article"):
+        groups: dict[str, list] = {}
+        for el in D.select(article, "div[class], section[class]"):
+            up = el.parent
+            while up is not None and up is not article and up.name not in _NOT_BODY:
+                up = up.parent
+            if up is not article:
+                continue
+            classes = " ".join(c for c in regex.split(r"[ \t\n\f\r]+", D.get_attribute(el, "class") or "") if c)
+            if not classes or not any(c.name == "p" for c in D.children(el)):
+                continue
+            groups.setdefault(f"{el.name} {classes}", []).append(el)
+        for blocks in groups.values():
+            if len(blocks) < 2 or len({id(b.parent) for b in blocks}) < len(blocks):
+                continue
+            if any(a is not b and D.contains(a, b) for a in blocks for b in blocks):
+                continue
+            for before, block in zip(blocks, blocks[1:], strict=False):
+                before.insert_after(block)
+
+
 def keep_asides_among_paragraphs(document: D.Document) -> None:
     """Readability removes every aside. One set among the article's paragraphs that carries prose, such as an update note or a correction, is part of what
     the author wrote: it is kept as a quotation (keeping the aside's attributes)."""
@@ -477,6 +506,7 @@ def readable_document(document: D.Document, url: str, rules: PageRules | None = 
     settle_inline_visibility(document)
     preserve_widgets(document, rules.preserve or [])
     describe_figure_drawings(document)
+    join_split_body(document)
     keep_asides_among_paragraphs(document)
     drop_layout_classes(document)
     # A document theme is not an article candidate: names such as "header-dark" can discard the root.

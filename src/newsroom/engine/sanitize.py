@@ -286,9 +286,10 @@ def resolve_url(href: str, base: str | None = None) -> str:
                 netloc += f":{port}"
             path = _normalize_path(parts.path or "/")
             out = f"{scheme}://{netloc}{path}"
-            if parts.query or joined.split("#")[0].endswith("?"):
+            # urljoin drops a query or a fragment that is empty; new URL() keeps the "?" and the "#" the address was written with.
+            if parts.query or joined.split("#")[0].endswith("?") or (base and text.split("#")[0].endswith("?")):
                 out += "?" + quote(parts.query, safe=_QUERY_KEEP)
-            if parts.fragment or joined.endswith("#"):
+            if parts.fragment or joined.endswith("#") or (base and text.endswith("#")):
                 out += "#" + quote(parts.fragment, safe=_QUERY_KEEP + "#")
             return out
         return joined

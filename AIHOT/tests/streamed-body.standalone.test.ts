@@ -48,3 +48,17 @@ test("incomplete boundaries and calls inside data, strings, comments or examples
   const broken = page(`${content}<template id="B:1"></template>${segment("1", `<article><p>HIDDEN_PRIVATE ${prose}</p></article>`)}${finish("1")}`);
   assert.ok(!readable(broken, "https://example.org/article")?.text.includes("HIDDEN_PRIVATE"));
 });
+
+// A page that prints one article as several blocks, each in a wrapper of its own with a side column between
+// them (observed on Ars Technica): only one block was read. Blocks that share a parent keep their order.
+const part = (n: number) => `<div class="post-content double"><p>PART-${n} ${prose}</p><p>${prose}</p></div>`;
+test("an article printed in several blocks is read whole and in order", () => {
+  const split = [0, 1, 2].map((n) => `<div class="grid"><div class="col">${part(n)}</div><div class="side">Advertisement</div></div>`).join("");
+  const body = readable(page(`<article><h1>Split</h1>${split}</article>`), "https://example.org/article");
+  assert.ok(body);
+  assert.ok(body.text.indexOf("PART-0") < body.text.indexOf("PART-1") && body.text.indexOf("PART-1") < body.text.indexOf("PART-2"));
+  assert.ok(!body.text.includes("Advertisement"));
+  const together = readable(page(`<article><div>${part(0)}<p>BETWEEN ${prose}</p>${part(1)}</div></article>`), "https://example.org/article");
+  assert.ok(together);
+  assert.ok(together.text.indexOf("PART-0") < together.text.indexOf("BETWEEN") && together.text.indexOf("BETWEEN") < together.text.indexOf("PART-1"));
+});

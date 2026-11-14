@@ -26,6 +26,14 @@ REACT = (
     f'<div id="root"><!--$?--><template id="B:0"></template><p>Loading…</p><!--/$--></div><div hidden id="S:0">{LONG}</div>'
     '<script>$RC("B:0","S:0")</script>'
 )
+def marked(mark: str, n: int) -> str:
+    return para(n, 90).replace("<p>", f"<p>{mark} ", 1)
+
+
+SPLIT = "".join(
+    f'<div class="grid"><div class="col"><div class="post-content double">{marked(f"PART-{i}", i)}{body(2)}</div></div><div class="side">Advertisement</div></div>'
+    for i in range(3)
+)
 EXTRA: dict[str, tuple[str, dict]] = {
     "react_streaming": (page("Streamed", REACT), {}),
     "react_streaming_runtime": (
@@ -118,6 +126,20 @@ EXTRA: dict[str, tuple[str, dict]] = {
         ),
         {},
     ),
+    # One article printed as several blocks, each in a wrapper of its own with a side column between them (Ars Technica): all of it is the article.
+    "split_body": (page("Split", f"<article><h1>Split</h1>{SPLIT}</article>"), {}),
+    # Not the body, so left where they are: blocks that share a parent (the paragraph between them keeps its place), and blocks in list items.
+    "split_body_one_parent": (
+        page("Together", f'<article><div class="wrap"><div class="part">{marked("PART-ONE", 1)}{body(3)}</div>{marked("BETWEEN", 5)}'
+             f'<div class="part">{marked("PART-TWO", 2)}{body(3)}</div></div></article>'),
+        {},
+    ),
+    "split_body_in_a_list": (
+        page("Listed", f'<article><div class="main">{body(6)}</div><ul>' + "".join(f'<li><div class="reply">{marked(f"REPLY-{i}", i)}</div></li>' for i in range(3)) + "</ul></article>"),
+        {},
+    ),
+    # A link written with an empty query keeps its "?" (new URL() does), with a base as without one.
+    "empty_query_link": (page("Query", f'<div><p>Three links in a sentence of the article: <a href="/map/index.html?#data=1">a map</a>, <a href="https://other.example/x?">another site</a> and <a href="/y#">the top of a page</a>.</p>{body(5)}</div>'), {}),
 }
 EXTRA_URLS = {"video_url": "https://www.youtube.com/watch?v=abc"}
 
@@ -179,3 +201,12 @@ def test_every_page(cases, node_results):
                 break
     assert not failures, "\n".join(failures[:8]) + f"\n({len(failures)} of {len(cases)} pages differ)"
     assert read > 80
+
+
+def test_an_article_printed_in_several_blocks_is_read_whole():
+    """Does not need Node: what the rule is for. Every block is in the article, in its order; blocks that are not the body are not moved."""
+    text = readable(EXTRA["split_body"][0], URL).text
+    assert text.index("PART-0") < text.index("PART-1") < text.index("PART-2") and "Advertisement" not in text
+    together = readable(EXTRA["split_body_one_parent"][0], URL).text
+    assert together.index("PART-ONE") < together.index("BETWEEN") < together.index("PART-TWO")
+    assert '<a href="https://www.example.org/map/index.html?#data=1">' in readable(EXTRA["empty_query_link"][0], URL).html

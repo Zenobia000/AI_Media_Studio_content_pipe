@@ -392,6 +392,33 @@ function describeFigureDrawings(document: Doc) {
 }
 
 /**
+ * Some sites print one article as several blocks of paragraphs, each in a wrapper of its own with an
+ * advertisement or a side column between them. Readability takes one element and the siblings beside it, so
+ * it kept a single block and the rest of the article was lost. Blocks of one <article> with the same tag and
+ * classes, each holding paragraphs directly and each in a different parent, are set side by side in their
+ * order, where Readability joins them as it joins any siblings of one class. Blocks inside a list item, an
+ * aside, a footer, a quotation, a figure, a form or a nested article are not the body and stay where they are.
+ */
+const NOT_BODY = new Set(["li", "aside", "footer", "nav", "form", "blockquote", "figure", "article"]);
+function joinSplitBody(document: Doc) {
+  for (const article of document.querySelectorAll("article")) {
+    const groups = new Map<string, El[]>();
+    candidates: for (const el of article.querySelectorAll("div[class], section[class]")) {
+      for (let up = el.parentElement; up && up !== article; up = up.parentElement) if (NOT_BODY.has(up.localName)) continue candidates;
+      const classes = (el.getAttribute("class") ?? "").split(/[ \t\n\f\r]+/).filter(Boolean).join(" ");
+      if (!classes || ![...el.children].some((child) => child.localName === "p")) continue;
+      const key = `${el.localName} ${classes}`;
+      groups.set(key, [...(groups.get(key) ?? []), el]);
+    }
+    for (const blocks of groups.values()) {
+      if (blocks.length < 2 || new Set(blocks.map((block) => block.parentElement)).size < blocks.length) continue;
+      if (blocks.some((a) => blocks.some((b) => a !== b && a.contains(b)))) continue;
+      for (let i = 1; i < blocks.length; i++) blocks[i - 1]!.after(blocks[i]!);
+    }
+  }
+}
+
+/**
  * Readability removes every aside. One set among the article's paragraphs (its parent holds paragraphs of
  * its own) that carries prose, such as an update note or a correction, is part of what the author wrote:
  * it is kept as a quotation. An aside of links, a line with a form, or one beside the article still goes.
@@ -444,6 +471,7 @@ export function readableDocument(document: Doc, url: string, rules: PageRules = 
   settleInlineVisibility(document);
   preserveWidgets(document, rules.preserve ?? []);
   describeFigureDrawings(document);
+  joinSplitBody(document);
   keepAsidesAmongParagraphs(document);
   dropLayoutClasses(document);
   // A document theme is not an article candidate: names such as "header-dark" can discard the root.
