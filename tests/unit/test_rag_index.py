@@ -56,3 +56,27 @@ def test_a_stopped_embedding_server_is_a_skipped_run_not_a_failed_one(monkeypatc
 
     monkeypatch.setattr(index, "index_articles", down)
     assert index.index_pending(_Pool()) == {"skipped": "connection refused"}
+
+
+class _Vectors:
+    """The two questions _vectors asks of the embeddings table, answered from a dict; `reads` counts how often every vector was read."""
+
+    def __init__(self, rows: dict[str, list[float]]):
+        self.rows, self.reads = rows, 0
+
+    def execute(self, sql, params=None):
+        if "AS held" in sql:
+            return SimpleNamespace(fetchone=lambda: {"held": f"{len(self.rows)}:{sorted(self.rows)}"})
+        self.reads += 1
+        return SimpleNamespace(fetchall=lambda: [{"ref_id": k, "vector": v} for k, v in sorted(self.rows.items())])
+
+
+def test_the_vectors_are_read_once_and_again_only_when_the_table_changed(monkeypatch):
+    monkeypatch.setattr(index, "_vector_cache", {})
+    conn = _Vectors({"a": [3.0, 4.0], "b": [0.0, 2.0]})
+    at, matrix = index._vectors(conn, "m")
+    assert at == {"a": 0, "b": 1} and matrix.ravel().tolist() == pytest.approx([0.6, 0.8, 0.0, 1.0])
+    index._vectors(conn, "m")
+    assert conn.reads == 1
+    conn.rows["c"] = [1.0, 0.0]
+    assert index._vectors(conn, "m")[0] == {"a": 0, "b": 1, "c": 2} and conn.reads == 2

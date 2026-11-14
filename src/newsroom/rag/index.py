@@ -1,5 +1,6 @@
 """Embeds the analysed articles and searches them. Vectors go in AIHOT's `embeddings` table (kind 'article', model = RAG_EMBED_MODEL), which event
 grouping reads only for its own model, so the two do not mix. No pgvector: the vectors are compared in memory, which is enough for thousands of articles.
+A process keeps them after the first search and reads them again only when the table's rows for the model changed.
 
 The text of an article is its Chinese title and summary from the latest model analysis that judged it relevant. An article whose text did not change
 is not embedded again."""
@@ -105,20 +106,44 @@ def index_pending(pool, limit: int = 200) -> dict[str, int | str]:
     return {"embedded": done["embedded"], "candidates": done["candidates"]}
 
 
+# model -> (what the table held, the row of each article in the matrix, the unit vectors). Reading and parsing every vector is most of a search's time.
+_vector_cache: dict[str, tuple[str, dict[str, int], np.ndarray]] = {}
+
+
+def _vectors(conn, model: str) -> tuple[dict[str, int], np.ndarray]:
+    """Every article vector of the model as one matrix, read again only when a row was added, removed or embedded anew."""
+    held = conn.execute(
+        """SELECT count(*) || ':' || coalesce(md5(string_agg(ref_id || text_hash, ',' ORDER BY ref_id)), '') AS held
+           FROM embeddings WHERE kind = 'article' AND model = %s""",
+        (model,),
+    ).fetchone()["held"]
+    cached = _vector_cache.get(model)
+    if cached and cached[0] == held:
+        return cached[1], cached[2]
+    rows = conn.execute("SELECT ref_id, vector FROM embeddings WHERE kind = 'article' AND model = %s ORDER BY ref_id", (model,)).fetchall()
+    matrix = _unit([r["vector"] for r in rows]) if rows else np.zeros((0, 0), dtype=np.float32)
+    at = {r["ref_id"]: i for i, r in enumerate(rows)}
+    _vector_cache[model] = (held, at, matrix)
+    return at, matrix
+
+
 def search(conn, query: str, k: int = 5, embed_fn: EmbedFn = embed, now: datetime | None = None) -> list[dict[str, Any]]:
     """The `k` indexed articles closest to `query`, best first, with cosine similarity as `score`. Only articles listed publicly at `now` are searched:
     an article that is withdrawn, not eligible or not yet released is indexed but is never found."""
-    stored = conn.execute(
-        f"""SELECT e.ref_id, e.vector, a.title, a.url, an.title_zh, an.summary_zh
+    model = embed_model()
+    at, matrix = _vectors(conn, model)
+    listed = conn.execute(
+        f"""SELECT e.ref_id, a.title, a.url, an.title_zh, an.summary_zh
            FROM embeddings e JOIN articles a ON a.id = e.ref_id
            JOIN publications p ON p.article_id = a.id
            LEFT JOIN LATERAL (SELECT title_zh, summary_zh FROM analyses WHERE article_id = a.id AND origin = 'model' ORDER BY id DESC LIMIT 1) an ON true
            WHERE e.kind = 'article' AND e.model = %(model)s AND {listed_condition()}""",
-        {**scope_params(now or datetime.now(UTC)), "model": embed_model()},
+        {**scope_params(now or datetime.now(UTC)), "model": model},
     ).fetchall()
+    stored = [r for r in listed if r["ref_id"] in at]  # one embedded between the two reads waits for the next search
     if not stored:
         return []
-    scores = _unit([r["vector"] for r in stored]) @ _unit(embed_fn([query]))[0]
+    scores = matrix[[at[r["ref_id"]] for r in stored]] @ _unit(embed_fn([query]))[0]
     best = np.argsort(-scores)[: max(k, 0)]
     return [
         {
