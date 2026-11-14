@@ -104,7 +104,9 @@ def test_collect_extract_analyse_and_publish(database, monkeypatch):
                 runs = c.execute("SELECT status, found_count, new_count FROM fetch_runs WHERE source_id = 'e2e-rss'").fetchall()
             state = {"arts": arts, "src": src, "queued": queued, "runs": runs}
             analysed = c_count(database, "SELECT count(*) AS n FROM articles WHERE source_id = 'e2e-rss' AND processing_state IN ('analyzed', 'blocked')")
-            if len(arts) == 3 and all(a["body_status"] == "ok" for a in arts) and analysed == 3:
+            # An article is marked analysed inside its job, a moment before the job itself is marked done: the queue has to be empty of those too.
+            working = any(q["name"] in ("content.analyze", "content.extract-body") for q in queued)
+            if len(arts) == 3 and all(a["body_status"] == "ok" for a in arts) and analysed == 3 and not working:
                 state["queued"] = queued
                 break
             time.sleep(1)

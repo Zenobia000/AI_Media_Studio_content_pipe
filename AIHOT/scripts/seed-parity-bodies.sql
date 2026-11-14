@@ -18,6 +18,8 @@ SELECT id, 'zh', revision, '譯文標題 ' || n, '<h2>譯文</h2><p>這是第 ' 
 FROM picked WHERE n <= 16 AND n % 4 <> 2 ON CONFLICT DO NOTHING;
 INSERT INTO translations (article_id, lang, revision, body_text, complete)
 SELECT a.id, 'zh', a.revision, '這是一則貼文的中文翻譯。', true FROM articles a JOIN publications p ON p.article_id = a.id WHERE p.channel = 'x' ON CONFLICT DO NOTHING;
-UPDATE publications SET visibility = 'summary-only' WHERE article_id = (SELECT article_id FROM publications WHERE channel = 'news' AND body_mode = 'summary' ORDER BY article_id LIMIT 1 OFFSET 3);
-UPDATE publications SET visibility = 'withdrawn' WHERE article_id = (SELECT article_id FROM publications WHERE channel = 'news' AND body_mode = 'summary' ORDER BY article_id LIMIT 1 OFFSET 5);
+-- Both are reports of no event. Article ids are random, and when one of these two was an event's report the event's seeded digest input and its entry
+-- in the hot ranking (shown only while its representative is listed) no longer matched what the tests of those expect.
+UPDATE publications SET visibility = 'summary-only' WHERE article_id = (SELECT article_id FROM publications WHERE channel = 'news' AND body_mode = 'summary' AND article_id NOT IN (SELECT article_id FROM fact_articles) ORDER BY article_id LIMIT 1 OFFSET 3);
+UPDATE publications SET visibility = 'withdrawn' WHERE article_id = (SELECT article_id FROM publications WHERE channel = 'news' AND body_mode = 'summary' AND article_id NOT IN (SELECT article_id FROM fact_articles) ORDER BY article_id LIMIT 1 OFFSET 5);
 UPDATE publications SET syndicate = true WHERE body_mode = 'full' OR channel = 'x' OR article_id IN (SELECT article_id FROM publications WHERE selected ORDER BY article_id LIMIT 12);
