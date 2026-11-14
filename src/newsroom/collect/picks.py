@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -26,10 +27,13 @@ log = logging.getLogger("newsroom.picks")
 
 KINDS = ("article", "photo", "video")
 MAX_PICKS = 500
-STALE_AFTER = timedelta(minutes=45)  # a download that has shown no end by then was cut off (the process stopped); it is listed as such
+# A download that has shown no end by then, and that this process is not waiting on or running, was cut off (the process stopped); it is listed as such.
+STALE_AFTER = timedelta(minutes=45)
 ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,80}$")
 PROGRAM = "ai-today"  # a topic needs one; the picks have no use for it
 _slots = threading.BoundedSemaphore(2)
+_live: set[str] = set()  # the picks this process has a thread for, waiting or running: however long they take, they were not cut off
+_live_lock = threading.Lock()
 
 
 def wanted_of(kinds: list[str] | None) -> list[str]:
@@ -84,6 +88,23 @@ def _folder_files(topic_id: str) -> list[dict[str, Any]]:
     return out
 
 
+FILES_KEPT_SECONDS = 30
+_files_seen: dict[tuple[str, str], tuple[object, float, list[dict[str, Any]]]] = {}  # (workspace, topic) -> (the download it was read after, when, the files)
+
+
+def _files(topic_id: str, finished_at: datetime | None, busy: bool) -> list[dict[str, Any]]:
+    """_folder_files for the page, which asks every few seconds: a topic being downloaded is read each time; one that is not is read again when a download
+    ended since, and otherwise every FILES_KEPT_SECONDS (for files another tool put there, such as fetch-media from the command line)."""
+    key = (str(workspace_dir()), topic_id)
+    seen = _files_seen.get(key)
+    after: object = "busy" if busy else finished_at
+    if not busy and seen and seen[0] == after and time.monotonic() - seen[1] < FILES_KEPT_SECONDS:
+        return seen[2]
+    files = _folder_files(topic_id)
+    _files_seen[key] = (after, time.monotonic(), files)
+    return files
+
+
 def list_picks(conn) -> list[dict[str, Any]]:
     now = datetime.now(timezone.utc)
     rows = conn.execute(
@@ -94,14 +115,15 @@ def list_picks(conn) -> list[dict[str, Any]]:
            ORDER BY p.added_at DESC"""
     ).fetchall()
     gaps: dict[str, list[dict[str, str]]] = {}
-    for g in conn.execute("SELECT topic_id, need, reason, suggestion FROM topic_fetch_gaps ORDER BY layer").fetchall():
+    topics = [r["topic_id"] for r in rows if r["topic_id"]]
+    for g in conn.execute("SELECT topic_id, need, reason, suggestion FROM topic_fetch_gaps WHERE topic_id = ANY(%s) ORDER BY layer", (topics,)).fetchall():
         gaps.setdefault(g["topic_id"], []).append({"need": g["need"], "reason": g["reason"], "suggestion": g["suggestion"]})
     out: list[dict[str, Any]] = []
     for r in rows:
         state = r["state"]
-        if state in ("queued", "running") and r["started_at"] and now - r["started_at"] > STALE_AFTER:
+        if state in ("queued", "running") and r["article_id"] not in _live and r["started_at"] and now - r["started_at"] > STALE_AFTER:
             state = "interrupted"
-        files = _folder_files(r["topic_id"]) if r["topic_id"] else []
+        files = _files(r["topic_id"], r["finished_at"], r["state"] in ("queued", "running")) if r["topic_id"] else []
         out.append(
             {
                 "id": r["article_id"],
@@ -129,15 +151,28 @@ def list_picks(conn) -> list[dict[str, Any]]:
 def start(pool, article_id: str, kinds: list[str] | None) -> str:
     """Asks for a download and returns at once. 'started' | 'busy' (one is already queued or running for it) | 'missing' (not in the area)."""
     wanted = wanted_of(kinds)
-    with pool.connection() as conn:
-        row = conn.execute(
-            """UPDATE material_picks SET state = 'queued', wanted = %s, started_at = now(), finished_at = NULL, result = '{}'::jsonb
-               WHERE article_id = %s AND (state NOT IN ('queued', 'running') OR started_at < now() - %s::interval) RETURNING article_id""",
-            (wanted, article_id, STALE_AFTER),
-        ).fetchone()
-        if not row:
-            exists = conn.execute("SELECT 1 FROM material_picks WHERE article_id = %s", (article_id,)).fetchone()
-            return "busy" if exists else "missing"
+    with _live_lock:
+        if article_id in _live:
+            return "busy"
+        _live.add(article_id)
+    outcome = "failed"
+    try:
+        with pool.connection() as conn:
+            row = conn.execute(
+                """UPDATE material_picks SET state = 'queued', wanted = %s, started_at = now(), finished_at = NULL, result = '{}'::jsonb
+                   WHERE article_id = %s AND (state NOT IN ('queued', 'running') OR started_at < now() - %s::interval) RETURNING article_id""",
+                (wanted, article_id, STALE_AFTER),
+            ).fetchone()
+            if row:
+                outcome = "started"
+            else:
+                exists = conn.execute("SELECT 1 FROM material_picks WHERE article_id = %s", (article_id,)).fetchone()
+                outcome = "busy" if exists else "missing"
+    finally:
+        if outcome != "started":
+            _live.discard(article_id)
+    if outcome != "started":
+        return outcome
     threading.Thread(target=_run, args=(pool, article_id, wanted), daemon=True, name=f"pick-{article_id[:8]}").start()
     return "started"
 
@@ -165,6 +200,13 @@ def _ensure_topic(conn, article_id: str) -> str:
 
 
 def _run(pool, article_id: str, wanted: list[str]) -> None:
+    try:
+        _download_pick(pool, article_id, wanted)
+    finally:
+        _live.discard(article_id)
+
+
+def _download_pick(pool, article_id: str, wanted: list[str]) -> None:
     with _slots:
         with pool.connection() as conn:
             conn.execute("UPDATE material_picks SET state = 'running', started_at = now(), wanted = %s WHERE article_id = %s", (wanted, article_id))

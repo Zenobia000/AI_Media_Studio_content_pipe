@@ -171,8 +171,12 @@ def test_a_pick_being_downloaded_cannot_be_removed_or_started_again(conn, worksp
     assert picks.start(_Pool(conn), "no-such-article", None) == "missing"
 
 
-def test_a_download_that_never_finished_is_listed_as_interrupted(conn, workspace, tag):
+def test_a_download_that_never_finished_is_listed_as_interrupted(conn, workspace, tag, monkeypatch):
     a = article(conn, tag)
     picks.add_picks(conn, [a])
     conn.execute("UPDATE material_picks SET state = 'running', started_at = now() - interval '2 hours' WHERE article_id = %s", (a,))
     assert next(p for p in picks.list_picks(conn) if p["id"] == a)["state"] == "interrupted"
+    # One this process still has a thread for (waiting behind others, or a long video) was not cut off, and is not started a second time.
+    monkeypatch.setattr(picks, "_live", {a})
+    assert next(p for p in picks.list_picks(conn) if p["id"] == a)["state"] == "running"
+    assert picks.start(_Pool(conn), a, None) == "busy"
