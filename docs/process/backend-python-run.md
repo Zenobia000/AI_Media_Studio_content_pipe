@@ -5,7 +5,7 @@
 ## 1. 需要什麼
 - Python 3.12、PostgreSQL（沒有其他資料庫或佇列服務；工作佇列是自己的資料表）。
 - 網站畫面（`AIHOT/apps/web`，React）不用改，照舊用 `API_BASE_URL` 連後端。
-- 安裝：`pip install -e ".[dev]"`
+- 安裝：`pip install -e ".[dev]" -c constraints.txt`
 
 ## 2. 最少要設的環境變數（`AIHOT/.env.example` 有完整清單）
 | 變數 | 說明 |

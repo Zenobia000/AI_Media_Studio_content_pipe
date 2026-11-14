@@ -1,9 +1,12 @@
 """The parity harness for the backend port: the TypeScript API and the Python API answer the same requests on the same database, and their
-answers are compared. Needs PARITY_DATABASE_URL (a copy of a real database, migrated by AIHOT's scripts/migrate.ts) and Node; without
-them these tests are skipped.
+answers are compared. Needs PARITY_DATABASE_URL (a database migrated by AIHOT's scripts/migrate.ts and seeded by its scripts/seed-parity.ts,
+whose times are relative to now, so it is made again for a run) and Node; without them these tests are skipped. The checks on GitHub make it the
+same way (.github/workflows/check.yml). From AIHOT/:
 
     docker exec <db> psql -U postgres -c "create database parity"
-    docker exec <source-db> pg_dump -U mediahot -d mediahot --no-owner --no-acl | docker exec -i <db> psql -U postgres -d parity -q
+    DATABASE_URL=postgres://postgres:ci@127.0.0.1:55432/parity node scripts/migrate.ts
+    DATABASE_URL=postgres://postgres:ci@127.0.0.1:55432/parity node scripts/seed-parity.ts
+    docker exec -i <db> psql -U postgres -d parity -q < scripts/seed-parity-bodies.sql
     PARITY_DATABASE_URL=postgres://postgres:ci@127.0.0.1:55432/parity python -m pytest tests/parity
 """
 
@@ -61,7 +64,7 @@ def _url() -> str | None:
 @pytest.fixture(scope="session")
 def database_url() -> str:
     if not _url() or not shutil.which("node"):
-        pytest.skip("set PARITY_DATABASE_URL to a migrated copy of a real database, and have Node installed")
+        pytest.skip("set PARITY_DATABASE_URL to a database seeded by AIHOT/scripts/seed-parity.ts, and have Node installed")
     return _url()  # type: ignore[return-value]
 
 

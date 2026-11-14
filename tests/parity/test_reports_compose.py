@@ -113,14 +113,29 @@ def test_composing_issues(world, monkeypatch, tmp_path):
     for k, v in {**base, "LLM_BASE_URL": py_fake.url}.items():
         monkeypatch.setenv(k, v)
     invalidate_model_cache()
+    # The seeded data is dated from the moment it was made, so the days asked for are counted from its one daily report (the day before the seeding).
+    from datetime import date, timedelta
+
+    with psycopg.connect(world["rc_py"], row_factory=dict_row) as c:
+        there = date.fromisoformat(c.execute("SELECT key FROM reports WHERE kind = 'daily' ORDER BY key DESC LIMIT 1").fetchone()["key"])
+
+    def day(n: int) -> str:
+        return (there + timedelta(days=n)).isoformat()
+
+    def week(n: int) -> str:
+        y, w, _ = (there + timedelta(days=n)).isocalendar()
+        return f"{y}-W{w:02d}"
+
+    seeded = there + timedelta(days=1)
+    month, month_before = seeded.isoformat()[:7], (seeded.replace(day=1) - timedelta(days=1)).isoformat()[:7]
     calls = [
-        ["composeDaily", "2026-11-03"],  # already there
-        ["composeDaily", "2026-11-01"], ["composeDaily", "2026-11-02"], ["composeDaily", "2026-11-04"], ["composeDaily", "2026-11-05"], ["composeDaily", "2026-11-06"],
-        ["composeDaily", "2026-11-04", "regenerated"],
-        ["composeWeekly", "2026-W45"], ["composeWeekly", "2026-W44"], ["composeWeekly", "2026-W45", "again"], ["composeWeekly", "bad"],
-        ["composeMonthly", "2026-11"], ["composeMonthly", "2026-10"], ["composeMonthly", "nope"],
-        ["composeDueReports", "2026-11-05T03:00:00Z", 8],
-        ["composeDueReports", "2026-11-12T03:00:00Z", 3],  # days with nothing judged fail without holding up the rest
+        ["composeDaily", day(0)],  # already there
+        ["composeDaily", day(-2)], ["composeDaily", day(-1)], ["composeDaily", day(1)], ["composeDaily", day(2)], ["composeDaily", day(3)],
+        ["composeDaily", day(1), "regenerated"],
+        ["composeWeekly", week(1)], ["composeWeekly", week(-6)], ["composeWeekly", week(1), "again"], ["composeWeekly", "bad"],
+        ["composeMonthly", month], ["composeMonthly", month_before], ["composeMonthly", "nope"],
+        ["composeDueReports", f"{day(2)}T03:00:00Z", 8],
+        ["composeDueReports", f"{day(9)}T03:00:00Z", 3],  # days with nothing judged fail without holding up the rest
     ]  # fmt: skip
     env = {**base, "DATABASE_URL": world["rc_node"], "LLM_BASE_URL": node_fake.url, "AIHOT_DATA_DIR": str(tmp_path / "node-data")}
     want = node(tmp_path, "run", calls, env)

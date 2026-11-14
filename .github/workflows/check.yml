@@ -7,9 +7,9 @@ name: Check
 on:
   push:
     branches: [main, dev]
-    paths: ["AIHOT/**", "src/**", "tests/**", "pyproject.toml", "deploy/**", ".github/workflows/check.yml"]
+    paths: ["AIHOT/**", "src/**", "tests/**", "skills/**", "pyproject.toml", "constraints.txt", "check_setup.py", "start_dev.py", "stop_dev.py", "deploy/**", ".github/workflows/check.yml"]
   pull_request:
-    paths: ["AIHOT/**", "src/**", "tests/**", "pyproject.toml", "deploy/**", ".github/workflows/check.yml"]
+    paths: ["AIHOT/**", "src/**", "tests/**", "skills/**", "pyproject.toml", "constraints.txt", "check_setup.py", "start_dev.py", "stop_dev.py", "deploy/**", ".github/workflows/check.yml"]
   workflow_dispatch:
 
 permissions:
@@ -131,10 +131,11 @@ jobs:
         run: docker compose down -v
 
   python:
-    # The collect and fetch part (src/newsroom): lint, then the tests on a fresh PostgreSQL. The tests build the database from AIHOT's
-    # engine migrations plus ours, so no site has to be running.
+    # The Python backend (src/newsroom): lint, then the tests on a fresh PostgreSQL. The tests build the database from AIHOT's
+    # engine migrations plus ours, so no site has to be running. The comparison tests (tests/parity) ask the TypeScript API and the
+    # Python one the same things on a database seeded here, which takes most of the job's time.
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: .
@@ -149,6 +150,7 @@ jobs:
           --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 30
     env:
       DATABASE_URL: postgres://postgres:ci@127.0.0.1:5432/newsroom_ci
+      PARITY_DATABASE_URL: postgres://postgres:ci@127.0.0.1:5432/parity
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The comparison tests in tests/parity run AIHOT's TypeScript (node scripts/*.ts) and need Node 24 and AIHOT's packages; without them they fail.
@@ -159,13 +161,28 @@ jobs:
       - name: Install AIHOT packages
         working-directory: AIHOT
         run: npm ci --no-audit --no-fund
+      - name: Seed the database of the comparison tests
+        # Made by the TypeScript engine's own functions on its own migrations; its times are relative to now, so it is made in each run.
+        # parity_tpl is the never-opened copy the tests clone their own databases from (tests/parity/conftest.py).
+        working-directory: AIHOT
+        env:
+          DATABASE_URL: postgres://postgres:ci@127.0.0.1:5432/parity
+          PGPASSWORD: ci
+        run: |
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE parity"
+          node scripts/migrate.ts
+          node scripts/seed-parity.ts
+          psql -h 127.0.0.1 -U postgres -d parity -q -v ON_ERROR_STOP=1 -f scripts/seed-parity-bodies.sql
+          psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE parity_tpl TEMPLATE parity"
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: constraints.txt
       - name: Install
-        run: python -m pip install -e ".[dev]"
+        run: python -m pip install -e ".[dev]" -c constraints.txt
       - name: Lint
         run: python -m ruff check src tests
       - name: Type check

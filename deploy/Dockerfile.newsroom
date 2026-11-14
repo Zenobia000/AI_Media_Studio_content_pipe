@@ -7,7 +7,10 @@ FROM python:3.12-slim-trixie
 ARG WITH_BROWSER=0
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates postgresql-client && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml constraints.txt ./
+# The packages first, in a layer of their own (read from pyproject.toml, at the versions of constraints.txt), so a change to the code does not install them again.
+RUN python -c "import tomllib; print('\n'.join(tomllib.load(open('pyproject.toml', 'rb'))['project']['dependencies']))" > /tmp/requirements.txt \
+ && pip install --no-cache-dir -r /tmp/requirements.txt -c constraints.txt yt-dlp gallery-dl
 COPY src ./src
 COPY skills ./skills
 # What the Python backend reads from AIHOT/ at run time: the engine's migrations, the site's static files, pages and brand files, the share-image fonts.
@@ -17,7 +20,7 @@ COPY AIHOT/site/brand ./AIHOT/site/brand
 COPY AIHOT/site/pages ./AIHOT/site/pages
 COPY AIHOT/site/changelog.json ./AIHOT/site/changelog.json
 COPY AIHOT/assets ./AIHOT/assets
-RUN pip install --no-cache-dir . yt-dlp gallery-dl \
- && if [ "$WITH_BROWSER" = "1" ]; then pip install --no-cache-dir ".[record]" && playwright install --with-deps chromium; fi
+RUN pip install --no-cache-dir -c constraints.txt . \
+ && if [ "$WITH_BROWSER" = "1" ]; then pip install --no-cache-dir -c constraints.txt ".[record]" && playwright install --with-deps chromium; fi
 ENV PYTHONUNBUFFERED=1 NEWSROOM_HOME=/data/workspace AIHOT_ROOT=/app/AIHOT
 CMD ["newsroom", "run-scheduler"]

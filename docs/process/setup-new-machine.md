@@ -31,7 +31,7 @@
 git clone https://github.com/Albertchiang40210/AI_Media_Studio_content_pipe.git
 cd AI_Media_Studio_content_pipe
 git switch dev
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev]" -c constraints.txt
 python -m pip install --user yt-dlp gallery-dl
 cd AIHOT
 npm ci

@@ -41,7 +41,7 @@ newsroom assets-topic <topic_id>                                              # 
 ## 怎麼跑
 
 ```
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev]" -c constraints.txt
 export DATABASE_URL=postgres://…/mediahot_dev      # 已套用 AIHOT migration 的資料庫
 newsroom migrate && newsroom doctor
 python -m pytest tests                              # 要資料庫的測試需要 DATABASE_URL 指向 *_test 或 *_ci

@@ -96,7 +96,7 @@
 需求：Python 3.12、PostgreSQL。
 
 ```
-pip install -e ".[dev]"   # 依賴已列在 pyproject.toml
+pip install -e ".[dev]" -c constraints.txt   # 依賴列在 pyproject.toml，版本固定在 constraints.txt
 newsroom migrate                      # 建立資料表（含工作佇列）
 uvicorn --factory newsroom.api.app:build_app --port 3001   # API
 newsroom worker                       # 工作行程：收集、抓正文、排程、心跳

@@ -60,6 +60,8 @@ def break_things(urls) -> None:
             sel = c.execute("SELECT article_id FROM publications WHERE selected ORDER BY timeline_at DESC LIMIT 1").fetchone()["article_id"]
             c.execute("UPDATE publications SET selection_candidate = true, eligible = true, visibility = 'public', selected_ready_at = %s WHERE article_id = %s", (at(NOW - 3 * 60 * MIN), sel))
             c.execute("UPDATE articles SET grouping_status = 'pending' WHERE id = %s", (sel,))
+            # The wait is counted from the latest of several times, the revision's among them: on a database seeded minutes ago that one is now.
+            c.execute("UPDATE article_revisions SET created_at = %s WHERE article_id = %s", (at(NOW - 3 * 60 * MIN), sel))
 
 
 def mend(urls) -> None:

@@ -103,6 +103,11 @@ def run_node(urls, fake, op: dict, tmp_path):
     return json.loads(next(line for line in reversed(out.stdout.decode().splitlines()) if line.startswith("[")))
 
 
+# The report a step changes has to be one a digest reads. The seed withdraws two reports and shows only the summary of others, picked by article id, which is
+# random: when the first report of an event was one of them, changing it changed nothing and the step's own check failed.
+SHOWN = "fa.article_id IN (SELECT article_id FROM publications WHERE visibility = 'public')"
+
+
 def test_digests_and_merges(world, monkeypatch, tmp_path):
     from psycopg_pool import ConnectionPool
 
@@ -146,12 +151,12 @@ def test_digests_and_merges(world, monkeypatch, tmp_path):
         check("again", node, py)
         assert [r["updated"] for r in py] == [False] * 3
         # an editor corrected a report's wording: the same reports with different content are written again from the reports as they are
-        run_sql(world, "UPDATE publications SET title = title || ' (corrected)' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE f.story_id = 1)")
+        run_sql(world, f"UPDATE publications SET title = title || ' (corrected)' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE {SHOWN} AND f.story_id = 1)")
         node, py = digest(pool, [1])
         check("corrected", node, py)
         assert py[0]["updated"] and py[0]["version"] == 3
         # a report left the story
-        run_sql(world, "DELETE FROM fact_articles WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE f.story_id = 2)")
+        run_sql(world, f"DELETE FROM fact_articles WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE {SHOWN} AND f.story_id = 2)")
         check("withdrawn", *digest(pool, [2]))
         # and came back: the digest of exactly that evidence is reused without a model call
         # an explicit rewrite
@@ -162,7 +167,7 @@ def test_digests_and_merges(world, monkeypatch, tmp_path):
         check("emptied", node, py)
         assert py == [{"updated": True}]
         # a digest the model gets wrong, and one without a new title
-        run_sql(world, "UPDATE publications SET title = title || ' SHORTDIGEST' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE f.story_id = 5)")
+        run_sql(world, f"UPDATE publications SET title = title || ' SHORTDIGEST' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE {SHOWN} AND f.story_id = 5)")
         node, py = digest(pool, [5])
         check("short", node, py)
         assert py[0].get("error") == "unusable", py
@@ -170,7 +175,7 @@ def test_digests_and_merges(world, monkeypatch, tmp_path):
         check("no title", *digest(pool, [5]))
         # a manual story keeps its title
         run_sql(world, "UPDATE stories SET origin = 'manual' WHERE id = 3")
-        run_sql(world, "UPDATE publications SET title = title || ' again' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE f.story_id = 3)")
+        run_sql(world, f"UPDATE publications SET title = title || ' again' WHERE article_id = (SELECT min(fa.article_id) FROM fact_articles fa JOIN facts f ON f.id = fa.fact_id WHERE {SHOWN} AND f.story_id = 3)")
         check("manual", *digest(pool, [3]))
 
         # merges: a report with evidence in both stories keeps one row; unknown, merged and self merges; grouping never changes an editor's story
