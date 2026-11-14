@@ -2,9 +2,9 @@
 
 這份只寫**我負責的部分**：素材收集（收集器、去重與熱度、每日 inbox、建題、原文與影片圖片補料），以及老師 2026-11-04 要求的「AIHOT 後端改成 Python」。寫稿、剪輯、排程發布是周長曉和楊舒媁的，不在這裡。
 
-更新日期：2026-11-08　｜　符號：✅ 做完　◐ 做了一部分（寫明缺什麼）　⬜ 還沒做　➖ 決定不做
+更新日期：2026-11-14　｜　符號：✅ 做完　◐ 做了一部分（寫明缺什麼）　⬜ 還沒做　➖ 決定不做
 
-**怎麼看文件**：這份是進度（做了什麼、沒做什麼）。怎麼做的、改了哪些地方、每個步驟的說明，看外層 [README.md](../README.md) 的「後端改成 Python 之後」。指令與用法看 [README.md](README.md)。
+**怎麼看文件**：這份是進度（做了什麼、沒做什麼）。怎麼做的、改了哪些地方、每個步驟的說明，看外層 [README.md](../README.md) 的「後端改成 Python 之後」。指令與用法看 [docs/process/newsroom-commands.md](../docs/process/newsroom-commands.md)。
 
 ---
 
@@ -48,7 +48,7 @@
 
 | 工作 | 做完的 | 還沒做的 |
 |---|---|---|
-| T-001 專案架子與自動檢查 | AIHOT 已放進來並改名；`newsroom --version`、pytest、ruff、mypy 設定；`skills/RESOLVER.md` 空殼、根目錄 `CLAUDE.md`；本機 `ruff`、`mypy` 全過；**2026-11-06 第一次在 GitHub 上跑（我自己的私人 repo `Albertchiang40210/AI_Media_Studio_content_pipe` 的 `dev` 分支）：`check`、`docker`、`python` 三個工作全綠（Check #4，約 5 分 42 秒）**，跑出並修掉的問題見根目錄 README 的修正紀錄（路徑、Node 輸出被截斷、環境變數範本檢查、逾時） | **沒在團隊的 repo 上跑過**（只在我自己的 repo，團隊的 `origin` 沒推）；CI 沒有跑和 Node 的資料庫對照測試（578 個被略過，因為 CI 沒有種好資料的資料庫）；Node 檢查仍是原作者的，沒針對我們調整；票上驗收 1「乾淨的 WSL 照 README 建置並印出版本號」沒做（我們在 Windows 用 pip，README 沒有 WSL 步驟，也沒用 poetry）；驗收 3「故意提交型別錯誤，CI 要失敗並指出位置」沒實際試過（mypy 已在 CI，但沒故意弄壞驗證）；`RESOLVER.md` 只是空殼，內容由 T-015（周長曉）定義 |
+| T-001 專案架子與自動檢查 | AIHOT 已放進來並改名；`newsroom --version`、pytest、ruff、mypy 設定；`skills/RESOLVER.md` 空殼、根目錄 `CLAUDE.md`；本機 `ruff`、`mypy` 全過；**2026-11-06 第一次在 GitHub 上跑（我自己的私人 repo `Albertchiang40210/AI_Media_Studio_content_pipe` 的 `dev` 分支）：`check`、`docker`、`python` 三個工作全綠（Check #4，約 5 分 42 秒）**，跑出並修掉的問題見根目錄 README 的修正紀錄（路徑、Node 輸出被截斷、環境變數範本檢查、逾時） | **沒在團隊的 repo 上跑過**（只在我自己的 repo，團隊的 `origin` 沒推）；CI 的資料庫對照測試：2026-11-14 在 `check.yml` 加了建立並種好對照資料庫的步驟（本機照同樣步驟跑過），**還沒在 GitHub 上跑過**；Node 檢查仍是原作者的，沒針對我們調整；票上驗收 1「乾淨的 WSL 照 README 建置並印出版本號」沒做（我們在 Windows 用 pip，README 沒有 WSL 步驟，也沒用 poetry）；驗收 3「故意提交型別錯誤，CI 要失敗並指出位置」沒實際試過（mypy 已在 CI，但沒故意弄壞驗證）；`RESOLVER.md` 只是空殼，內容由 T-015（周長曉）定義 |
 | T-039 下載 YouTube 等影片 | YouTube 可以 | Vimeo、X 要登入，下不了（不會繞過，程式會提示） |
 | T-040 調查來源穩不穩 | 2026-11-02 快照：33 個來源都連得上；`newsroom source-stats` 工具已做 | 14 天長期統計，約 11-17 才有資料，**還沒有結果** |
 | T-059 調查 X 要花多少錢 | 查價格並估算（[SPK-COL-1](../docs/spikes/SPK-COL-1.md)） | 票上要的 7 天實測；數字都是第三方資料 |
@@ -142,4 +142,4 @@
 
 ## 6. 程式放哪
 
-全部只在我這台電腦的 `dev` 分支，**沒有 push**（決定都在本機開發），領先遠端約 144 個 commit。每項工作都有自己的 commit，標題寫工作編號。
+全部只在我這台電腦的 `dev` 分支，**沒有 push**（決定都在本機開發），領先團隊的 `origin/dev` 約 180 個 commit（2026-11-14）。每項工作都有自己的 commit，標題寫工作編號。
