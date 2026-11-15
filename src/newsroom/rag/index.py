@@ -55,15 +55,23 @@ def _unit(vectors: list[list[float]]) -> np.ndarray:
     return m / np.where(norms == 0, 1, norms)
 
 
-def article_texts(conn) -> list[dict[str, Any]]:
-    """The articles to index: the latest model analysis of each, when it judged the article relevant and wrote a title and summary."""
-    return conn.execute(
-        """SELECT a.id, a.title, a.url, an.title_zh, an.summary_zh
-           FROM (SELECT DISTINCT ON (article_id) * FROM analyses WHERE origin = 'model' ORDER BY article_id, id DESC) an
-           JOIN articles a ON a.id = an.article_id
-           WHERE an.relevance = 'pass' AND an.title_zh IS NOT NULL AND an.summary_zh IS NOT NULL
-           ORDER BY a.id"""
+# The articles to index: the latest model analysis of each, when it judged the article relevant and wrote a title and summary. `text_hash` is _hash(_text(row))
+# worked out by the database, so the rows whose vector is missing or out of date are found there and only those are read.
+_INDEXABLE = """SELECT a.id, an.title_zh, an.summary_zh,
+                       encode(sha256(convert_to(an.title_zh || E'\n' || an.summary_zh, 'UTF8')), 'hex') AS text_hash
+                FROM (SELECT DISTINCT ON (article_id) * FROM analyses WHERE origin = 'model' ORDER BY article_id, id DESC) an
+                JOIN articles a ON a.id = an.article_id
+                WHERE an.relevance = 'pass' AND an.title_zh IS NOT NULL AND an.summary_zh IS NOT NULL"""
+
+
+def article_texts(conn, model: str, limit: int | None = None) -> tuple[int, int, list[dict[str, Any]]]:
+    """How many articles can be indexed, how many of them have no vector of the model yet or a text that changed since, and those (at most `limit`)."""
+    stale = f"""FROM ({_INDEXABLE}) t LEFT JOIN embeddings e ON e.kind = 'article' AND e.ref_id = t.id AND e.model = %s"""
+    counts = conn.execute(f"SELECT count(*) AS total, count(*) FILTER (WHERE e.text_hash IS DISTINCT FROM t.text_hash) AS waiting {stale}", (model,)).fetchone()
+    todo = conn.execute(
+        f"SELECT t.id, t.title_zh, t.summary_zh {stale} WHERE e.text_hash IS DISTINCT FROM t.text_hash ORDER BY t.id LIMIT %s", (model, limit)
     ).fetchall()
+    return counts["total"], counts["waiting"], todo
 
 
 def _text(row: dict[str, Any]) -> str:
@@ -77,11 +85,7 @@ def _hash(text: str) -> str:
 def index_articles(conn, embed_fn: EmbedFn = embed, limit: int | None = None) -> dict[str, int]:
     """Embeds the articles that have no vector yet or whose text changed; `limit` caps how many are embedded in this run."""
     model = embed_model()
-    rows = article_texts(conn)
-    have = {r["ref_id"]: r["text_hash"] for r in conn.execute("SELECT ref_id, text_hash FROM embeddings WHERE kind = 'article' AND model = %s", (model,)).fetchall()}
-    todo = [r for r in rows if have.get(r["id"]) != _hash(_text(r))]
-    if limit is not None:
-        todo = todo[:limit]
+    total, waiting, todo = article_texts(conn, model, limit)
     for i in range(0, len(todo), BATCH):
         batch = todo[i : i + BATCH]
         vectors = _unit(embed_fn([_text(r) for r in batch]))
@@ -91,7 +95,7 @@ def index_articles(conn, embed_fn: EmbedFn = embed, limit: int | None = None) ->
                    ON CONFLICT (kind, ref_id, model) DO UPDATE SET text_hash = EXCLUDED.text_hash, vector = EXCLUDED.vector, created_at = now()""",
                 (row["id"], model, _hash(_text(row)), [float(x) for x in vector]),
             )
-    return {"candidates": len(rows), "embedded": len(todo), "already_indexed": len(rows) - len([r for r in rows if have.get(r["id"]) != _hash(_text(r))])}
+    return {"candidates": total, "embedded": len(todo), "already_indexed": total - waiting}
 
 
 def index_pending(pool, limit: int = 200) -> dict[str, int | str]:
