@@ -21,7 +21,8 @@ from tests.parity.test_publish import _admin
 
 NOW = int(time.time() * 1000) // 60_000 * 60_000
 MIN = 60_000
-PG_BIN = Path("C:/Program Files/PostgreSQL/17/bin")
+# pg_dump for the backup: the one on PATH (Linux, the checks on GitHub), else where the Windows installer puts PostgreSQL 17.
+PG_BIN = Path(shutil.which("pg_dump") or "C:/Program Files/PostgreSQL/17/bin/pg_dump").parent
 
 
 def at(ms: float) -> datetime:
