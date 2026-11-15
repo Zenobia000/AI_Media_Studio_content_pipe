@@ -19,8 +19,13 @@ def enabled() -> bool:
 
 
 def apply(opts: dict) -> dict:
-    """The options of a call, with the line added to the system prompt when it is on and the step writes Chinese for readers."""
+    """The options of a call, with the line added when it is on and the step writes Chinese for readers: at the end of the system prompt, or of the user
+    prompt for a step that has no system prompt (the title-and-summary step: it was left out, and its titles stayed in Simplified)."""
     purpose = opts.get("purpose") or ""
-    if enabled() and opts.get("system") and (purpose in PURPOSES or purpose.startswith("report")):
+    if not enabled() or not (purpose in PURPOSES or purpose.startswith("report")):
+        return opts
+    if opts.get("system"):
         return {**opts, "system": opts["system"] + NOTE}
+    if isinstance(opts.get("user"), str) and opts["user"]:
+        return {**opts, "user": opts["user"] + NOTE}
     return opts

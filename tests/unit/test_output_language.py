@@ -37,7 +37,9 @@ def test_not_added_for_the_others(monkeypatch, purpose):
     assert O.apply(given) is given
 
 
-def test_a_call_without_a_system_prompt_is_left_alone(monkeypatch):
+def test_a_call_without_a_system_prompt_gets_the_line_at_the_end_of_what_it_asks(monkeypatch):
     monkeypatch.setenv("LLM_TRADITIONAL", "true")
     given = {"purpose": "summarize_article", "system": "", "user": "u"}
-    assert O.apply(given) is given
+    assert O.apply(given) == {"purpose": "summarize_article", "system": "", "user": "u" + O.NOTE} and given["user"] == "u"
+    parts = {"purpose": "summarize_article", "user": [{"type": "text", "text": "u"}]}  # not text alone: left as it is
+    assert O.apply(parts) is parts
