@@ -121,6 +121,41 @@ def test_asking_for_models_without_a_key_or_with_no_models_ends_before_anything_
     assert started.launched == [] and started.databases == []
 
 
+def _docker(monkeypatch, fails: set[str], databases: str = "1") -> list[list[str]]:
+    """Docker as the script sees it: the commands whose second word is in `fails` fail; gives the commands that were run."""
+    ran: list[list[str]] = []
+
+    def run(command, **kw):
+        ran.append(list(command))
+        return SimpleNamespace(returncode=1 if command[1] in fails else 0, stdout=databases, stderr="no such container")
+
+    monkeypatch.setattr(S.subprocess, "run", run)
+    return ran
+
+
+def test_a_machine_without_the_database_container_gets_one_and_the_database(monkeypatch, capsys):
+    ran = _docker(monkeypatch, {"start", "container"}, databases="")  # nothing to start, nothing to inspect, and no dev database yet
+    S.database("dev")
+    assert S.CREATE_DB in ran and ran.index(S.CREATE_DB) < ran.index(["docker", "exec", S.DB_CONTAINER, "pg_isready", "-U", "postgres"])
+    assert any(command[-1] == 'CREATE DATABASE "dev"' for command in ran)
+    assert "--shm-size=256m" in S.CREATE_DB and "55432:5432" in S.CREATE_DB and "POSTGRES_PASSWORD=ci" in S.CREATE_DB  # what DB_HOST connects to
+    assert "第一次啟動" in capsys.readouterr().out
+
+
+def test_an_existing_container_is_only_started(monkeypatch):
+    ran = _docker(monkeypatch, set())
+    S.database("dev")
+    assert S.CREATE_DB not in ran and not any("CREATE DATABASE" in command[-1] for command in ran)
+
+
+@pytest.mark.parametrize(("fails", "says"), [({"info", "start"}, "Docker Desktop"), ({"start"}, "docker start")])
+def test_docker_not_running_and_a_container_that_will_not_start_are_told_apart(monkeypatch, fails, says):
+    ran = _docker(monkeypatch, fails)
+    with pytest.raises(SystemExit) as stopped:
+        S.database("dev")
+    assert says in str(stopped.value) and S.CREATE_DB not in ran
+
+
 def _processes(monkeypatch, rows) -> None:
     listing = SimpleNamespace(stdout=json.dumps(rows).encode("utf-8"))
     monkeypatch.setattr(T.subprocess, "run", lambda *a, **k: listing)

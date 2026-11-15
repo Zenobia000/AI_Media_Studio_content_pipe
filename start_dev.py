@@ -58,10 +58,23 @@ def psql(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["docker", "exec", DB_CONTAINER, "psql", "-U", "postgres", "-tA", *args], capture_output=True, text=True, encoding="utf-8")
 
 
+# 第一次在這台電腦上跑時建立資料庫容器：帳號密碼與連接埠對應 DB_HOST，資料放在具名卷 parity-pgdata（刪掉容器資料還在）。
+# 共享記憶體給 256 MB：Docker 預設 64 MB，資料多、同時查詢多時 PostgreSQL 的平行查詢會不夠用。
+CREATE_DB = ["docker", "run", "-d", "--name", DB_CONTAINER, "--shm-size=256m", "-e", "POSTGRES_PASSWORD=ci", "-p", "55432:5432",
+             "-v", "parity-pgdata:/var/lib/postgresql/data", "postgres:17-alpine"]  # fmt: skip
+
+
 def database(name: str) -> None:
-    started = subprocess.run(["docker", "start", DB_CONTAINER], capture_output=True)
-    if started.returncode != 0:
-        sys.exit(f"資料庫容器 {DB_CONTAINER} 啟動失敗：請先打開 Docker Desktop。")
+    if subprocess.run(["docker", "info"], capture_output=True).returncode != 0:
+        sys.exit("連不上 Docker：請先打開 Docker Desktop，等它啟動完成。")
+    if subprocess.run(["docker", "start", DB_CONTAINER], capture_output=True).returncode != 0:
+        # 沒有這個容器（第一次在這台電腦上跑）就建一個；有容器卻啟動不了，是別的問題，照實說
+        if subprocess.run(["docker", "container", "inspect", DB_CONTAINER], capture_output=True).returncode == 0:
+            sys.exit(f"資料庫容器 {DB_CONTAINER} 啟動失敗：執行 docker start {DB_CONTAINER} 看錯誤訊息（常見的是 55432 連接埠被別的程式佔用）。")
+        print(f"第一次啟動：建立資料庫容器 {DB_CONTAINER}（會下載 PostgreSQL 映像，約一分鐘）…")
+        created = subprocess.run(CREATE_DB, capture_output=True, text=True, encoding="utf-8")
+        if created.returncode != 0:
+            sys.exit(f"建立資料庫容器失敗：{created.stderr.strip()}")
     for _ in range(30):
         if subprocess.run(["docker", "exec", DB_CONTAINER, "pg_isready", "-U", "postgres"], capture_output=True).returncode == 0:
             break
