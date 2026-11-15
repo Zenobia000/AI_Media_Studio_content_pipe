@@ -8,7 +8,7 @@ points: 1                   # 人天，1–3；超過 3 就拆票
 depends_on: []              # 前置票 ID；DAG 由這個欄位產生
 implements: []              # SRS 需求編號，例如 COL-FR-001
 type: feature               # feature | spike | integration | chore
-status: todo                # todo | doing | review | done
+status: todo                # todo | doing | review | done | dropped（決定不做）
 ---
 
 # T-000｜標題
