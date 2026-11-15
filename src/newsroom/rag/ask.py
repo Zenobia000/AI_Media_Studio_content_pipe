@@ -232,8 +232,10 @@ def recommend(conn, topic: str, k: int = RECOMMEND_COUNT, embed_fn: EmbedFn = em
 
 
 def cited_numbers(text: str) -> list[int]:
-    """The article numbers an answer points to with [1], [2] ..., in order, once each."""
-    return list(dict.fromkeys(int(n) for n in re.findall(r"\[(\d{1,2})\]", text)))
+    """The article numbers an answer points to, in order, once each. Asked for [1], [2]; the model also writes several in one pair ([1, 2], [1、3]) and
+    full-width or lenticular brackets (［1］, 【2】), which pointed to nothing and left the answer listing every article."""
+    groups = re.findall(r"[\[［【]\s*(\d{1,2}(?:\s*[,，、]\s*\d{1,2})*)\s*[\]］】]", text)
+    return list(dict.fromkeys(int(n) for group in groups for n in re.findall(r"\d{1,2}", group)))
 
 
 def _article_text(hits: list[dict[str, Any]]) -> str:

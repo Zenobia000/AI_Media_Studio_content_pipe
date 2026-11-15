@@ -32,6 +32,8 @@ def _model(kind: str, topic: str = ""):
 def test_cited_numbers_in_order_once_each():
     assert rag.cited_numbers("A [3] B [1][3] C [12]") == [3, 1, 12]
     assert rag.cited_numbers("沒有出處") == []
+    # the other ways the model writes them: several in one pair, full-width and lenticular brackets; a name or a year in brackets is not a number
+    assert rag.cited_numbers("見 [1, 2]、［3］與【2】，還有 [4、5]；[GPT-5] 和 [2026] 不是") == [1, 2, 3, 4, 5]
 
 
 def test_every_request_to_the_model_turns_thinking_off():
