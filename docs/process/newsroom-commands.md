@@ -80,6 +80,8 @@ cd AIHOT && npm run typecheck && npm test            # 網站與後端（TypeScr
 cd .. && python -m pytest tests                       # 收集與補料（Python）；沒有 DATABASE_URL 時，要資料庫的測試會略過
 ```
 
+想知道哪些程式沒有被測試跑到：`python -m pytest tests --cov=newsroom`（2026-11-15 含 Node 對照測試是 86%）。
+
 注意：完整的 `npm test` 在 Windows 上有 3 個 `SIGTERM during …` 測試會逾時（Windows 沒有真正的 SIGTERM），這與我們的改動無關，其他測試通過；並行建測試資料庫時偶爾有一個檔案互搶失敗，單獨跑都會通過（可用 `--test-concurrency=1`）。
 
 ## 環境變數（我們新增的）
