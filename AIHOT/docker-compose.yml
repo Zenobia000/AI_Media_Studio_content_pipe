@@ -27,6 +27,9 @@ services:
   db:
     image: postgres:17-alpine
     restart: "no"
+    # Docker gives a container 64 MB of shared memory, and PostgreSQL's parallel queries need more on a big database: with 300,000 articles and many
+    # readers at once the hot ranking's query failed with "could not resize shared memory segment" (a 503 for the reader).
+    shm_size: 256mb
     environment:
       POSTGRES_USER: mediahot
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mediahot}

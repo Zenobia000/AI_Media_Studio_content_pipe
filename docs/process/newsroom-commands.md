@@ -64,7 +64,7 @@ newsroom run-scheduler                  # 常駐排程；--once 把此刻到期�
 下面的指令從 `AIHOT/` 資料夾開始（`npm install`、`node scripts/migrate.ts` 在那裡跑），中途 `cd ..` 回到根目錄。
 
 ```bash
-docker run -d --name mediahot-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v mediahot-pgdata:/var/lib/postgresql/data postgres:17
+docker run -d --name mediahot-pg --shm-size=256m -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v mediahot-pgdata:/var/lib/postgresql/data postgres:17
 npm install
 export DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/mediahot_dev   # 先建好這個資料庫
 node scripts/migrate.ts                   # AIHOT 的資料表

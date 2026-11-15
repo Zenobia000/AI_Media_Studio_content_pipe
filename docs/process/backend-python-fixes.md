@@ -29,4 +29,6 @@
 | 11-06 | `architecture.test.ts` 失敗：範本列了 `NEWSROOM_HOME`、`INBOX_DIR`、`CHANGEDETECTION_*`、`YTDLP_COOKIES_FILE`，但檢查只掃 TypeScript，這些只有 Python 在讀 | 檢查也掃 `../src/newsroom` 的 Python 程式 |
 | 11-06 | `error-logging.test.ts` 逾時（子程序啟動整個 API，限時 10 秒，GitHub 的機器忙時不夠；上一輪還通過，是時間不穩定） | 限時改成 60 秒。最後一次 CI 三個工作全綠 |
 | 11-14 | Ars Technica 的文章正文只抓到一段：它把一篇文章切成幾塊、各放在自己的外框裡，中間夾廣告欄，Readability 只取其中一塊（原版 TypeScript 也一樣）。實測 8 篇裡有 5 篇只抓到三分之一到一半 | 擷取前把同一個 `<article>` 裡、標籤與 class 相同、各自直接放段落、又分在不同外框的區塊排在一起（`join_split_body`；TypeScript 版同步加 `joinSplitBody`）。68 個真實頁面（23 個網站）比對前後：8 頁改變，都是補回正文或去掉雜訊，兩種語言的結果 68 頁全部一致。**已經收進資料庫的 Ars 文章不會自動重抓** |
+| 11-15 | 在新電腦上 `python start_dev.py` 會失敗：資料庫容器 `parity-pg` 從來沒有任何步驟建立它，訊息卻說「請先打開 Docker Desktop」 | `start_dev.py` 找不到容器時自己建立（密碼、連接埠與它連線用的一致）；Docker 沒開和容器啟動不了分成兩種訊息 |
+| 11-15 | 30 萬篇文章、200 人同時讀時，熱點排行有 45 次回 503：資料庫容器的共享記憶體是 Docker 預設的 64 MB，PostgreSQL 的平行查詢不夠用（`could not resize shared memory segment`） | `AIHOT/docker-compose.yml` 的資料庫與 `start_dev.py` 建的容器都給 256 MB；同樣的壓測重跑，503 變成 0 次。**已經建好的 `parity-pg` 不會自動改**，資料量大了再重建 |
 | 11-14 | 連結裡空的查詢字串（`index.html?#data=…`）Python 版會丟掉 `?`，和 Node 版不同（在 research.google 的一頁上發現） | `resolve_url` 保留原本寫的 `?` 與 `#`，加進對照測試 |
