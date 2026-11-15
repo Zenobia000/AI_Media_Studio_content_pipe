@@ -7,7 +7,8 @@ ever opened to others needs the admin session in front of the fetch route (engin
   POST   /api/materials/sync                 {"ids": [...]} puts several articles in at once (the page sends the bookmarks of this browser)
   PUT    /api/materials/{id}                 puts one article in
   DELETE /api/materials/{id}                 takes one out (not while it is being downloaded)
-  POST   /api/materials/{id}/fetch           {"kinds": ["article", "photo", "video"]} starts a download; 202 started, 409 already running"""
+  POST   /api/materials/{id}/fetch           {"kinds": ["article", "photo", "video"]} starts a download; 202 started, 409 already running
+  GET    /api/materials/{id}/file?path=…     one of the pick's downloaded files, for the page to show (only a file the listing names)"""
 
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ import logging
 import shutil
 
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from newsroom.api.respond import problem
@@ -25,6 +27,11 @@ from newsroom.collect import picks
 
 log = logging.getLogger("newsroom.api")
 REQUEST_HEADER = "x-materials-request"
+# What a downloaded file is sent as; the article's Markdown as plain text, so the browser shows it and runs nothing in it.
+FILE_TYPES = {
+    "md": "text/plain; charset=utf-8", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp", "avif": "image/avif", "gif": "image/gif",
+    "mp4": "video/mp4", "m4v": "video/mp4", "mov": "video/quicktime", "webm": "video/webm", "mkv": "video/x-matroska",
+}  # fmt: skip
 MAX_BODY = 64 * 1024
 
 
@@ -84,6 +91,18 @@ def register_materials(app: FastAPI) -> None:
                 return picks.remove_pick(conn, article_id)
 
         return json_response({"removed": await run_in_threadpool(drop)})
+
+    @app.get("/api/materials/{article_id}/file", include_in_schema=False)
+    async def file(request: Request, article_id: str, path: str = "") -> Response:
+        def find():
+            with request.app.state.pool.connection() as conn:
+                return picks.pick_file(conn, article_id, path)
+
+        found = await run_in_threadpool(find)
+        kind = FILE_TYPES.get(found.suffix.lower().lstrip(".")) if found else None
+        if not found or not kind:
+            return problem(request, 404, "not_found", "That file is not one of this article's downloads.")
+        return FileResponse(found, media_type=kind, headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=60"})
 
     @app.post("/api/materials/{article_id}/fetch", include_in_schema=False)
     async def fetch(request: Request, article_id: str) -> Response:

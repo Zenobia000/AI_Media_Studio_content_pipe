@@ -42,6 +42,11 @@ function size(bytes: number): string {
   return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+/** Where the api sends one of a pick's downloaded files from (it sends only the files this listing names). */
+function fileUrl(p: Pick, path: string): string {
+  return `/api/materials/${encodeURIComponent(p.id)}/file?path=${encodeURIComponent(path)}`;
+}
+
 function statusLine(p: Pick): string {
   if (p.state === "queued") return "排隊中…";
   if (p.state === "running") return "下載中…";
@@ -195,8 +200,16 @@ export default function Materials() {
                   <details className="mt-2 text-[12.5px] text-ink-3">
                     <summary className="cursor-pointer select-none hover:text-ink">檔案與紀錄{p.folder ? `（工作區 ${p.folder}）` : ""}</summary>
                     {p.files.length > 0 && (
-                      <ul className="mt-1.5 space-y-0.5">
-                        {p.files.map((f) => <li key={f.path} className="break-all">{KINDS.find((k) => k.kind === f.kind)?.label}　{f.name}　{size(f.size)}</li>)}
+                      <ul className="mt-1.5 space-y-2">
+                        {p.files.map((f) => (
+                          <li key={f.path} className="break-all">
+                            {KINDS.find((k) => k.kind === f.kind)?.label}　<a href={fileUrl(p, f.path)} target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">{f.name}</a>　{size(f.size)}
+                            {f.kind === "photo" && <a href={fileUrl(p, f.path)} target="_blank" rel="noopener noreferrer" className="mt-1 block"><img src={fileUrl(p, f.path)} alt={f.name} loading="lazy" className="max-h-40 max-w-full rounded-control border border-line" /></a>}
+                            {f.kind === "video" && (/\.gif$/i.test(f.name)
+                              ? <img src={fileUrl(p, f.path)} alt={f.name} loading="lazy" className="mt-1 block max-h-40 max-w-full rounded-control border border-line" />
+                              : <video src={fileUrl(p, f.path)} controls preload="none" className="mt-1 block max-h-56 max-w-full rounded-control border border-line" />)}
+                          </li>
+                        ))}
                       </ul>
                     )}
                     {notes.length > 0 && <ul className="mt-1.5 space-y-0.5">{notes.map((n, i) => <li key={i} className="break-all">{n}</li>)}</ul>}

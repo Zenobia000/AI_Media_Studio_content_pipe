@@ -48,3 +48,27 @@ def test_a_kind_that_does_not_exist_is_a_bad_request(client):
 
 def test_with_no_kinds_named_all_three_are_asked_for(client):
     assert post(client, {"x-materials-request": "1"}, {}).json()["wanted"] == ["article", "photo", "video"]
+
+
+class _OnePool:
+    from contextlib import contextmanager
+
+    @contextmanager
+    def connection(self):
+        yield None
+
+
+def test_a_downloaded_file_is_sent_with_its_type_and_anything_else_is_not_found(client, monkeypatch, tmp_path):
+    client.app.state.pool = _OnePool()
+    files = {"shot.png": b"png-bytes", "text.md": "# 標題".encode(), "page.html": b"<script>1</script>"}
+    for name, data in files.items():
+        (tmp_path / name).write_bytes(data)
+    monkeypatch.setattr(picks, "pick_file", lambda conn, article_id, path: tmp_path / path if article_id == "abc" and path in files else None)
+    shot = client.get("/api/materials/abc/file", params={"path": "shot.png"})
+    assert shot.status_code == 200 and shot.content == b"png-bytes" and shot.headers["content-type"] == "image/png"
+    assert shot.headers["x-content-type-options"] == "nosniff"
+    text = client.get("/api/materials/abc/file", params={"path": "text.md"})
+    assert text.headers["content-type"] == "text/plain; charset=utf-8" and text.text == "# 標題"
+    for params in ({"path": "page.html"}, {"path": "missing.png"}, {}):  # a type that is not shown, a file that is not the pick's, no path
+        assert client.get("/api/materials/abc/file", params=params).status_code == 404, params
+    assert client.get("/api/materials/other/file", params={"path": "shot.png"}).status_code == 404

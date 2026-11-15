@@ -16,6 +16,7 @@ import re
 import threading
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 from psycopg.types.json import Jsonb
@@ -86,6 +87,17 @@ def _folder_files(topic_id: str) -> list[dict[str, Any]]:
             if kind:
                 out.append({"kind": kind, "path": f.relative_to(root).as_posix(), "name": f.name, "size": f.stat().st_size})
     return out
+
+
+def pick_file(conn, article_id: str, path: str) -> Path | None:
+    """One of a pick's own files, named as the listing names it, for the page to show. A path that is not in that listing is not there, whatever it says, so
+    nothing else of the machine can be asked for."""
+    row = conn.execute("SELECT topic_id FROM material_picks WHERE article_id = %s", (article_id,)).fetchone()
+    if not row or not row["topic_id"] or not any(f["path"] == path for f in _folder_files(row["topic_id"])):
+        return None
+    root = workspace_dir().resolve()
+    found = (root / path).resolve()
+    return found if found.is_relative_to(root) and found.is_file() else None
 
 
 FILES_KEPT_SECONDS = 30

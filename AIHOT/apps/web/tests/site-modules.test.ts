@@ -102,6 +102,8 @@ test("the materials page asks for the kinds that are ticked and shows how each d
     const card = (title: string) => page.getByRole("listitem").filter({ hasText: title });
     await expect(card("下載完的")).toContainText("完成 · 文章 ✓ · 照片 2");
     await expect(card("下載完的")).toContainText("缺 影片：頁面沒有影片。自己錄一段");
+    await card("下載完的").getByText("檔案與紀錄").click();
+    await expect(card("下載完的").getByRole("img", { name: "x.png" })).toHaveAttribute("src", "/api/materials/a3/file?path=topics%2Ft3%2Fmedia%2Fx.png");
     await expect(card("下載中的")).toContainText("下載中…");
     await expect(card("下載中的").getByRole("button", { name: "下載" })).toBeDisabled();
     await expect(card("被中斷的")).toContainText("中斷了");

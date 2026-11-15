@@ -180,3 +180,19 @@ def test_a_download_that_never_finished_is_listed_as_interrupted(conn, workspace
     monkeypatch.setattr(picks, "_live", {a})
     assert next(p for p in picks.list_picks(conn) if p["id"] == a)["state"] == "running"
     assert picks.start(_Pool(conn), a, None) == "busy"
+
+
+def test_only_a_file_the_listing_names_can_be_asked_for(conn, workspace, layers, tag):
+    a, other = article(conn, tag, "a"), article(conn, tag, "b")
+    picks.add_picks(conn, [a, other])
+    topic = run(conn, a, ["article"])["topicId"]
+    media = workspace / "topics" / topic / "media"
+    media.mkdir(parents=True, exist_ok=True)
+    (media / "shot.png").write_bytes(b"png")
+    (media / "notes.txt").write_text("not a picture or a video")
+    (workspace / "secret.png").write_bytes(b"outside every topic")
+    assert picks.pick_file(conn, a, f"topics/{topic}/media/shot.png") == (media / "shot.png").resolve()
+    for path in (f"topics/{topic}/media/notes.txt", f"topics/{topic}/media/../../../secret.png", "secret.png", "", f"topics/{topic}/media/missing.png"):
+        assert picks.pick_file(conn, a, path) is None, path
+    assert picks.pick_file(conn, other, f"topics/{topic}/media/shot.png") is None  # another article's file
+    assert picks.pick_file(conn, "no-such-article", f"topics/{topic}/media/shot.png") is None
