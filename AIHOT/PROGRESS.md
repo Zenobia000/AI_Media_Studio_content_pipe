@@ -78,7 +78,7 @@
 
 | 流程步驟 | 狀態 | 還沒做或沒驗證的 |
 |---|---|---|
-| 資料庫建表（`newsroom migrate`，86 個 migration） | ✅ | |
+| 資料庫建表（`newsroom migrate`，87 個 migration） | ✅ | |
 | 收集 RSS、JSON、網頁列表 | ✅ | |
 | 收集 X、公眾號、Jina | ◐ | 沒連過真實的 SocialData、Dajiala、Jina |
 | 正文擷取 | ✅ | 仍是抽樣驗證（2,000 頁產生的、74 個真實頁面）；少見版型沒涵蓋 |

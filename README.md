@@ -137,7 +137,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 | 步驟 | 原版（TypeScript） | 我怎麼做（Python） | 位置 |
 |---|---|---|---|
-| 0. 建資料表 | `scripts/migrate.ts`、86 個 migration | `newsroom migrate` 從空資料庫一個指令建完；佇列另用自己的資料表（migration 0123） | `core/migrations/`、`engine/jobs/` |
+| 0. 建資料表 | `scripts/migrate.ts`、87 個 migration（引擎 68 個加本專案 19 個） | `newsroom migrate` 從空資料庫一個指令建完；佇列另用自己的資料表（migration 0123） | `core/migrations/`、`engine/jobs/` |
 | 1. 信源收集 | `sources/`：RSS、網頁、JSON、X、公眾號、外部推送 | RSS／Atom／RDF、JSON、網頁列表逐個移植，含過濾、信源健康度、到期排程、每日間隔調整；X、公眾號、Jina 用本機假服務比對請求 | `engine/sources/`、`engine/socialdata.py`、`engine/dajiala.py`、`engine/jina.py` |
 | 2. 入庫與判重 | `content/` | 網址整理後的身分碼去重、版本、時間線規則、原發信源歸屬；舊文（發布超過 48 小時）歸檔不進「今天」 | `engine/ingest.py`、`engine/content.py` |
 | 3. 抓正文 | Mozilla Readability | 逐方法移植 Readability，加來源規則、發布時間判斷、詳情頁補抓；用 2,000 頁隨機網頁加 74 個真實頁面比對 | `engine/readability.py`、`engine/extract.py` |
@@ -160,7 +160,7 @@ AIHOT 的流程是：信源 → 採集（判重、抓原文）→ 判斷與寫�
 
 ## 本機開發與繁體中文顯示
 
-**一個終端跑全部。** `python start_dev.py` 啟動資料庫、API、worker、網站，三個服務的輸出都在同一個終端，每行前面加 `[MediaHOT API]`、`[MediaHOT worker]`、`[MediaHOT 網站]`。按 Ctrl+C 全部停掉，任何一個服務自己結束時其餘也會停。要回到「三個服務各開一個視窗」，加 `--separate`。`python stop_dev.py` 仍然可以停（程序編號記在 `.data/dev-pids.json`）。　要把整套裝到另一台電腦（例如老師的），照 [docs/process/setup-new-machine.md](docs/process/setup-new-machine.md) 一步步做，裝完先跑 `python check_setup.py` 檢查環境。
+**一個終端跑全部。** `python start_dev.py` 啟動資料庫（這台電腦還沒有資料庫容器時會自己建）、API、worker、網站，三個服務的輸出都在同一個終端，每行前面加 `[MediaHOT API]`、`[MediaHOT worker]`、`[MediaHOT 網站]`。按 Ctrl+C 全部停掉，任何一個服務自己結束時其餘也會停。要回到「三個服務各開一個視窗」，加 `--separate`。`python stop_dev.py` 仍然可以停（程序編號記在 `.data/dev-pids.json`）。　要把整套裝到另一台電腦（例如老師的），照 [docs/process/setup-new-machine.md](docs/process/setup-new-machine.md) 一步步做，裝完先跑 `python check_setup.py` 檢查環境。
 
 **本機模型的繁體字。** 本機模型常用簡體字寫標題，所以用本機模型時（`python start_dev.py`，模型網址是本機）會自動打開 `LLM_TRADITIONAL=true`，在寫中文標題與摘要的提示詞最後加一句要求繁體；雲端模型與預設環境不加。網站顯示的是資料庫裡存的字，沒有另外做簡轉繁，簡體網站的中文文章會以簡體字顯示。
 
