@@ -10,6 +10,7 @@
 
 | 我想知道… | 看這份 |
 |---|---|
+| **我要在自己的電腦上把它跑起來（例如老師）** | **[docs/process/setup-new-machine.md](docs/process/setup-new-machine.md)**：從裝軟體到 `python start_dev.py` 一步步寫好；裝完先跑 `python check_setup.py`，它會列出還缺什麼 |
 | 整個專案是什麼、誰做什麼、怎麼合作 | 這份（根目錄 README.md） |
 | **我（Albert）做到哪、哪些完成、哪些沒完成** | [AIHOT/PROGRESS.md](AIHOT/PROGRESS.md) |
 | **AIHOT 後端改成 Python 之後，每個步驟我怎麼做** | 這份往下的〈後端改成 Python 之後〉 |
