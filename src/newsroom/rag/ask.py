@@ -105,8 +105,30 @@ def _body(messages: Messages, stream: bool, temperature: float, fmt: dict | None
     return body
 
 
+PROVIDERS = ("ollama", "claude", "openai")
+
+
+def chat_provider() -> str:
+    """Who writes the answers: the local Ollama (the default), Claude (RAG_CHAT_PROVIDER=claude), or any service with an OpenAI-compatible API
+    (RAG_CHAT_PROVIDER=openai: OpenAI, Gemini, DeepSeek, ...). The search still uses the local embedding model whichever it is.
+    A value that is none of them is an error and not a silent Ollama: the chat would answer from a model the setting did not name."""
+    value = (os.environ.get("RAG_CHAT_PROVIDER") or "ollama").strip().lower()
+    if value not in PROVIDERS:
+        raise EmbedError(f"RAG_CHAT_PROVIDER must be one of {', '.join(PROVIDERS)}, not {value!r}")
+    return value
+
+
 def chat(messages: Messages, temperature: float = 0.2, fmt: dict | None = None) -> str:
-    """One answer from an Ollama server (/api/chat); `fmt` is a JSON schema the answer must follow."""
+    """One answer, from the provider chat_provider names; `fmt` is a JSON schema the answer must follow."""
+    provider = chat_provider()
+    if provider == "claude":
+        from newsroom.rag import claude_chat  # noqa: PLC0415
+
+        return claude_chat.complete(messages, fmt)
+    if provider == "openai":
+        from newsroom.rag import openai_chat  # noqa: PLC0415
+
+        return openai_chat.complete(messages, fmt)
     try:
         res = httpx.post(f"{embed_url()}/api/chat", json=_body(messages, False, temperature, fmt), timeout=600)
         res.raise_for_status()
@@ -117,6 +139,17 @@ def chat(messages: Messages, temperature: float = 0.2, fmt: dict | None = None) 
 
 def chat_stream(messages: Messages) -> Iterator[str]:
     """The answer in pieces as the model writes it."""
+    provider = chat_provider()
+    if provider == "claude":
+        from newsroom.rag import claude_chat  # noqa: PLC0415
+
+        yield from claude_chat.stream(messages)
+        return
+    if provider == "openai":
+        from newsroom.rag import openai_chat  # noqa: PLC0415
+
+        yield from openai_chat.stream(messages)
+        return
     try:
         with httpx.stream("POST", f"{embed_url()}/api/chat", json=_body(messages, True, 0.3), timeout=600) as res:
             res.raise_for_status()

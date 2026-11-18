@@ -98,5 +98,8 @@ cd .. && python -m pytest tests                       # 收集與補料（Python
 | `YTDLP_COOKIES_FILE` | 選用，自己帳號的 cookies 檔路徑，給 yt-dlp、gallery-dl 用；不要放進版本控制 |
 | `RAG_INDEX_ENABLED` | 選用，`true` 時 worker 每 10 分鐘把新文章轉成向量；`start_dev.py` 預設打開，其他環境預設關著 |
 | `RAG_EMBED_URL`、`RAG_EMBED_MODEL`、`RAG_CHAT_MODEL`、`RAG_MIN_SCORE` | 選用，站內問答用的本機 Ollama 位置（預設 `http://127.0.0.1:11434`）、向量模型（`bge-m3`）、聊天模型（`qwen3.5:9b-ctx32k`）、答案採用的最低相似度（`0.6`） |
+| `RAG_CHAT_PROVIDER` | 選用，聊天的回答由誰寫：`ollama`（預設）、`claude`、`openai`（任何 OpenAI 相容的服務）。填別的值會報錯，不會默默改用 Ollama。搜尋的向量模型不論選哪個都是本機的 `bge-m3`，所以 Ollama 要開著。雲端的會產生費用 |
+| `RAG_CLAUDE_MODEL` | 選用，`RAG_CHAT_PROVIDER=claude` 時的模型（預設 `claude-opus-5-5`）；要先 `python -m pip install -e ".[claude]"`，金鑰用 `ANTHROPIC_API_KEY` |
+| `RAG_OPENAI_BASE_URL`、`RAG_OPENAI_API_KEY`、`RAG_OPENAI_MODEL` | `RAG_CHAT_PROVIDER=openai` 時三個都要填：服務網址（例如 `https://api.openai.com/v1`）、金鑰、該服務的模型名稱 |
 
 其餘設定見 [.env.example](../../AIHOT/.env.example)。

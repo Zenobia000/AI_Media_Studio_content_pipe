@@ -28,6 +28,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
 record = ["playwright>=1.45"]
+claude = ["anthropic>=2"]  # the chat answering as Claude (RAG_CHAT_PROVIDER=claude); not needed with the default, Ollama
 
 [project.scripts]
 newsroom = "newsroom.cli:app"
